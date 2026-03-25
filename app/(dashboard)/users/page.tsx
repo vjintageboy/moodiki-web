@@ -35,7 +35,7 @@ import { MoreHorizontal, Trash2, Edit, Shield } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { User } from '@/lib/types';
 import { toast } from 'sonner';
-import Link from 'next/link';
+import { AddUserDialog } from '@/components/users/add-user-dialog';
 
 /**
  * Debounce hook for search
@@ -276,9 +276,9 @@ function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
           <DropdownMenuSeparator />
           
           <DropdownMenuItem>
-            <Link href={`/dashboard/users/${user.id}`} className="w-full cursor-pointer">
+            <a href={`/users/${user.id}`} className="w-full cursor-pointer">
               View Details
-            </Link>
+            </a>
           </DropdownMenuItem>
 
           {isAdmin && (
@@ -331,6 +331,7 @@ export default function UsersPage() {
   const { user: currentUser, isAdmin } = useAuth();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [addUserOpen, setAddUserOpen] = useState(false);
   const debouncedSearch = useDebounce(search);
 
   // Fetch users with filters
@@ -432,9 +433,7 @@ export default function UsersPage() {
             Manage platform users, roles, and access
           </p>
         </div>
-        <Link href="/dashboard/users/new">
-          <Button>Add User</Button>
-        </Link>
+        <Button onClick={() => setAddUserOpen(true)}>Add User</Button>
       </div>
 
       {/* Filters */}
@@ -498,6 +497,11 @@ export default function UsersPage() {
           Showing {data.users.length} of {data.total} users
         </div>
       )}
+
+      <AddUserDialog 
+        open={addUserOpen} 
+        onOpenChange={setAddUserOpen} 
+      />
     </div>
   );
 }

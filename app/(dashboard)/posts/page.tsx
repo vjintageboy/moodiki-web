@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Filter, MessageSquare, Heart, Eye, Trash2, User, Calendar } from 'lucide-react';
+import { Search, Filter, MessageSquare, Heart, Eye, EyeOff, Trash2, User, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -41,6 +41,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   usePosts,
   useDeletePost,
+  useTogglePostVisibility,
   usePostStats,
   usePostComments,
   useDeleteComment,
@@ -52,9 +53,11 @@ const categories = ['community', 'tips', 'success-story', 'question', 'discussio
 export default function PostsPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [visibilityFilter, setVisibilityFilter] = useState<'all' | 'visible' | 'hidden'>('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewPostId, setViewPostId] = useState<string | null>(null);
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const { toast } = useToast();
 
@@ -68,8 +71,16 @@ export default function PostsPage() {
   const { data: comments = [] } = usePostComments(viewPostId);
   const deleteMutation = useDeletePost();
   const deleteCommentMutation = useDeleteComment();
+  const toggleVisibility = useTogglePostVisibility();
 
   const selectedPost = posts.find((p) => p.id === viewPostId);
+
+  // Apply visibility filter client-side (avoids extra DB query)
+  const filteredPosts = posts.filter((p) => {
+    if (visibilityFilter === 'visible') return !p.is_hidden;
+    if (visibilityFilter === 'hidden') return p.is_hidden;
+    return true;
+  });
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -106,6 +117,27 @@ export default function PostsPage() {
         description: error.message || 'Failed to delete comment',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleToggleVisibility = async (id: string, currentlyHidden: boolean) => {
+    setTogglingId(id);
+    try {
+      await toggleVisibility.mutateAsync({ id, is_hidden: !currentlyHidden });
+      toast({
+        title: currentlyHidden ? 'Post Unhidden' : 'Post Hidden',
+        description: currentlyHidden
+          ? 'The post is now visible to users.'
+          : 'The post is now hidden from users.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update post visibility',
+        variant: 'destructive',
+      });
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -211,6 +243,20 @@ export default function PostsPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select
+              value={visibilityFilter}
+              onValueChange={(value) => setVisibilityFilter(value as typeof visibilityFilter)}
+            >
+              <SelectTrigger className="w-full md:w-[160px]">
+                <Eye className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Posts</SelectItem>
+                <SelectItem value="visible">Visible</SelectItem>
+                <SelectItem value="hidden">Hidden</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -228,16 +274,22 @@ export default function PostsPage() {
             </Card>
           ))}
         </div>
-      ) : posts.length === 0 ? (
+      ) : filteredPosts.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <MessageSquare className="mx-auto h-12 w-12 mb-4 opacity-50" />
-            <p>No posts found. Users can create posts in the mobile app.</p>
+            <p>
+              {visibilityFilter === 'hidden'
+                ? 'No hidden posts.'
+                : visibilityFilter === 'visible'
+                ? 'No visible posts found.'
+                : 'No posts found. Users can create posts in the mobile app.'}
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <Card key={post.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="space-y-4">
@@ -289,6 +341,12 @@ export default function PostsPage() {
                         {post.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                       </Badge>
                     )}
+                    {post.is_hidden && (
+                      <Badge variant="outline" className="border-orange-400 text-orange-500 bg-orange-50 dark:bg-orange-950/30">
+                        <EyeOff className="h-3 w-3 mr-1" />
+                        Hidden
+                      </Badge>
+                    )}
                     <div className="flex items-center gap-1">
                       <Heart className="h-4 w-4" />
                       <span>{post.likes_count || 0}</span>
@@ -312,7 +370,26 @@ export default function PostsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-red-500 hover:text-red-600"
+                      className={post.is_hidden
+                        ? 'text-green-600 hover:text-green-700 border-green-300'
+                        : 'text-orange-500 hover:text-orange-600 border-orange-300'
+                      }
+                      onClick={() => handleToggleVisibility(post.id, !!post.is_hidden)}
+                      disabled={togglingId === post.id}
+                    >
+                      {togglingId === post.id ? (
+                        <span className="h-4 w-4 mr-2 inline-block rounded-full border-2 border-current border-t-transparent animate-spin" />
+                      ) : post.is_hidden ? (
+                        <Eye className="h-4 w-4 mr-2" />
+                      ) : (
+                        <EyeOff className="h-4 w-4 mr-2" />
+                      )}
+                      {togglingId === post.id ? '...' : post.is_hidden ? 'Unhide' : 'Hide'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-500 hover:text-red-600 ml-auto"
                       onClick={() => setDeleteId(post.id)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />

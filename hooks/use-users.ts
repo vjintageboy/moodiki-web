@@ -240,54 +240,34 @@ export function useCreateUser() {
 
   return useMutation({
     mutationFn: async (data: UserInsert & { password?: string }) => {
-      const supabase = createClient();
       const { password, ...userData } = data;
 
-      // Step 1: Create auth user (if password provided)
-      if (password && userData.email) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: userData.email,
-          password,
-        });
-
-        if (authError) {
-          console.error('Auth error:', authError);
-          throw new Error(`Failed to create auth user: ${authError.message}`);
-        }
-
-        if (!authData.user) {
-          throw new Error('Failed to create auth user');
-        }
-
-        // Step 2: Create user profile in public.users
-        const { data: userProfile, error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            email: userData.email,
-            full_name: userData.full_name,
-            avatar_url: userData.avatar_url,
-            role: userData.role,
-            date_of_birth: userData.date_of_birth,
-            gender: userData.gender,
-            goals: userData.goals,
-            preferences: userData.preferences,
-            streak_count: userData.streak_count || 0,
-            longest_streak: userData.longest_streak || 0,
-            total_activities: userData.total_activities || 0,
-          })
-          .select()
-          .single();
-
-        if (profileError) {
-          console.error('Profile error:', profileError);
-          throw new Error(`Failed to create user profile: ${profileError.message}`);
-        }
-
-        return userProfile;
-      } else {
+      if (!password || !userData.email) {
         throw new Error('Email and password are required to create a user');
       }
+
+      // Call the secure Admin API route instead of client-side auth.signUp
+      // This prevents the admin from being logged out.
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          password,
+          full_name: userData.full_name,
+          role: userData.role,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create user via Admin API');
+      }
+
+      return result.user;
     },
     onSuccess: (createdUser) => {
       // Invalidate the users list query to refetch updated data

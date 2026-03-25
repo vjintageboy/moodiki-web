@@ -105,6 +105,29 @@ export function useDeletePost() {
   });
 }
 
+// Toggle post visibility (hide / unhide) — admin moderation
+export function useTogglePostVisibility() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, is_hidden }: { id: string; is_hidden: boolean }) => {
+      const { data, error } = await supabase
+        .from('posts')
+        .update({ is_hidden })
+        .eq('id', id)
+        .select('id, is_hidden')
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['post', data.id] });
+    },
+  });
+}
+
 // Update post (admin can moderate content)
 export function useUpdatePost() {
   const queryClient = useQueryClient();

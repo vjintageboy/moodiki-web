@@ -247,6 +247,7 @@ export interface Post {
   image_url: string | null;
   category: string;
   is_anonymous: boolean;
+  is_hidden: boolean; // Admin soft-moderation flag — migration 009
   likes_count: number;
   comment_count: number;
   created_at: string; // ISO timestamp

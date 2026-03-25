@@ -15,10 +15,15 @@ const DASHBOARD_PATHS = [
   '/posts',
   '/settings',
   '/users',
+  '/earnings',
+  '/chats',
+  '/availability',
+  '/notifications',
+  '/book-appointment',
 ]
 
 // Admin-only sub-routes within the dashboard
-const ADMIN_ONLY_PATHS = ['/users', '/experts', '/analytics']
+const ADMIN_ONLY_PATHS = ['/users', '/experts', '/analytics', '/posts', '/meditations']
 
 /**
  * Authentication and authorization middleware
