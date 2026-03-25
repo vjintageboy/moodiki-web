@@ -32,7 +32,6 @@ import {
   useReactivateExpert,
   useDeleteExpertPermanently,
 } from '@/hooks/use-recent-activities';
-import { toast } from 'sonner';
 import Link from 'next/link';
 
 interface RejectedExpert {
@@ -142,6 +141,7 @@ export function RejectedExpertsTab({
     expertName: '',
     action: 'reactivate',
   });
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const reactivateExpert = useReactivateExpert();
   const deleteExpert = useDeleteExpertPermanently();
@@ -194,18 +194,18 @@ export function RejectedExpertsTab({
   };
 
   const handleConfirm = async () => {
-    try {
-      if (actionDialog.action === 'reactivate') {
-        await reactivateExpert.mutateAsync(actionDialog.expertId);
-        toast.success(`${actionDialog.expertName} has been reactivated`);
-      } else {
-        await deleteExpert.mutateAsync(actionDialog.expertId);
-        toast.success(`${actionDialog.expertName} has been deleted`);
-      }
-    } catch (error) {
-      toast.error(`Failed to ${actionDialog.action} expert`);
-    }
+    const { expertId, action } = actionDialog;
     setActionDialog({ ...actionDialog, open: false });
+    setProcessingId(expertId);
+    try {
+      if (action === 'reactivate') {
+        await reactivateExpert.mutateAsync(expertId);
+      } else {
+        await deleteExpert.mutateAsync(expertId);
+      }
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   if (isLoading) {
@@ -324,7 +324,7 @@ export function RejectedExpertsTab({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">
-                        <Link href={`/dashboard/experts/${expert.id}`}>
+                        <Link href={`/experts/${expert.id}`}>
                           <Button size="sm" variant="ghost">
                             Details
                           </Button>
@@ -338,12 +338,9 @@ export function RejectedExpertsTab({
                               expert.users.full_name
                             )
                           }
-                          disabled={
-                            reactivateExpert.isPending ||
-                            deleteExpert.isPending
-                          }
+                          disabled={processingId !== null}
                         >
-                          {reactivateExpert.isPending ? '...' : 'Reactivate'}
+                          {processingId === expert.id ? '...' : 'Reactivate'}
                         </Button>
                         <Button
                           size="sm"
@@ -351,12 +348,9 @@ export function RejectedExpertsTab({
                           onClick={() =>
                             handleDelete(expert.id, expert.users.full_name)
                           }
-                          disabled={
-                            reactivateExpert.isPending ||
-                            deleteExpert.isPending
-                          }
+                          disabled={processingId !== null}
                         >
-                          {deleteExpert.isPending ? '...' : 'Delete'}
+                          {processingId === expert.id ? '...' : 'Delete'}
                         </Button>
                       </div>
                     </TableCell>

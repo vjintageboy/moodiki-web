@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
-function getInitials(name: string): string {
+function getInitials(name?: string | null): string {
+  if (!name) return '?';
   return name
     .split(' ')
     .map((n) => n[0])
@@ -95,6 +96,7 @@ export function PendingExpertsCards() {
     expertName: '',
     action: 'approve',
   });
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const handleApprove = (expertId: string, expertName: string) => {
     setConfirmDialog({
@@ -115,18 +117,18 @@ export function PendingExpertsCards() {
   };
 
   const handleConfirm = async () => {
-    try {
-      if (confirmDialog.action === 'approve') {
-        await approveExpert.mutateAsync(confirmDialog.expertId);
-        toast.success(`${confirmDialog.expertName} has been approved`);
-      } else {
-        await rejectExpert.mutateAsync(confirmDialog.expertId);
-        toast.success(`${confirmDialog.expertName} has been rejected`);
-      }
-    } catch (error) {
-      toast.error(`Failed to ${confirmDialog.action} expert`);
-    }
+    const { expertId, action } = confirmDialog;
     setConfirmDialog({ ...confirmDialog, open: false });
+    setProcessingId(expertId);
+    try {
+      if (action === 'approve') {
+        await approveExpert.mutateAsync(expertId);
+      } else {
+        await rejectExpert.mutateAsync({ expertId });
+      }
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   if (isLoading) return <CardSkeleton />;
@@ -186,7 +188,7 @@ export function PendingExpertsCards() {
 
               {/* Actions */}
               <div className="flex gap-2 shrink-0">
-                <Link href={`/dashboard/experts/${expert.id}`}>
+                <Link href={`/experts/${expert.id}`}>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -199,18 +201,18 @@ export function PendingExpertsCards() {
                   size="sm"
                   className="bg-green-600 hover:bg-green-700 text-white h-7 text-xs"
                   onClick={() => handleApprove(expert.id, expert.full_name)}
-                  disabled={approveExpert.isPending}
+                  disabled={processingId !== null}
                 >
-                  {approveExpert.isPending ? '...' : 'Approve'}
+                  {processingId === expert.id ? '...' : 'Approve'}
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   className="h-7 text-xs"
                   onClick={() => handleReject(expert.id, expert.full_name)}
-                  disabled={rejectExpert.isPending}
+                  disabled={processingId !== null}
                 >
-                  {rejectExpert.isPending ? '...' : 'Reject'}
+                  {processingId === expert.id ? '...' : 'Reject'}
                 </Button>
               </div>
             </div>

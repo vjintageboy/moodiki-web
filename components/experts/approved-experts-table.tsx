@@ -29,7 +29,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useSuspendExpert } from '@/hooks/use-recent-activities';
-import { toast } from 'sonner';
 import Link from 'next/link';
 
 interface ApprovedExpert {
@@ -131,6 +130,7 @@ export function ApprovedExpertsTable({
     expertId: '',
     expertName: '',
   });
+  const [suspendingId, setSuspendingId] = useState<string | null>(null);
 
   const suspendExpert = useSuspendExpert();
 
@@ -172,13 +172,14 @@ export function ApprovedExpertsTable({
   };
 
   const handleConfirmSuspend = async () => {
-    try {
-      await suspendExpert.mutateAsync(suspendDialog.expertId);
-      toast.success(`${suspendDialog.expertName} has been suspended`);
-    } catch (error) {
-      toast.error('Failed to suspend expert');
-    }
+    const { expertId } = suspendDialog;
     setSuspendDialog({ ...suspendDialog, open: false });
+    setSuspendingId(expertId);
+    try {
+      await suspendExpert.mutateAsync(expertId);
+    } finally {
+      setSuspendingId(null);
+    }
   };
 
   if (isLoading) {
@@ -299,7 +300,7 @@ export function ApprovedExpertsTable({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">
-                        <Link href={`/dashboard/experts/${expert.id}`}>
+                        <Link href={`/experts/${expert.id}`}>
                           <Button size="sm" variant="ghost">
                             Details
                           </Button>
@@ -313,9 +314,9 @@ export function ApprovedExpertsTable({
                               expert.users.full_name
                             )
                           }
-                          disabled={suspendExpert.isPending}
+                          disabled={suspendingId !== null}
                         >
-                          {suspendExpert.isPending ? '...' : 'Suspend'}
+                          {suspendingId === expert.id ? '...' : 'Suspend'}
                         </Button>
                       </div>
                     </TableCell>

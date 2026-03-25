@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
 /**
@@ -188,7 +189,10 @@ export function usePendingExperts() {
           bio,
           specialization,
           years_experience,
+          hourly_rate,
           rating,
+          title,
+          license_number,
           license_url,
           certificate_urls,
           created_at,
@@ -207,7 +211,7 @@ export function usePendingExperts() {
 
       return data as any[];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 2, // 2 minutes — pending list changes more frequently
   });
 }
 
@@ -245,15 +249,36 @@ export function useApproveExpert() {
     mutationFn: async (expertId: string) => {
       const supabase = createClient();
 
+      // Try with rejection_reason: null (clears any prior rejection); fall back if column doesn't exist yet
       const { error } = await supabase
         .from('experts')
-        .update({ is_approved: true })
+        .update({ is_approved: true, rejection_reason: null })
         .eq('id', expertId);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42703' || error.message?.includes('rejection_reason')) {
+          // Column doesn't exist yet — update without it
+          const { error: fallbackError } = await supabase
+            .from('experts')
+            .update({ is_approved: true })
+            .eq('id', expertId);
+          if (fallbackError) throw fallbackError;
+        } else {
+          throw error;
+        }
+      }
+
+      return expertId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['experts'] });
+      toast.success('Expert approved successfully');
+    },
+    onError: (error) => {
+      console.error('Approve expert error:', error);
+      toast.error('Failed to approve expert');
     },
   });
 }
@@ -265,16 +290,42 @@ export function useRejectExpert() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (expertId: string) => {
+    mutationFn: async ({ expertId, reason }: { expertId: string; reason?: string }) => {
       const supabase = createClient();
 
-      // Delete the expert and user (cascade delete)
-      const { error } = await supabase.from('experts').delete().eq('id', expertId);
+      // Soft-reject: keep the record, set is_approved = false and store reason
+      const { error } = await supabase
+        .from('experts')
+        .update({
+          is_approved: false,
+          rejection_reason: reason?.trim() || null,
+        })
+        .eq('id', expertId);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42703' || error.message?.includes('rejection_reason')) {
+          // Column doesn't exist yet — update without it
+          const { error: fallbackError } = await supabase
+            .from('experts')
+            .update({ is_approved: false })
+            .eq('id', expertId);
+          if (fallbackError) throw fallbackError;
+        } else {
+          throw error;
+        }
+      }
+
+      return expertId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['rejected-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['experts'] });
+      toast.success('Expert application rejected');
+    },
+    onError: (error) => {
+      console.error('Reject expert error:', error);
+      toast.error('Failed to reject expert');
     },
   });
 }
@@ -295,9 +346,18 @@ export function useSuspendExpert() {
         .eq('id', expertId);
 
       if (error) throw error;
+
+      return expertId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['approved-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['rejected-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['experts'] });
+      toast.success('Expert suspended successfully');
+    },
+    onError: (error) => {
+      console.error('Suspend expert error:', error);
+      toast.error('Failed to suspend expert');
     },
   });
 }
@@ -314,13 +374,22 @@ export function useReactivateExpert() {
 
       const { error } = await supabase
         .from('experts')
-        .update({ is_approved: true })
+        .update({ is_approved: true, rejection_reason: null })
         .eq('id', expertId);
 
       if (error) throw error;
+
+      return expertId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['approved-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['rejected-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['experts'] });
+      toast.success('Expert reactivated successfully');
+    },
+    onError: (error) => {
+      console.error('Reactivate expert error:', error);
+      toast.error('Failed to reactivate expert');
     },
   });
 }
@@ -338,9 +407,19 @@ export function useDeleteExpertPermanently() {
       const { error } = await supabase.from('experts').delete().eq('id', expertId);
 
       if (error) throw error;
+
+      return expertId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['approved-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['rejected-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-experts'] });
+      queryClient.invalidateQueries({ queryKey: ['experts'] });
+      toast.success('Expert deleted permanently');
+    },
+    onError: (error) => {
+      console.error('Delete expert error:', error);
+      toast.error('Failed to delete expert');
     },
   });
 }

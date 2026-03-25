@@ -127,7 +127,7 @@ export function useExpert(id?: string) {
         .select(
           `
           *,
-          users:id(id, email, full_name, avatar_url)
+          users!experts_id_fkey(id, email, full_name, avatar_url)
         `
         )
         .eq('id', id)
