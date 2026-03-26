@@ -1,0 +1,5 @@
+{"sessionId":"f6821d","runId":"pre-debug","hypothesisId":"H1_proxy_module_loaded","location":"proxy.ts:1","message":"proxy.ts module loaded","data":{},"timestamp":1774512741504}
+{"sessionId":"f6821d","runId":"pre-debug","hypothesisId":"H1_proxy_called","location":"proxy.ts:8","message":"proxy() called","data":{"pathname":"/vi"},"timestamp":1774512741520}
+{"sessionId":"f6821d","runId":"pre-debug","hypothesisId":"H2_updateSession_called","location":"lib/supabase/middleware.ts:174","message":"updateSession() called","data":{"pathname":"/vi","effectivePathname":"/"},"timestamp":1774512741526}
+{"sessionId":"f6821d","runId":"pre-debug","hypothesisId":"H1_proxy_called","location":"proxy.ts:8","message":"proxy() called","data":{"pathname":"/vi/login"},"timestamp":1774512742847}
+{"sessionId":"f6821d","runId":"pre-debug","hypothesisId":"H2_updateSession_called","location":"lib/supabase/middleware.ts:174","message":"updateSession() called","data":{"pathname":"/vi/login","effectivePathname":"/login"},"timestamp":1774512742848}

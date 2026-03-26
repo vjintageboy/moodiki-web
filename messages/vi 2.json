@@ -1,0 +1,20 @@
+{
+  "Dashboard": {
+    "title": "Bảng điều khiển",
+    "description": "Tổng quan nền tảng sức khỏe tinh thần."
+  },
+  "Sidebar": {
+    "dashboard": "Bảng điều khiển",
+    "users": "Người dùng",
+    "experts": "Chuyên gia",
+    "appointments": "Lịch hẹn",
+    "meditations": "Thiền định",
+    "posts": "Bài viết",
+    "settings": "Cài đặt",
+    "analytics": "Phân tích"
+  },
+  "Header": {
+    "welcome": "Chào mừng trở lại",
+    "logout": "Đăng xuất"
+  }
+}

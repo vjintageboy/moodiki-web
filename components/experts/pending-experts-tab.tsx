@@ -41,6 +41,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 
 // ============================================================================
 // HELPERS
@@ -55,8 +56,8 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-function formatDate(dateString: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+function formatDate(dateString: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -117,6 +118,7 @@ interface ConfirmDialogProps {
   open: boolean;
   expertName: string;
   action: 'approve' | 'reject';
+  t: (key: string, values?: Record<string, string | number>) => string;
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -128,6 +130,7 @@ function ConfirmDialog({
   open,
   expertName,
   action,
+  t,
   onConfirm,
   onCancel,
   isLoading,
@@ -141,23 +144,23 @@ function ConfirmDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isApprove ? 'Approve Expert Application' : 'Reject Expert Application'}
+            {isApprove ? t('confirmApproveTitle') : t('confirmRejectTitle')}
           </DialogTitle>
           <DialogDescription>
             {isApprove
-              ? `Are you sure you want to approve ${expertName}? They will be able to accept appointments immediately.`
-              : `Are you sure you want to reject ${expertName}? The record will be kept in the Rejected tab.`}
+              ? t('confirmApproveDescription', { expertName })
+              : t('confirmRejectDescription', { expertName })}
           </DialogDescription>
         </DialogHeader>
 
         {!isApprove && (
           <div className="space-y-2">
             <Label htmlFor="rejection-reason" className="text-sm font-medium">
-              Rejection Reason <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('rejectionReason')} <span className="text-muted-foreground font-normal">{t('optional')}</span>
             </Label>
             <Textarea
               id="rejection-reason"
-              placeholder="Enter reason for rejection..."
+              placeholder={t('rejectionReasonPlaceholder')}
               value={rejectionReason || ''}
               onChange={(e) => onReasonChange?.(e.target.value)}
               rows={3}
@@ -168,7 +171,7 @@ function ConfirmDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant={isApprove ? 'default' : 'destructive'}
@@ -178,10 +181,10 @@ function ConfirmDialog({
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isApprove ? 'Approving...' : 'Rejecting...'}
+                {isApprove ? t('approving') : t('rejecting')}
               </>
             ) : (
-              isApprove ? 'Approve' : 'Reject'
+              isApprove ? t('approve') : t('reject')
             )}
           </Button>
         </DialogFooter>
@@ -198,6 +201,7 @@ interface BatchConfirmDialogProps {
   open: boolean;
   count: number;
   action: 'approve' | 'reject';
+  t: (key: string, values?: Record<string, string | number>) => string;
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -209,6 +213,7 @@ function BatchConfirmDialog({
   open,
   count,
   action,
+  t,
   onConfirm,
   onCancel,
   isLoading,
@@ -222,23 +227,23 @@ function BatchConfirmDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isApprove ? `Approve ${count} Expert(s)` : `Reject ${count} Expert(s)`}
+            {isApprove ? t('batchApproveTitle', { count }) : t('batchRejectTitle', { count })}
           </DialogTitle>
           <DialogDescription>
             {isApprove
-              ? `This will approve ${count} expert application(s). They will all be able to accept appointments immediately.`
-              : `This will reject ${count} expert application(s). Records will be kept in the Rejected tab.`}
+              ? t('batchApproveDescription', { count })
+              : t('batchRejectDescription', { count })}
           </DialogDescription>
         </DialogHeader>
 
         {!isApprove && (
           <div className="space-y-2">
             <Label htmlFor="batch-rejection-reason" className="text-sm font-medium">
-              Rejection Reason <span className="text-muted-foreground font-normal">(optional, applies to all)</span>
+              {t('rejectionReason')} <span className="text-muted-foreground font-normal">{t('optionalForAll')}</span>
             </Label>
             <Textarea
               id="batch-rejection-reason"
-              placeholder="Enter reason for rejection..."
+              placeholder={t('rejectionReasonPlaceholder')}
               value={rejectionReason || ''}
               onChange={(e) => onReasonChange?.(e.target.value)}
               rows={3}
@@ -249,7 +254,7 @@ function BatchConfirmDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant={isApprove ? 'default' : 'destructive'}
@@ -259,10 +264,10 @@ function BatchConfirmDialog({
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                {t('processing')}
               </>
             ) : (
-              isApprove ? `Approve ${count}` : `Reject ${count}`
+              isApprove ? t('batchApproveButton', { count }) : t('batchRejectButton', { count })
             )}
           </Button>
         </DialogFooter>
@@ -276,6 +281,8 @@ function BatchConfirmDialog({
 // ============================================================================
 
 export function PendingExpertsTab() {
+  const t = useTranslations('PendingExperts')
+  const locale = useLocale()
   const { data: experts, isLoading, error } = usePendingExperts();
   const approveExpert = useApproveExpert();
   const rejectExpert = useRejectExpert();
@@ -440,8 +447,8 @@ export function PendingExpertsTab() {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
         <AlertCircle className="h-10 w-10 text-destructive" />
-        <p className="text-sm text-destructive font-medium">Failed to load pending experts</p>
-        <p className="text-xs text-muted-foreground">Please refresh the page and try again.</p>
+        <p className="text-sm text-destructive font-medium">{t('failedToLoad')}</p>
+        <p className="text-xs text-muted-foreground">{t('pleaseRefresh')}</p>
       </div>
     );
   }
@@ -454,9 +461,9 @@ export function PendingExpertsTab() {
           <CheckCircle2 className="h-10 w-10 text-green-500" />
         </div>
         <div>
-          <p className="font-semibold text-foreground">All caught up!</p>
+          <p className="font-semibold text-foreground">{t('allCaughtUp')}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            No pending expert applications at this time.
+            {t('noPendingApplications')}
           </p>
         </div>
       </div>
@@ -472,7 +479,7 @@ export function PendingExpertsTab() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email or specialization..."
+            placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -480,13 +487,13 @@ export function PendingExpertsTab() {
         </div>
         <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Sort by" />
+            <SelectValue placeholder={t('sortBy')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="date_desc">Latest Applied</SelectItem>
-            <SelectItem value="date_asc">Oldest Applied</SelectItem>
-            <SelectItem value="name_asc">Name A → Z</SelectItem>
-            <SelectItem value="name_desc">Name Z → A</SelectItem>
+            <SelectItem value="date_desc">{t('sortLatest')}</SelectItem>
+            <SelectItem value="date_asc">{t('sortOldest')}</SelectItem>
+            <SelectItem value="name_asc">{t('sortNameAsc')}</SelectItem>
+            <SelectItem value="name_desc">{t('sortNameDesc')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -496,8 +503,8 @@ export function PendingExpertsTab() {
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
           <span>
-            {filteredExperts.length} application{filteredExperts.length !== 1 ? 's' : ''}
-            {searchTerm && ` matching "${searchTerm}"`}
+            {t('applicationsCount', { count: filteredExperts.length })}
+            {searchTerm && ` ${t('matchingQuery', { query: searchTerm })}`}
           </span>
         </div>
         {filteredExperts.length > 1 && (
@@ -508,7 +515,7 @@ export function PendingExpertsTab() {
               onCheckedChange={toggleSelectAll}
             />
             <label htmlFor="select-all" className="cursor-pointer text-muted-foreground select-none">
-              Select all
+              {t('selectAll')}
             </label>
           </div>
         )}
@@ -518,14 +525,14 @@ export function PendingExpertsTab() {
       {filteredExperts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
           <Search className="h-8 w-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">No experts match your search.</p>
+          <p className="text-sm text-muted-foreground">{t('noMatch')}</p>
         </div>
       )}
 
       {/* ── Expert Cards ──────────────────────────────────────────────────── */}
       <div className="grid gap-4 md:grid-cols-2">
         {filteredExperts.map((expert) => {
-          const name = expert.users?.full_name || 'Unknown';
+          const name = expert.users?.full_name || t('unknown');
           const isProcessing = processingId === expert.id;
           const isSelected = selectedIds.has(expert.id);
           const isDisabled = processingId !== null || isBatchLoading;
@@ -545,7 +552,7 @@ export function PendingExpertsTab() {
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-base truncate">{name}</CardTitle>
                       <CardDescription className="text-xs">
-                        {expert.specialization || 'No specialization'}
+                        {expert.specialization || t('noSpecialization')}
                       </CardDescription>
                     </div>
                   </div>
@@ -561,33 +568,33 @@ export function PendingExpertsTab() {
               <CardContent className="space-y-3">
                 {/* Email */}
                 <div>
-                  <p className="text-muted-foreground text-xs font-medium mb-0.5">Email</p>
+                  <p className="text-muted-foreground text-xs font-medium mb-0.5">{t('email')}</p>
                   <p className="text-sm break-all">{expert.users?.email || '—'}</p>
                 </div>
 
                 {/* Experience + Applied Date */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-muted-foreground text-xs font-medium mb-0.5">Experience</p>
-                    <p className="text-sm">{expert.years_experience || 0} years</p>
+                    <p className="text-muted-foreground text-xs font-medium mb-0.5">{t('experience')}</p>
+                    <p className="text-sm">{t('years', { count: expert.years_experience || 0 })}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs font-medium mb-0.5">Applied</p>
-                    <p className="text-sm">{formatDate(expert.created_at)}</p>
+                    <p className="text-muted-foreground text-xs font-medium mb-0.5">{t('applied')}</p>
+                    <p className="text-sm">{formatDate(expert.created_at, locale)}</p>
                   </div>
                 </div>
 
                 {/* Bio */}
                 {expert.bio && (
                   <div>
-                    <p className="text-muted-foreground text-xs font-medium mb-0.5">Bio</p>
+                    <p className="text-muted-foreground text-xs font-medium mb-0.5">{t('bio')}</p>
                     <p className="text-sm line-clamp-2">{expert.bio}</p>
                   </div>
                 )}
 
                 {/* License Info */}
                 <div>
-                  <p className="text-muted-foreground text-xs font-medium mb-0.5">License</p>
+                  <p className="text-muted-foreground text-xs font-medium mb-0.5">{t('license')}</p>
                   {expert.license_number || expert.license_url ? (
                     <div className="flex items-center gap-2 flex-wrap">
                       {expert.license_number && (
@@ -603,22 +610,22 @@ export function PendingExpertsTab() {
                           className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
                         >
                           <FileText className="h-3 w-3" />
-                          View Document
+                          {t('viewDocument')}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground italic">Not provided</p>
+                    <p className="text-xs text-muted-foreground italic">{t('notProvided')}</p>
                   )}
                 </div>
 
                 {/* Certificates */}
                 {expert.certificate_urls && expert.certificate_urls.length > 0 && (
                   <div>
-                    <p className="text-muted-foreground text-xs font-medium mb-0.5">Certificates</p>
+                    <p className="text-muted-foreground text-xs font-medium mb-0.5">{t('certificates')}</p>
                     <p className="text-xs text-muted-foreground">
-                      {expert.certificate_urls.length} document(s) attached
+                      {t('documentsAttached', { count: expert.certificate_urls.length })}
                     </p>
                   </div>
                 )}
@@ -627,7 +634,7 @@ export function PendingExpertsTab() {
                 <div className="flex gap-2 pt-3 border-t">
                   <Link href={`/experts/${expert.id}`} className="flex-1">
                     <Button size="sm" variant="ghost" className="w-full text-xs">
-                      View Details
+                      {t('viewDetails')}
                     </Button>
                   </Link>
                   <Button
@@ -639,7 +646,7 @@ export function PendingExpertsTab() {
                     {isProcessing && confirmDialog.action === 'approve' ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      'Approve'
+                      t('approve')
                     )}
                   </Button>
                   <Button
@@ -652,7 +659,7 @@ export function PendingExpertsTab() {
                     {isProcessing && confirmDialog.action === 'reject' ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      'Reject'
+                      t('reject')
                     )}
                   </Button>
                 </div>
@@ -666,7 +673,7 @@ export function PendingExpertsTab() {
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-background border rounded-full shadow-lg px-5 py-3 animate-in slide-in-from-bottom-4">
           <span className="text-sm font-medium">
-            {selectedIds.size} selected
+            {t('selectedCount', { count: selectedIds.size })}
           </span>
           <div className="w-px h-4 bg-border" />
           <Button
@@ -675,7 +682,7 @@ export function PendingExpertsTab() {
             onClick={() => setBatchDialog({ open: true, action: 'approve', rejectionReason: '' })}
             disabled={isBatchLoading}
           >
-            Approve All
+            {t('approveAll')}
           </Button>
           <Button
             size="sm"
@@ -684,7 +691,7 @@ export function PendingExpertsTab() {
             onClick={() => setBatchDialog({ open: true, action: 'reject', rejectionReason: '' })}
             disabled={isBatchLoading}
           >
-            Reject All
+            {t('rejectAll')}
           </Button>
           <Button
             size="sm"
@@ -692,7 +699,7 @@ export function PendingExpertsTab() {
             className="rounded-full text-muted-foreground"
             onClick={() => setSelectedIds(new Set())}
           >
-            Clear
+            {t('clear')}
           </Button>
         </div>
       )}
@@ -702,6 +709,7 @@ export function PendingExpertsTab() {
         open={confirmDialog.open}
         expertName={confirmDialog.expertName}
         action={confirmDialog.action}
+        t={t}
         rejectionReason={confirmDialog.rejectionReason}
         onReasonChange={(reason) =>
           setConfirmDialog((prev) => ({ ...prev, rejectionReason: reason }))
@@ -716,6 +724,7 @@ export function PendingExpertsTab() {
         open={batchDialog.open}
         count={selectedIds.size}
         action={batchDialog.action}
+        t={t}
         rejectionReason={batchDialog.rejectionReason}
         onReasonChange={(reason) =>
           setBatchDialog((prev) => ({ ...prev, rejectionReason: reason }))

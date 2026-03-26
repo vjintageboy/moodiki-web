@@ -8,7 +8,7 @@ import { LogOut, User, Shield, Bell, Search, Menu, ChevronRight } from 'lucide-r
 import { ThemeToggle } from '@/components/theme-toggle'
 import { GlobalSearch } from '@/components/dashboard/global-search'
 import { useAuth } from '@/hooks/use-auth'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,6 +102,7 @@ function generateBreadcrumbs(
 export function Header({ onMenuClick }: HeaderProps) {
   const tHeader = useTranslations('Header')
   const tSidebar = useTranslations('Sidebar')
+  const locale = useLocale()
 
   const router = useRouter()
   const pathname = usePathname()
@@ -125,6 +126,15 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const pageTitle = extractPageTitle(pathname, tSidebar('dashboard'), segmentLabelMap)
   const breadcrumbs = generateBreadcrumbs(pathname, tSidebar('dashboard'), segmentLabelMap)
+
+  const switchLocale = (nextLocale: 'en' | 'vi') => {
+    if (nextLocale === locale) {
+      return
+    }
+
+    router.replace(pathname, { locale: nextLocale })
+    router.refresh()
+  }
 
   const handleLogout = async () => {
     try {
@@ -187,6 +197,27 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       {/* Right section: Icons + User Menu */}
       <div className="flex items-center gap-2 md:gap-3">
+        <div className="inline-flex items-center rounded-md border">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-8 rounded-none px-2 text-xs ${locale === 'en' ? 'bg-accent' : ''}`}
+            onClick={() => switchLocale('en')}
+            aria-label={tHeader('switchToEnglish')}
+          >
+            EN
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-8 rounded-none px-2 text-xs ${locale === 'vi' ? 'bg-accent' : ''}`}
+            onClick={() => switchLocale('vi')}
+            aria-label={tHeader('switchToVietnamese')}
+          >
+            VI
+          </Button>
+        </div>
+
         {/* Mobile search button */}
         <Button
           variant="ghost"
