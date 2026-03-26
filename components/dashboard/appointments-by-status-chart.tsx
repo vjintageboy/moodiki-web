@@ -16,6 +16,7 @@ import {
 import { useAppointmentsByStatus } from '@/hooks/use-dashboard-charts';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 const STATUS_COLORS: Record<string, string> = {
   'Pending': '#fbbf24',      // amber
@@ -25,6 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function AppointmentsByStatusChart() {
+  const t = useTranslations('DashboardHome')
   const { data, isLoading, error } = useAppointmentsByStatus();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -41,8 +43,8 @@ export function AppointmentsByStatusChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Appointments by Status</CardTitle>
-          <CardDescription>Breakdown of appointment statuses</CardDescription>
+          <CardTitle>{t('chartAppointmentsByStatusTitle')}</CardTitle>
+          <CardDescription>{t('chartAppointmentsByStatusDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Skeleton className="h-[300px] w-full" />
@@ -55,12 +57,12 @@ export function AppointmentsByStatusChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Appointments by Status</CardTitle>
-          <CardDescription>Breakdown of appointment statuses</CardDescription>
+          <CardTitle>{t('chartAppointmentsByStatusTitle')}</CardTitle>
+          <CardDescription>{t('chartAppointmentsByStatusDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            Failed to load chart data
+            {t('failedToLoadChartData')}
           </div>
         </CardContent>
       </Card>
@@ -71,12 +73,12 @@ export function AppointmentsByStatusChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Appointments by Status</CardTitle>
-          <CardDescription>Breakdown of appointment statuses</CardDescription>
+          <CardTitle>{t('chartAppointmentsByStatusTitle')}</CardTitle>
+          <CardDescription>{t('chartAppointmentsByStatusDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            No appointment data available
+            {t('noAppointmentDataAvailable')}
           </div>
         </CardContent>
       </Card>
@@ -86,8 +88,8 @@ export function AppointmentsByStatusChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Appointments by Status</CardTitle>
-        <CardDescription>Distribution of appointment statuses</CardDescription>
+        <CardTitle>{t('chartAppointmentsByStatusTitle')}</CardTitle>
+        <CardDescription>{t('chartAppointmentsByStatusDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -110,16 +112,16 @@ export function AppointmentsByStatusChart() {
               cursor={{ fill: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}
               formatter={(value, name) => {
                 if (name === 'count') {
-                  return [`${value} appointments`, 'Count'];
+                  return [t('appointmentsCount', { count: value }), t('countLabel')];
                 }
                 if (name === 'percentage') {
-                  return [`${value}%`, 'Percentage'];
+                  return [`${value}%`, t('percentageLabel')];
                 }
                 return value;
               }}
             />
             <Legend wrapperStyle={{ paddingTop: '20px', color: textColor } as any} />
-            <Bar dataKey="count" name="Count" radius={[8, 8, 0, 0]}>
+            <Bar dataKey="count" name={t('countLabel')} radius={[8, 8, 0, 0]}>
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] || '#6b7280'} />
               ))}

@@ -22,13 +22,18 @@ import {
   Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link as IntlLink } from '@/i18n/routing';
+import { useRouter as useIntlRouter } from '@/i18n/routing';
 
 interface ExpertDashboardProps {
   expertId: string;
 }
 
 export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
+  const t = useTranslations('DashboardHome')
+  const tHeader = useTranslations('Header')
+  const router = useIntlRouter()
   const { data: stats, isLoading: statsLoading } = useExpertStats(expertId);
   const { data: appointments, isLoading: appointmentsLoading } =
     useExpertUpcomingAppointments(expertId);
@@ -40,8 +45,8 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
   const isLoading = statsLoading || profileLoading;
 
   const handleAppointmentClick = (appointment: ExpertAppointmentWithUser) => {
-    // Navigate to appointments tab/page
-    window.location.href = `/dashboard/appointments?id=${appointment.id}`;
+    // Locale-aware navigation
+    router.push(`/appointments?id=${appointment.id}`);
   };
 
   const recentActivities = allAppointments?.slice(0, 5) || [];
@@ -51,21 +56,23 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
       {/* Welcome Section */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight">
-          Welcome back, {expertProfile?.title ? `${expertProfile.title}` : ''}{' '}
-          {expertProfile?.education?.split(',')[0]}
+            {t('welcomeBack', {
+              title: expertProfile?.title ?? '',
+              education: expertProfile?.education?.split(',')[0] ?? '',
+            })}
         </h2>
         <p className="text-muted-foreground mt-1">
-          Here's your appointment summary and upcoming sessions.
+            {t('expertDashboardSubtitle')}
         </p>
       </div>
 
       {/* Stats Cards Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <StatsCard
-          title="Total Appointments"
+          title={t('totalAppointmentsTitle')}
           value={stats?.totalAppointments || 0}
           icon={Calendar}
-          description="All time"
+          description={t('allTime')}
           trend={
             stats && stats.totalAppointments > 0
               ? 'up'
@@ -74,40 +81,49 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
           isLoading={isLoading}
         />
         <StatsCard
-          title="Upcoming"
+          title={t('upcomingTitle')}
           value={stats?.upcomingAppointments || 0}
           icon={Clock}
-          description="Next 7 days"
+          description={t('next7Days')}
           trend={
             stats && stats.upcomingAppointments > 0 ? 'up' : ('neutral' as const)
           }
           isLoading={isLoading}
         />
         <StatsCard
-          title="Completed"
+          title={t('completedTitle')}
           value={stats?.completedSessions || 0}
           icon={CheckCircle}
-          description="Sessions completed"
+          description={t('sessionsCompleted')}
           trend="up"
           isLoading={isLoading}
         />
         <StatsCard
-          title="Rating"
+          title={t('ratingTitle')}
           value={stats?.averageRating ? stats.averageRating.toFixed(1) : '0'}
           icon={Star}
           description={
             stats?.averageRating
-              ? `${stats.averageRating > 4.5 ? 'Excellent' : stats.averageRating > 4 ? 'Very Good' : stats.averageRating > 3.5 ? 'Good' : 'Fair'} reviews`
-              : 'No reviews yet'
+              ? t('ratingExcellentReviews', {
+                  tier:
+                    stats.averageRating > 4.5
+                      ? t('ratingTierExcellent')
+                      : stats.averageRating > 4
+                        ? t('ratingTierVeryGood')
+                        : stats.averageRating > 3.5
+                          ? t('ratingTierGood')
+                          : t('ratingTierFair'),
+                })
+              : t('ratingNoReviewsYet')
           }
           trend={stats?.averageRating && stats.averageRating >= 4.5 ? 'up' : 'neutral'}
           isLoading={isLoading}
         />
         <StatsCard
-          title="Total Earnings"
+          title={t('totalEarningsTitle')}
           value={`$${stats?.totalEarnings ? (stats.totalEarnings / 100).toFixed(2) : '0.00'}`}
           icon={DollarSign}
-          description="Paid appointments"
+          description={t('paidAppointmentsShort')}
           trend={stats && stats.totalEarnings > 0 ? 'up' : ('neutral' as const)}
           isLoading={isLoading}
         />
@@ -118,12 +134,12 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
         {/* Upcoming Appointments - 2 columns */}
         <div className="lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-xl font-bold">Upcoming Appointments</h3>
-            <Link href="/appointments">
+            <h3 className="text-xl font-bold">{t('upcomingAppointmentsHeading')}</h3>
+            <IntlLink href="/appointments">
               <Button variant="ghost" size="sm">
-                View All
+                {t('viewAll')}
               </Button>
-            </Link>
+            </IntlLink>
           </div>
           <ExpertCalendar
             appointments={appointments || []}
@@ -134,47 +150,47 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
 
         {/* Quick Actions - 1 column */}
         <div>
-          <h3 className="text-xl font-bold mb-4">Quick Actions</h3>
+          <h3 className="text-xl font-bold mb-4">{t('quickActionsHeading')}</h3>
           <div className="space-y-3">
-            <Link href="/availability" className="w-full">
+            <IntlLink href="/availability" className="w-full">
               <Button className="w-full" variant="default">
-                Update Availability
+                {t('updateAvailability')}
               </Button>
-            </Link>
-            <Link href="/earnings" className="w-full block">
+            </IntlLink>
+            <IntlLink href="/earnings" className="w-full block">
               <Button className="w-full" variant="outline">
-                View Earnings
+                {t('viewEarnings')}
               </Button>
-            </Link>
-            <Link href="/settings" className="w-full">
+            </IntlLink>
+            <IntlLink href="/settings" className="w-full">
               <Button className="w-full" variant="outline">
                 <Settings className="w-4 h-4 mr-2" />
-                Settings
+                {tHeader('settings')}
               </Button>
-            </Link>
+            </IntlLink>
           </div>
 
           {/* Quick Stats Box */}
           <Card className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-0">
-            <h4 className="font-semibold text-gray-900 mb-3">This Month</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">{t('thisMonth')}</h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Sessions Completed</span>
+                <span className="text-gray-600">{t('sessionsCompletedLabel')}</span>
                 <span className="font-medium">
                   {stats?.completedSessions || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Pending Confirmation</span>
+                <span className="text-gray-600">{t('pendingConfirmationLabel')}</span>
                 <span className="font-medium text-yellow-600">
                   {stats ? stats.totalAppointments - (stats.completedSessions || 0) - (stats.upcomingAppointments || 0) : 0}
                 </span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-blue-200">
-                <span className="text-gray-700 font-medium">Avg. Rating</span>
+                <span className="text-gray-700 font-medium">{t('avgRatingLabel')}</span>
                 <span className="flex items-center gap-1 font-medium text-blue-600">
                   <Star className="w-4 h-4 fill-current" />
-                  {stats?.averageRating ? stats.averageRating.toFixed(1) : 'N/A'}
+                  {stats?.averageRating ? stats.averageRating.toFixed(1) : t('notAvailable')}
                 </span>
               </div>
             </div>
@@ -185,16 +201,16 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
       {/* Recent Activity */}
       <Card className="p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">Recent Activity</h3>
-          <Link href="/dashboard/appointments">
+          <h3 className="text-xl font-bold">{t('recentActivityHeading')}</h3>
+          <IntlLink href="/appointments">
             <Button variant="ghost" size="sm">
-              View All
+              {t('viewAll')}
             </Button>
-          </Link>
+          </IntlLink>
         </div>
         
         {recentActivities.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">No recent activity</p>
+          <p className="text-sm text-gray-500 text-center py-4">{t('noRecentActivity')}</p>
         ) : (
           <div className="space-y-4">
             {recentActivities.map((apt: ExpertAppointmentWithUser) => (
@@ -212,11 +228,13 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
                 />
                 <div>
                   <p className="font-medium text-gray-900 capitalize">
-                    Appointment {apt.status}
+                    {t('appointmentLabel', { status: apt.status })}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Session with {apt.user?.full_name || 'a user'} on{' '}
-                    {format(new Date(apt.appointment_date), 'MMM d, yyyy')}
+                    {t('sessionWithOn', {
+                      name: apt.user?.full_name || t('aUser'),
+                      date: format(new Date(apt.appointment_date), 'MMM d, yyyy'),
+                    })}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
                     {format(new Date(apt.updated_at || apt.created_at || apt.appointment_date), 'MMM d, HH:mm')}

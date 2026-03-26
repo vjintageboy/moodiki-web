@@ -1,13 +1,14 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
-import { useState, useMemo } from 'react'
+import { useRouter, usePathname } from '@/i18n/routing'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LogOut, User, Shield, Bell, Search, Menu, ChevronRight } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { GlobalSearch } from '@/components/dashboard/global-search'
 import { useAuth } from '@/hooks/use-auth'
+import { useTranslations } from 'next-intl'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,17 +30,25 @@ interface HeaderProps {
  * Extract and format page title from pathname
  * Examples: /dashboard/users → "Users", /dashboard → "Dashboard"
  */
-function extractPageTitle(pathname: string): string {
+function extractPageTitle(
+  pathname: string,
+  dashboardLabel: string,
+  segmentLabelMap: Record<string, string>,
+): string {
   // Remove leading/trailing slashes
   let path = pathname.replace(/^\/+|\/+$/g, '')
   
   if (!path || path === 'dashboard') {
-    return 'Dashboard'
+    return dashboardLabel
   }
   
   // Get the last segment of the path
   const segments = path.split('/')
   const lastSegment = segments[segments.length - 1]
+
+  if (segmentLabelMap[lastSegment]) {
+    return segmentLabelMap[lastSegment]
+  }
   
   // Capitalize each word
   return lastSegment
@@ -52,7 +61,11 @@ function extractPageTitle(pathname: string): string {
  * Generate breadcrumb trail from pathname
  * Example: /dashboard/users/123 → [{ label: 'Dashboard', href: '/' }, { label: 'Users', href: '/users' }]
  */
-function generateBreadcrumbs(pathname: string) {
+function generateBreadcrumbs(
+  pathname: string,
+  dashboardLabel: string,
+  segmentLabelMap: Record<string, string>,
+) {
   const segments = pathname
     .split('/')
     .filter(Boolean)
@@ -61,7 +74,7 @@ function generateBreadcrumbs(pathname: string) {
   
   // Always start with Dashboard
   breadcrumbs.push({
-    label: 'Dashboard',
+    label: dashboardLabel,
     href: '/'
   })
   
@@ -72,10 +85,12 @@ function generateBreadcrumbs(pathname: string) {
     if (!segment.match(/^\d+$/) && segment !== 'dashboard') {
       const href = '/' + segments.slice(0, i + 1).join('/')
       breadcrumbs.push({
-        label: segment
-          .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' '),
+        label:
+          segmentLabelMap[segment] ||
+          segment
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' '),
         href
       })
     }
@@ -85,6 +100,9 @@ function generateBreadcrumbs(pathname: string) {
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
+  const tHeader = useTranslations('Header')
+  const tSidebar = useTranslations('Sidebar')
+
   const router = useRouter()
   const pathname = usePathname()
   const { user, logout, isAdmin, isExpert, loading } = useAuth()
@@ -93,9 +111,20 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
-  // Memoize computed values
-  const pageTitle = useMemo(() => extractPageTitle(pathname), [pathname])
-  const breadcrumbs = useMemo(() => generateBreadcrumbs(pathname), [pathname])
+  const segmentLabelMap = {
+    appointments: tSidebar('appointments'),
+    users: tSidebar('users'),
+    experts: tSidebar('experts'),
+    analytics: tSidebar('analytics'),
+    meditations: tSidebar('meditations'),
+    posts: tSidebar('posts'),
+    settings: tSidebar('settings'),
+    notifications: tSidebar('notifications'),
+    chats: tSidebar('chatMonitor'),
+  }
+
+  const pageTitle = extractPageTitle(pathname, tSidebar('dashboard'), segmentLabelMap)
+  const breadcrumbs = generateBreadcrumbs(pathname, tSidebar('dashboard'), segmentLabelMap)
 
   const handleLogout = async () => {
     try {
@@ -138,7 +167,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           size="icon"
           className="md:hidden"
           onClick={onMenuClick}
-          aria-label="Toggle sidebar"
+          aria-label={tHeader('toggleSidebar')}
         >
           <Menu className="h-5 w-5" />
         </Button>
@@ -164,7 +193,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           size="icon"
           className="md:hidden"
           onClick={() => setSearchOpen(!searchOpen)}
-          aria-label="Open search"
+          aria-label={tHeader('openSearch')}
         >
           <Search className="h-5 w-5" />
         </Button>
@@ -173,7 +202,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
           <DropdownMenuTrigger
             className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Notifications"
+            aria-label={tHeader('notifications')}
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
@@ -187,10 +216,10 @@ export function Header({ onMenuClick }: HeaderProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel className="flex items-center justify-between py-2">
-              <span>Notifications</span>
+              <span>{tHeader('notifications')}</span>
               {unreadCount > 0 && (
                 <Badge variant="secondary" className="text-xs">
-                  {unreadCount} new
+                  {unreadCount} {tHeader('new')}
                 </Badge>
               )}
             </DropdownMenuLabel>
@@ -227,7 +256,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               </div>
             ) : (
               <div className="px-3 py-8 text-center text-sm text-muted-foreground">
-                No notifications
+                {tHeader('noNotifications')}
               </div>
             )}
             
@@ -239,7 +268,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 router.push('/notifications')
               }}
             >
-              View all notifications
+              {tHeader('viewAllNotifications')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -262,7 +291,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="flex flex-col gap-1 py-2">
               <div className="text-sm font-semibold">
-                {user?.full_name || 'User'}
+                {user?.full_name || tHeader('user')}
               </div>
               <div className="text-xs text-muted-foreground">
                 {user?.email}
@@ -270,7 +299,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               <div className="flex items-center gap-1 mt-1">
                 <Shield className="h-3 w-3" />
                 <span className="text-xs capitalize font-medium text-blue-600 dark:text-blue-400">
-                  {isAdmin ? 'Admin' : isExpert ? 'Expert' : 'User'}
+                  {isAdmin ? tHeader('admin') : isExpert ? tHeader('expert') : tHeader('user')}
                 </span>
               </div>
             </DropdownMenuLabel>
@@ -280,19 +309,19 @@ export function Header({ onMenuClick }: HeaderProps) {
               onClick={() => router.push('/settings')}
             >
               <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>{tHeader('profile')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem 
               className="cursor-pointer"
               onClick={() => router.push('/settings')}
             >
               <Shield className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+              <span>{tHeader('settings')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>{tHeader('logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

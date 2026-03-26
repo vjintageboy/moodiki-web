@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner'
 import { Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 // Validation Schema
 const loginSchema = z.object({
@@ -24,6 +25,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
+  const t = useTranslations('Login')
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
@@ -143,19 +145,19 @@ export default function LoginPage() {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Mental Health Admin
+            {t('pageTitle')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Sign in to your admin account
+            {t('pageSubtitle')}
           </p>
         </div>
 
         {/* Login Card */}
         <Card className="shadow-lg border-0">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Login</CardTitle>
+            <CardTitle className="text-2xl">{t('cardTitle')}</CardTitle>
             <CardDescription>
-              Enter your credentials to access the admin panel
+              {t('cardDescription')}
             </CardDescription>
           </CardHeader>
 
@@ -171,14 +173,14 @@ export default function LoginPage() {
               {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">
-                  Email Address
+                  {t('emailLabel')}
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="name@example.com"
+                    placeholder={t('emailPlaceholder')}
                     className={cn(
                       'pl-10 py-2 h-10',
                       errors.email && 'border-red-500 focus-visible:ring-red-500'
@@ -195,7 +197,7 @@ export default function LoginPage() {
               {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">
-                  Password
+                  {t('passwordLabel')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -244,7 +246,7 @@ export default function LoginPage() {
                   htmlFor="rememberMe"
                   className="text-sm font-normal text-gray-600 dark:text-gray-400 cursor-pointer"
                 >
-                  Remember me
+                    {t('rememberMe')}
                 </Label>
               </div>
 
@@ -260,16 +262,16 @@ export default function LoginPage() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    {t('signingIn')}
                   </>
                 ) : (
-                  'Sign In'
+                  t('signIn')
                 )}
               </Button>
 
               {/* Footer Text */}
               <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
-                Need access? Contact your administrator.
+            {t('needAccessFooter')}
               </p>
             </form>
           </CardContent>

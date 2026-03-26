@@ -1,11 +1,12 @@
 'use client'
 
-import Link from 'next/link'
+import { Link, useRouter } from '@/i18n/routing'
 import { AlertTriangle, Home, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 export default function UnauthorizedPage() {
+  const t = useTranslations('Unauthorized')
   const router = useRouter()
   const supabase = createClient()
 
@@ -29,24 +30,30 @@ export default function UnauthorizedPage() {
           {/* Heading and Message */}
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Access Denied
+              {t('accessDeniedTitle')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              You do not have permission to access this page.
+              {t('noPermissionMessage')}
             </p>
           </div>
 
           {/* Explanation */}
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-4 text-left space-y-2">
             <p className="text-sm font-medium text-blue-900 dark:text-blue-300">
-              Who can access the admin panel?
+              {t('whoCanAccessTitle')}
             </p>
             <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1 ml-4">
-              <li>• <span className="font-medium">Admins</span> - Full access to all features</li>
-              <li>• <span className="font-medium">Experts</span> - Access to their dashboard and appointments</li>
+              <li>
+                • <span className="font-medium">{t('adminsRoleTitle')}</span> -{' '}
+                {t('adminsRoleDescription')}
+              </li>
+              <li>
+                • <span className="font-medium">{t('expertsRoleTitle')}</span> -{' '}
+                {t('expertsRoleDescription')}
+              </li>
             </ul>
             <p className="text-xs text-blue-700 dark:text-blue-400 pt-2 border-t border-blue-200 dark:border-blue-800">
-              If you believe this is an error, please contact the administrator.
+              {t('contactAdministrator')}
             </p>
           </div>
 
@@ -57,23 +64,23 @@ export default function UnauthorizedPage() {
               className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
             >
               <Home className="w-4 h-4" />
-              Back to Dashboard
+              {t('backToDashboard')}
             </Link>
             <button
               onClick={handleLogout}
               className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              Sign Out
+              {t('signOut')}
             </button>
           </div>
 
           {/* Support */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <p className="text-xs text-gray-500 dark:text-gray-500">
-              Need help?{' '}
+              {t('needHelpPrefix')}{' '}
               <a href="mailto:support@mentalhealth.app" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                Contact support
+                {t('contactSupport')}
               </a>
             </p>
           </div>

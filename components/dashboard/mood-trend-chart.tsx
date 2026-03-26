@@ -14,8 +14,10 @@ import {
 import { useMoodTrendData } from '@/hooks/use-dashboard-charts';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export function MoodTrendChart() {
+  const t = useTranslations('DashboardHome')
   const { data, isLoading, error } = useMoodTrendData();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -33,8 +35,8 @@ export function MoodTrendChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Mood Trend</CardTitle>
-          <CardDescription>Average mood score over the last 30 days</CardDescription>
+          <CardTitle>{t('chartMoodTrendTitle')}</CardTitle>
+          <CardDescription>{t('chartMoodTrendDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Skeleton className="h-[300px] w-full" />
@@ -47,12 +49,12 @@ export function MoodTrendChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Mood Trend</CardTitle>
-          <CardDescription>Average mood score over the last 30 days</CardDescription>
+          <CardTitle>{t('chartMoodTrendTitle')}</CardTitle>
+          <CardDescription>{t('chartMoodTrendDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            Failed to load chart data
+            {t('failedToLoadChartData')}
           </div>
         </CardContent>
       </Card>
@@ -63,12 +65,12 @@ export function MoodTrendChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Mood Trend</CardTitle>
-          <CardDescription>Average mood score over the last 30 days</CardDescription>
+          <CardTitle>{t('chartMoodTrendTitle')}</CardTitle>
+          <CardDescription>{t('chartMoodTrendDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            No mood data available
+            {t('noMoodDataAvailable')}
           </div>
         </CardContent>
       </Card>
@@ -84,8 +86,8 @@ export function MoodTrendChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mood Trend</CardTitle>
-        <CardDescription>Average daily mood score (1-5 scale) over the last 30 days</CardDescription>
+        <CardTitle>{t('chartMoodTrendTitle')}</CardTitle>
+        <CardDescription>{t('chartMoodTrendDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -108,7 +110,7 @@ export function MoodTrendChart() {
               stroke={textColor}
               style={{ fontSize: '12px' }}
               tick={{ fill: textColor }}
-              label={{ value: 'Score (1-5)', angle: -90, position: 'insideLeft' }}
+              label={{ value: t('scoreAxisLabel'), angle: -90, position: 'insideLeft' }}
             />
             <Tooltip
               contentStyle={{
@@ -119,7 +121,7 @@ export function MoodTrendChart() {
               labelStyle={{ color: textColor }}
               formatter={(value) => [
                 typeof value === 'number' ? value.toFixed(1) : value,
-                'Average Mood',
+                t('averageMoodLabel'),
               ]}
               labelFormatter={(label) => `${label}`}
             />
@@ -133,7 +135,7 @@ export function MoodTrendChart() {
               activeDot={{ r: 5 }}
               isAnimationActive={true}
               strokeWidth={2}
-              name="Mood Score"
+              name={t('moodScoreLabel')}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -141,15 +143,15 @@ export function MoodTrendChart() {
         {/* Stats */}
         <div className="mt-6 grid grid-cols-3 gap-4">
           <div className="rounded-lg border border-border bg-muted/50 p-3 text-center">
-            <p className="text-xs text-muted-foreground">Average</p>
+            <p className="text-xs text-muted-foreground">{t('averageLabel')}</p>
             <p className="text-xl font-bold">{averageScore}</p>
           </div>
           <div className="rounded-lg border border-border bg-muted/50 p-3 text-center">
-            <p className="text-xs text-muted-foreground">Lowest</p>
+            <p className="text-xs text-muted-foreground">{t('lowestLabel')}</p>
             <p className="text-xl font-bold">{minScore.toFixed(1)}</p>
           </div>
           <div className="rounded-lg border border-border bg-muted/50 p-3 text-center">
-            <p className="text-xs text-muted-foreground">Highest</p>
+            <p className="text-xs text-muted-foreground">{t('highestLabel')}</p>
             <p className="text-xl font-bold">{maxScore.toFixed(1)}</p>
           </div>
         </div>

@@ -13,6 +13,7 @@ import {
 import { useExpertsBySpecialization } from '@/hooks/use-dashboard-charts';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 const COLORS = [
   '#3b82f6',    // blue
@@ -28,6 +29,7 @@ const COLORS = [
 ];
 
 export function ExpertsBySpecializationChart() {
+  const t = useTranslations('DashboardHome')
   const { data, isLoading, error } = useExpertsBySpecialization();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -43,8 +45,8 @@ export function ExpertsBySpecializationChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Experts by Specialization</CardTitle>
-          <CardDescription>Distribution of expert specializations</CardDescription>
+          <CardTitle>{t('chartExpertsBySpecializationTitle')}</CardTitle>
+          <CardDescription>{t('chartExpertsBySpecializationDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Skeleton className="h-[300px] w-full" />
@@ -57,12 +59,12 @@ export function ExpertsBySpecializationChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Experts by Specialization</CardTitle>
-          <CardDescription>Distribution of expert specializations</CardDescription>
+          <CardTitle>{t('chartExpertsBySpecializationTitle')}</CardTitle>
+          <CardDescription>{t('chartExpertsBySpecializationDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            Failed to load chart data
+            {t('failedToLoadChartData')}
           </div>
         </CardContent>
       </Card>
@@ -73,12 +75,12 @@ export function ExpertsBySpecializationChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Experts by Specialization</CardTitle>
-          <CardDescription>Distribution of expert specializations</CardDescription>
+          <CardTitle>{t('chartExpertsBySpecializationTitle')}</CardTitle>
+          <CardDescription>{t('chartExpertsBySpecializationDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            No expert data available
+            {t('noExpertDataAvailable')}
           </div>
         </CardContent>
       </Card>
@@ -95,8 +97,10 @@ export function ExpertsBySpecializationChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Experts by Specialization</CardTitle>
-        <CardDescription>Distribution across {data.length} specializations</CardDescription>
+        <CardTitle>{t('chartExpertsBySpecializationTitle')}</CardTitle>
+        <CardDescription>
+          {t('chartExpertsBySpecializationDescription')}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -125,7 +129,10 @@ export function ExpertsBySpecializationChart() {
                 borderRadius: '8px',
               }}
               labelStyle={{ color: textColor }}
-              formatter={(value) => [`${value} experts`, 'Count']}
+              formatter={(value) => [
+                t('expertsCount', { count: value }),
+                t('countLabel'),
+              ]}
             />
             <Legend
               wrapperStyle={{ paddingTop: '20px', color: textColor } as any}
@@ -137,7 +144,9 @@ export function ExpertsBySpecializationChart() {
         </ResponsiveContainer>
         {/* Detailed breakdown */}
         <div className="mt-6 space-y-2">
-          <p className="text-sm font-semibold text-muted-foreground">Breakdown</p>
+          <p className="text-sm font-semibold text-muted-foreground">
+            {t('breakdownLabel')}
+          </p>
           <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
             {dataWithPercentage.map((item, index) => (
               <div key={item.name} className="flex items-center space-x-2">

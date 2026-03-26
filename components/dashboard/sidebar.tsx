@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { Link, usePathname, useRouter } from '@/i18n/routing'
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { 
   LayoutDashboard, 
   Users, 
@@ -35,28 +35,6 @@ interface Route {
   roles?: ('admin' | 'expert')[]
 }
 
-const routes: Route[] = [
-  // Available to all authenticated users (admin and expert)
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/' },
-  { label: 'Appointments', icon: Calendar, href: '/appointments' },
-  
-  // Admin only routes
-  { label: 'Users', icon: Users, href: '/users', roles: ['admin'] },
-  { label: 'Experts', icon: UserCheck, href: '/experts', roles: ['admin'] },
-  
-  // Available to all
-  { label: 'Meditations', icon: Headphones, href: '/meditations' },
-  { label: 'Posts', icon: FileText, href: '/posts' },
-  
-  // Admin only routes
-  { label: 'Analytics', icon: BarChart3, href: '/analytics', roles: ['admin'] },
-  { label: 'Chat Monitor', icon: MessageSquare, href: '/chats', roles: ['admin'] },
-  
-  // Available to all
-  { label: 'Notifications', icon: Bell, href: '/notifications' },
-  { label: 'Settings', icon: Settings, href: '/settings' },
-]
-
 /**
  * Sidebar component with:
  * - Collapsible state with localStorage persistence
@@ -74,6 +52,29 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, isAdmin, isExpert, loading, logout } = useAuth()
+  const t = useTranslations('Sidebar')
+
+  const routes: Route[] = [
+    // Available to all authenticated users (admin and expert)
+    { label: t('dashboard'), icon: LayoutDashboard, href: '/' },
+    { label: t('appointments'), icon: Calendar, href: '/appointments' },
+
+    // Admin only routes
+    { label: t('users'), icon: Users, href: '/users', roles: ['admin'] },
+    { label: t('experts'), icon: UserCheck, href: '/experts', roles: ['admin'] },
+
+    // Available to all
+    { label: t('meditations'), icon: Headphones, href: '/meditations' },
+    { label: t('posts'), icon: FileText, href: '/posts' },
+
+    // Admin only routes
+    { label: t('analytics'), icon: BarChart3, href: '/analytics', roles: ['admin'] },
+    { label: t('chatMonitor'), icon: MessageSquare, href: '/chats', roles: ['admin'] },
+
+    // Available to all
+    { label: t('notifications'), icon: Bell, href: '/notifications' },
+    { label: t('settings'), icon: Settings, href: '/settings' },
+  ]
   
   // Sidebar state management
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -199,7 +200,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
             <button
               onClick={toggleCollapse}
               className="hidden md:flex p-1.5 hover:bg-gray-800 rounded-lg transition text-gray-400 hover:text-gray-200"
-              title={isCollapsed ? 'Expand' : 'Collapse'}
+              title={isCollapsed ? t('expand') : t('collapse')}
             >
               <ChevronLeft className={cn(
                 "w-5 h-5 transition-transform duration-300",
@@ -246,7 +247,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
                 <Lock className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-xs font-medium text-blue-300 mb-2">
-                    Admin Only Features
+                    {t('adminOnlyFeatures')}
                   </p>
                   <ul className="text-xs text-blue-300/70 space-y-1">
                     {restrictedRoutes.map(route => (
@@ -278,7 +279,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-white truncate">
-                    {user.full_name || 'User'}
+                    {user.full_name || t('user')}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
                     {user.email}
@@ -291,7 +292,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
                         ? "bg-red-500/20 text-red-300"
                         : "bg-green-500/20 text-green-300"
                     )}>
-                      {isAdmin ? 'Admin' : 'Expert'}
+                      {isAdmin ? t('admin') : t('expert')}
                     </span>
                   </div>
                 </div>
@@ -306,10 +307,10 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
                 "text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10",
                 isCollapsed && "justify-center"
               )}
-              title={isCollapsed ? 'Logout' : undefined}
+              title={isCollapsed ? t('logout') : undefined}
             >
               <LogOut className="w-5 h-5 flex-shrink-0" />
-              {!isCollapsed && <span>Logout</span>}
+              {!isCollapsed && <span>{t('logout')}</span>}
             </button>
           </div>
         )}
@@ -319,7 +320,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         className="md:hidden fixed bottom-6 right-6 p-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-200 z-40 shadow-lg"
-        title="Toggle Menu"
+        title={t('toggleMenu')}
       >
         {isMobileOpen ? (
           <X className="w-6 h-6" />

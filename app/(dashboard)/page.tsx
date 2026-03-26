@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth/server'
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard'
 import { ExpertDashboard } from '@/components/dashboard/expert-dashboard'
 import { getDashboardStats } from '@/lib/queries/dashboard'
+import { getTranslations } from 'next-intl/server'
 
 // Force dynamic rendering (fetches from database)
 export const dynamic = 'force-dynamic'
@@ -21,6 +22,7 @@ export const revalidate = 300
 export default async function DashboardPage() {
   // Get authenticated user (throws if not authenticated)
   const user = await requireAuth()
+  const t = await getTranslations('Dashboard')
 
   // Show admin dashboard for admins
   if (user.role === 'admin') {
@@ -38,10 +40,8 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
-          Unable to load dashboard. Please refresh or contact support.
-        </p>
+        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+        <p className="text-muted-foreground">{t('unableToLoadDashboard')}</p>
       </div>
     </div>
   )

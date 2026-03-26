@@ -174,6 +174,13 @@ async function withTimeout<T>(
 export async function updateSession(request: NextRequest) {
   const startTime = performance.now()
   const { pathname } = request.nextUrl
+  // Support locale-prefixed routes like `/en/*` and `/vi/*`.
+  const strippedPathname = pathname.replace(/^\/(en|vi)(?=\/|$)/, '')
+  const effectivePathname = strippedPathname === '' ? '/' : strippedPathname
+
+  // #region agent log
+  fetch('http://127.0.0.1:7892/ingest/1da48778-7d56-42fb-8eee-74a0bae3736c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f6821d'},body:JSON.stringify({sessionId:'f6821d',runId:'pre-debug',hypothesisId:'H2_updateSession_called',location:'lib/supabase/middleware.ts:174',message:'updateSession() called',data:{pathname,effectivePathname},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
 
   // Helper to redirect
   const redirectTo = (path: string) => {
@@ -190,7 +197,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Check if this is a public route
-  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
+  const isPublicRoute = PUBLIC_ROUTES.some(route =>
+    effectivePathname.startsWith(route),
+  )
 
   // Always allow public routes immediately (no Supabase call needed)
   if (isPublicRoute) {
@@ -206,7 +215,7 @@ export async function updateSession(request: NextRequest) {
   // If env vars are missing, redirect to login
   if (!supabaseUrl || !supabaseKey) {
     console.error('[Middleware] Missing Supabase environment variables')
-    if (pathname.startsWith('/api')) {
+    if (effectivePathname.startsWith('/api')) {
       return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
     return redirectTo('/login')
@@ -250,20 +259,20 @@ export async function updateSession(request: NextRequest) {
 
         // Perform role-based access control
         const isDashboardRoute = DASHBOARD_PATHS.some(p =>
-          p === '/' ? pathname === '/' : pathname.startsWith(p)
+          p === '/' ? effectivePathname === '/' : effectivePathname.startsWith(p)
         )
 
         if (isDashboardRoute) {
           if (role !== 'admin' && role !== 'expert') {
-            if (pathname.startsWith('/api')) {
+            if (effectivePathname.startsWith('/api')) {
               return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
             }
             return redirectTo('/unauthorized')
           }
 
-          const isAdminOnly = ADMIN_ONLY_PATHS.some(p => pathname.startsWith(p))
+          const isAdminOnly = ADMIN_ONLY_PATHS.some(p => effectivePathname.startsWith(p))
           if (isAdminOnly && role !== 'admin') {
-            if (pathname.startsWith('/api')) {
+            if (effectivePathname.startsWith('/api')) {
               return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
             }
             return redirectTo('/unauthorized')
@@ -331,7 +340,7 @@ export async function updateSession(request: NextRequest) {
 
     // Step 2: Redirect unauthenticated users to login
     if (!user) {
-      if (pathname.startsWith('/api')) {
+      if (effectivePathname.startsWith('/api')) {
         return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
       }
       return redirectTo('/login')
@@ -350,7 +359,7 @@ export async function updateSession(request: NextRequest) {
     if (userError || !userData) {
       console.error('[Middleware] Error fetching user profile:', userError)
       // Auth user exists but no profile → force logout via redirect to login
-      if (pathname.startsWith('/api')) {
+      if (effectivePathname.startsWith('/api')) {
         return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
       }
       return redirectTo('/login')
@@ -360,22 +369,22 @@ export async function updateSession(request: NextRequest) {
 
     // Step 4: Role-based access for dashboard paths
     const isDashboardRoute = DASHBOARD_PATHS.some(p =>
-      p === '/' ? pathname === '/' : pathname.startsWith(p)
+      p === '/' ? effectivePathname === '/' : effectivePathname.startsWith(p)
     )
 
     if (isDashboardRoute) {
       // Only admin and expert can access the dashboard
       if (userRole !== 'admin' && userRole !== 'expert') {
-        if (pathname.startsWith('/api')) {
+        if (effectivePathname.startsWith('/api')) {
           return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
         }
         return redirectTo('/unauthorized')
       }
 
       // Admin-only paths
-      const isAdminOnly = ADMIN_ONLY_PATHS.some(p => pathname.startsWith(p))
+      const isAdminOnly = ADMIN_ONLY_PATHS.some(p => effectivePathname.startsWith(p))
       if (isAdminOnly && userRole !== 'admin') {
-        if (pathname.startsWith('/api')) {
+        if (effectivePathname.startsWith('/api')) {
           return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
         }
         return redirectTo('/unauthorized')
@@ -408,7 +417,7 @@ export async function updateSession(request: NextRequest) {
     // If anything throws (e.g. network issue, bad Supabase config),
     // redirect to login so users are never stuck on a blank/loading screen
     console.error('[Middleware] Unexpected error:', err)
-    if (pathname.startsWith('/api')) {
+    if (effectivePathname.startsWith('/api')) {
       return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
     return redirectTo('/login')

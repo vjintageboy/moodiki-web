@@ -15,8 +15,10 @@ import {
 import { useUserGrowthData } from '@/hooks/use-dashboard-charts';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export function UserGrowthChart() {
+  const t = useTranslations('DashboardHome')
   const { data, isLoading, error } = useUserGrowthData();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -34,8 +36,8 @@ export function UserGrowthChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>User Growth</CardTitle>
-          <CardDescription>New user registrations over time</CardDescription>
+          <CardTitle>{t('chartUserGrowthTitle')}</CardTitle>
+          <CardDescription>{t('chartUserGrowthDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Skeleton className="h-[300px] w-full" />
@@ -48,12 +50,12 @@ export function UserGrowthChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>User Growth</CardTitle>
-          <CardDescription>New user registrations over time</CardDescription>
+          <CardTitle>{t('chartUserGrowthTitle')}</CardTitle>
+          <CardDescription>{t('chartUserGrowthDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            Failed to load chart data
+            {t('failedToLoadChartData')}
           </div>
         </CardContent>
       </Card>
@@ -64,12 +66,12 @@ export function UserGrowthChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>User Growth</CardTitle>
-          <CardDescription>New user registrations over time</CardDescription>
+          <CardTitle>{t('chartUserGrowthTitle')}</CardTitle>
+          <CardDescription>{t('chartUserGrowthDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            No data available
+            {t('noChartDataAvailable')}
           </div>
         </CardContent>
       </Card>
@@ -79,8 +81,8 @@ export function UserGrowthChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Growth</CardTitle>
-        <CardDescription>New user registrations over the last 12 months</CardDescription>
+        <CardTitle>{t('chartUserGrowthTitle')}</CardTitle>
+        <CardDescription>{t('chartUserGrowthDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -107,7 +109,10 @@ export function UserGrowthChart() {
               }}
               labelStyle={{ color: textColor }}
               itemStyle={{ color: lineColor }}
-              formatter={(value) => [`${value} users`, 'New Users']}
+              formatter={(value) => [
+                t('usersCount', { count: value }),
+                t('newUsersLabel'),
+              ]}
               labelFormatter={(label) => `${label}`}
             />
             <Legend
@@ -120,7 +125,7 @@ export function UserGrowthChart() {
               stroke={lineColor}
               dot={{ fill: lineColor, r: 4 }}
               activeDot={{ r: 6 }}
-              name="New Users"
+              name={t('newUsersLabel')}
               isAnimationActive={true}
               strokeWidth={2}
             />

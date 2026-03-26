@@ -25,8 +25,9 @@ import { UserGrowthChart } from '@/components/dashboard/user-growth-chart'
 import { AppointmentsByStatusChart } from '@/components/dashboard/appointments-by-status-chart'
 import { ExpertsBySpecializationChart } from '@/components/dashboard/experts-by-specialization-chart'
 import { MoodTrendChart } from '@/components/dashboard/mood-trend-chart'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import type { DashboardStats } from '@/lib/queries/dashboard'
+import { useTranslations } from 'next-intl'
 
 interface DashboardOverviewProps {
   stats?: DashboardStats
@@ -39,6 +40,7 @@ interface DashboardOverviewProps {
  * No client-side data fetching needed
  */
 export function DashboardOverview({ stats }: DashboardOverviewProps) {
+  const t = useTranslations('DashboardHome')
   const isLoading = !stats
 
   return (
@@ -46,9 +48,9 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard Overview</h1>
+          <h1 className="text-3xl font-bold">{t('dashboardOverviewTitle')}</h1>
           <p className="text-muted-foreground mt-2">
-            Key metrics and statistics for your platform
+            {t('dashboardOverviewDescription')}
           </p>
         </div>
       </div>
@@ -57,12 +59,12 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Users Card */}
         <StatsCard
-          title="Total Users"
+          title={t('totalUsersTitle')}
           value={stats?.totalUsers ?? '---'}
           icon={Users}
           description={
             stats && stats.newUsersThisMonth > 0
-              ? `+${stats.newUsersThisMonth} this month`
+              ? t('newUsersThisMonth', { count: stats.newUsersThisMonth })
               : undefined
           }
           trend={stats && stats.newUsersThisMonth > 0 ? 'up' : 'neutral'}
@@ -71,12 +73,12 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
         {/* Approved Experts Card */}
         <StatsCard
-          title="Approved Experts"
+          title={t('approvedExpertsTitle')}
           value={stats?.totalExpertsApproved ?? '---'}
           icon={UserCheck}
           description={
             stats && stats.totalExpertsApproved > 0
-              ? `${stats.totalExpertsApproved} available`
+              ? t('approvedExpertsAvailable', { count: stats.totalExpertsApproved })
               : undefined
           }
           trend={stats && stats.totalExpertsApproved > 5 ? 'up' : 'neutral'}
@@ -85,13 +87,15 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
         {/* Pending Expert Applications Card */}
         <StatsCard
-          title="Pending Approvals"
+          title={t('pendingApprovalsTitle')}
           value={stats?.pendingExpertApplications ?? '---'}
           icon={AlertCircle}
           description={
             stats && stats.pendingExpertApplications > 0
-              ? `${stats.pendingExpertApplications} waiting`
-              : 'All caught up'
+              ? t('pendingApprovalsWaiting', {
+                  count: stats.pendingExpertApplications,
+                })
+              : t('allCaughtUp')
           }
           trend={stats && stats.pendingExpertApplications > 5 ? 'up' : 'down'}
           isLoading={isLoading}
@@ -99,12 +103,12 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
         {/* Total Appointments Card */}
         <StatsCard
-          title="Total Appointments"
+          title={t('totalAppointmentsTitle')}
           value={stats?.totalAppointments ?? '---'}
           icon={Calendar}
           description={
             stats && stats.appointmentsToday > 0
-              ? `${stats.appointmentsToday} today`
+              ? t('appointmentsToday', { count: stats.appointmentsToday })
               : undefined
           }
           trend={stats && stats.totalAppointments > 100 ? 'up' : 'neutral'}
@@ -114,17 +118,19 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
       {/* Engagement Metrics Section */}
       <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Engagement Metrics</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('engagementMetricsTitle')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Appointments This Week */}
           <StatsCard
-            title="Appointments This Week"
+            title={t('appointmentsThisWeekTitle')}
             value={stats?.appointmentsThisWeek ?? '---'}
             icon={Calendar}
             description={
               stats && stats.appointmentsThisWeek > 0
-                ? `${stats.appointmentsThisWeek} scheduled`
-                : 'No appointments'
+                ? t('appointmentsThisWeekScheduled', {
+                    count: stats.appointmentsThisWeek,
+                  })
+                : t('noAppointments')
             }
             trend={stats && stats.appointmentsThisWeek > 10 ? 'up' : 'neutral'}
             isLoading={isLoading}
@@ -132,30 +138,30 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
           {/* Community Posts */}
           <StatsCard
-            title="Community Posts"
+            title={t('communityPostsTitle')}
             value={stats?.totalCommunityPosts ?? '---'}
             icon={MessageSquare}
-            description="User discussions"
+            description={t('communityPostsDescription')}
             trend={stats && stats.totalCommunityPosts > 50 ? 'up' : 'neutral'}
             isLoading={isLoading}
           />
 
           {/* Meditation Content */}
           <StatsCard
-            title="Guided Meditations"
+            title={t('guidedMeditationsTitle')}
             value={stats?.totalMeditations ?? '---'}
             icon={Music}
-            description="Available sessions"
+            description={t('guidedMeditationsDescription')}
             trend="neutral"
             isLoading={isLoading}
           />
 
           {/* Active Chat Rooms */}
           <StatsCard
-            title="Active Chat Rooms"
+            title={t('activeChatRoomsTitle')}
             value={stats?.activeChatRooms ?? '---'}
             icon={MessageCircle}
-            description="Live conversations"
+            description={t('activeChatRoomsDescription')}
             trend={stats && stats.activeChatRooms > 5 ? 'up' : 'neutral'}
             isLoading={isLoading}
           />
@@ -164,11 +170,11 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
       {/* Financial & Quality Metrics */}
       <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Platform Performance</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('platformPerformanceTitle')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Total Revenue */}
           <StatsCard
-            title="Total Revenue"
+            title={t('totalRevenueTitle')}
             value={
               stats?.totalRevenue
                 ? `$${(stats.totalRevenue / 100).toFixed(2)}`
@@ -177,8 +183,8 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
             icon={DollarSign}
             description={
               stats && stats.totalRevenue > 0
-                ? `${stats.totalAppointments} paid appointments`
-                : 'No revenue yet'
+                ? t('paidAppointments', { count: stats.totalAppointments })
+                : t('noRevenueYet')
             }
             trend={stats && stats.totalRevenue > 1000 ? 'up' : 'neutral'}
             isLoading={isLoading}
@@ -186,7 +192,7 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
           {/* Average Rating */}
           <StatsCard
-            title="Average Appointment Rating"
+            title={t('averageAppointmentRatingTitle')}
             value={
               stats?.averageAppointmentRating
                 ? stats.averageAppointmentRating.toFixed(1)
@@ -195,8 +201,8 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
             icon={TrendingUp}
             description={
               stats && stats.averageAppointmentRating
-                ? `Out of 5.0 stars`
-                : 'No ratings yet'
+                ? t('outOfFiveStars')
+                : t('noRatingsYet')
             }
             trend={
               stats && stats.averageAppointmentRating >= 4.5
@@ -212,7 +218,7 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
       {/* Analytics Charts Section */}
       <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-6">Analytics</h2>
+        <h2 className="text-2xl font-bold mb-6">{t('analyticsTitle')}</h2>
         
         <div className="grid gap-6 md:grid-cols-2">
           <UserGrowthChart />
@@ -227,19 +233,19 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
 
       {/* Recent Activities Section */}
       <div className="mt-12">
-        <h2 className="text-2xl font-bold mb-6">Recent Activities</h2>
+        <h2 className="text-2xl font-bold mb-6">{t('recentActivitiesTitle')}</h2>
         
         <div className="grid gap-6 md:grid-cols-2">
           {/* Recent Appointments Card */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>Recent Appointments</CardTitle>
+                <CardTitle>{t('recentAppointmentsTitle')}</CardTitle>
                 <Link
-                  href="/dashboard/appointments"
+                  href="/appointments"
                   className="text-sm text-primary hover:underline"
                 >
-                  View All →
+                  {t('viewAll')} →
                 </Link>
               </div>
             </CardHeader>
@@ -252,12 +258,12 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>Pending Experts</CardTitle>
+                <CardTitle>{t('pendingExpertsTitle')}</CardTitle>
                 <Link
-                  href="/dashboard/experts/pending"
+                  href="/experts"
                   className="text-sm text-primary hover:underline"
                 >
-                  View All →
+                  {t('viewAll')} →
                 </Link>
               </div>
             </CardHeader>
@@ -271,12 +277,12 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
         <Card className="mt-6">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Latest User Registrations</CardTitle>
+              <CardTitle>{t('latestUserRegistrationsTitle')}</CardTitle>
               <Link
-                href="/dashboard/users"
+                href="/users"
                 className="text-sm text-primary hover:underline"
               >
-                View All →
+                {t('viewAll')} →
               </Link>
             </div>
           </CardHeader>

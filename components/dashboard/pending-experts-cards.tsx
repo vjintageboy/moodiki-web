@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CardSkeleton } from './skeleton-loaders';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import {
   Dialog,
@@ -20,6 +20,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 function getInitials(name?: string | null): string {
   if (!name) return '?';
@@ -48,6 +49,7 @@ function ConfirmDialog({
   onCancel,
   isLoading,
 }: ConfirmDialogProps) {
+  const t = useTranslations('DashboardHome')
   const isApprove = action === 'approve';
 
   return (
@@ -55,24 +57,24 @@ function ConfirmDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isApprove ? 'Approve Expert' : 'Reject Expert'}
+            {isApprove ? t('approveExpert') : t('rejectExpert')}
           </DialogTitle>
           <DialogDescription>
             {isApprove
-              ? `Are you sure you want to approve ${expertName}? They will be able to accept appointments.`
-              : `Are you sure you want to reject ${expertName}? This action cannot be undone.`}
+              ? t('approveExpertDescription', { expertName })
+              : t('rejectExpertDescription', { expertName })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant={isApprove ? 'default' : 'destructive'}
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isApprove ? 'Approve' : 'Reject'}
+            {isApprove ? t('approve') : t('reject')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -81,6 +83,7 @@ function ConfirmDialog({
 }
 
 export function PendingExpertsCards() {
+  const t = useTranslations('DashboardHome')
   const { data: experts, isLoading, error } = usePendingExperts();
   const approveExpert = useApproveExpert();
   const rejectExpert = useRejectExpert();
@@ -136,7 +139,7 @@ export function PendingExpertsCards() {
   if (error) {
     return (
       <div className="flex items-center justify-center py-8 text-center">
-        <div className="text-sm text-destructive">Failed to load experts</div>
+        <div className="text-sm text-destructive">{t('failedToLoadExperts')}</div>
       </div>
     );
   }
@@ -146,7 +149,7 @@ export function PendingExpertsCards() {
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <CheckCircle2 className="h-10 w-10 text-muted-foreground mb-2" />
         <p className="text-sm text-muted-foreground">
-          All expert applications have been reviewed
+          {t('allExpertApplicationsReviewed')}
         </p>
       </div>
     );
@@ -171,15 +174,13 @@ export function PendingExpertsCards() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold">{expert.full_name}</p>
                   <p className="text-xs text-muted-foreground mb-2">
-                    {expert.specialization || 'No specialization listed'}
+                    {expert.specialization || t('noSpecializationListed')}
                   </p>
                   <div className="flex gap-3 text-xs text-muted-foreground">
-                    <span>
-                      <strong>{expert.years_experience}</strong> years experience
-                    </span>
+                    <span>{t('yearsExperience', { years: expert.years_experience })}</span>
                     {expert.rating > 0 && (
                       <span>
-                        Rating: <strong>{expert.rating.toFixed(1)}</strong> ⭐
+                        {t('ratingLabel')} <strong>{expert.rating.toFixed(1)}</strong> ⭐
                       </span>
                     )}
                   </div>
@@ -194,7 +195,7 @@ export function PendingExpertsCards() {
                     variant="ghost"
                     className="text-xs h-7"
                   >
-                    View
+                    {t('view')}
                   </Button>
                 </Link>
                 <Button
@@ -203,7 +204,7 @@ export function PendingExpertsCards() {
                   onClick={() => handleApprove(expert.id, expert.full_name)}
                   disabled={processingId !== null}
                 >
-                  {processingId === expert.id ? '...' : 'Approve'}
+                  {processingId === expert.id ? '...' : t('approve')}
                 </Button>
                 <Button
                   size="sm"
@@ -212,7 +213,7 @@ export function PendingExpertsCards() {
                   onClick={() => handleReject(expert.id, expert.full_name)}
                   disabled={processingId !== null}
                 >
-                  {processingId === expert.id ? '...' : 'Reject'}
+                  {processingId === expert.id ? '...' : t('reject')}
                 </Button>
               </div>
             </div>

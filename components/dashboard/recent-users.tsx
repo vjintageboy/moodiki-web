@@ -3,8 +3,9 @@
 import { useRecentUsers, getRelativeTime } from '@/hooks/use-recent-activities';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CardSkeleton } from './skeleton-loaders';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { Users } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 function getInitials(name: string): string {
   return name
@@ -16,6 +17,7 @@ function getInitials(name: string): string {
 }
 
 export function RecentUsers() {
+  const t = useTranslations('DashboardHome')
   const { data: users, isLoading, error } = useRecentUsers();
 
   if (isLoading) return <CardSkeleton />;
@@ -23,7 +25,7 @@ export function RecentUsers() {
   if (error) {
     return (
       <div className="flex items-center justify-center py-8 text-center">
-        <div className="text-sm text-destructive">Failed to load users</div>
+        <div className="text-sm text-destructive">{t('recentUsersError')}</div>
       </div>
     );
   }
@@ -32,7 +34,7 @@ export function RecentUsers() {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <Users className="h-10 w-10 text-muted-foreground mb-2" />
-        <p className="text-sm text-muted-foreground">No recent user registrations</p>
+        <p className="text-sm text-muted-foreground">{t('recentUsersEmpty')}</p>
       </div>
     );
   }
@@ -42,7 +44,7 @@ export function RecentUsers() {
       {users.map((user) => (
         <Link
           key={user.id}
-          href={`/dashboard/users/${user.id}`}
+          href={`/users/${user.id}`}
           className="block"
         >
           <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer">
