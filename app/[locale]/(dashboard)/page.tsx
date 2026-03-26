@@ -18,7 +18,14 @@ export const revalidate = 300
  * - Fetches data server-side for admins
  * - Uses React Suspense for streaming
  */
-export default async function DashboardPage() {
+import { setRequestLocale } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
+
+export default async function DashboardPage({ params }: { params: Promise<{locale: string}> }) {
+  const {locale} = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('Dashboard');
+
   // Get authenticated user (throws if not authenticated)
   const user = await requireAuth()
 
@@ -38,9 +45,9 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
         <p className="text-muted-foreground">
-          Unable to load dashboard. Please refresh or contact support.
+          {t('description')}
         </p>
       </div>
     </div>
