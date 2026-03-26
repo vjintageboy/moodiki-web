@@ -88,6 +88,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { user, logout, isAdmin, isExpert, loading } = useAuth()
+  const { useTranslations } = require('next-intl')
+  const t = useTranslations('Header')
   const { notifications, unreadCount, markAsRead } = useNotifications()
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -292,7 +294,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>{t('logout') || 'Log out'}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

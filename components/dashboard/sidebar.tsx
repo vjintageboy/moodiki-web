@@ -1,7 +1,6 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { Link, usePathname, useRouter } from '@/i18n/routing'
 import { useEffect, useState } from 'react'
 import { 
   LayoutDashboard, 
@@ -23,6 +22,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
+import { useTranslations } from 'next-intl'
 
 /**
  * Route configuration with role-based access
@@ -34,28 +34,6 @@ interface Route {
   href: string
   roles?: ('admin' | 'expert')[]
 }
-
-const routes: Route[] = [
-  // Available to all authenticated users (admin and expert)
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/' },
-  { label: 'Appointments', icon: Calendar, href: '/appointments' },
-  
-  // Admin only routes
-  { label: 'Users', icon: Users, href: '/users', roles: ['admin'] },
-  { label: 'Experts', icon: UserCheck, href: '/experts', roles: ['admin'] },
-  
-  // Available to all
-  { label: 'Meditations', icon: Headphones, href: '/meditations' },
-  { label: 'Posts', icon: FileText, href: '/posts' },
-  
-  // Admin only routes
-  { label: 'Analytics', icon: BarChart3, href: '/analytics', roles: ['admin'] },
-  { label: 'Chat Monitor', icon: MessageSquare, href: '/chats', roles: ['admin'] },
-  
-  // Available to all
-  { label: 'Notifications', icon: Bell, href: '/notifications' },
-  { label: 'Settings', icon: Settings, href: '/settings' },
-]
 
 /**
  * Sidebar component with:
@@ -74,6 +52,29 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, isAdmin, isExpert, loading, logout } = useAuth()
+  const t = useTranslations('Sidebar')
+
+  const routes: Route[] = [
+    // Available to all authenticated users (admin and expert)
+    { label: t('dashboard') || 'Dashboard', icon: LayoutDashboard, href: '/' },
+    { label: t('appointments') || 'Appointments', icon: Calendar, href: '/appointments' },
+
+    // Admin only routes
+    { label: t('users') || 'Users', icon: Users, href: '/users', roles: ['admin'] },
+    { label: t('experts') || 'Experts', icon: UserCheck, href: '/experts', roles: ['admin'] },
+
+    // Available to all
+    { label: t('meditations') || 'Meditations', icon: Headphones, href: '/meditations' },
+    { label: t('posts') || 'Posts', icon: FileText, href: '/posts' },
+
+    // Admin only routes
+    { label: t('analytics') || 'Analytics', icon: BarChart3, href: '/analytics', roles: ['admin'] },
+    { label: 'Chat Monitor', icon: MessageSquare, href: '/chats', roles: ['admin'] },
+
+    // Available to all
+    { label: 'Notifications', icon: Bell, href: '/notifications' },
+    { label: t('settings') || 'Settings', icon: Settings, href: '/settings' },
+  ]
   
   // Sidebar state management
   const [isCollapsed, setIsCollapsed] = useState(false)

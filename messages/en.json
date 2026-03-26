@@ -1,0 +1,20 @@
+{
+  "Dashboard": {
+    "title": "Dashboard",
+    "description": "Overview of mental health platform."
+  },
+  "Sidebar": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "experts": "Experts",
+    "appointments": "Appointments",
+    "meditations": "Meditations",
+    "posts": "Posts",
+    "settings": "Settings",
+    "analytics": "Analytics"
+  },
+  "Header": {
+    "welcome": "Welcome back",
+    "logout": "Logout"
+  }
+}
