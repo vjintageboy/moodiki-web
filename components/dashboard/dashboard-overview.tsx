@@ -11,12 +11,7 @@ import {
   DollarSign,
   TrendingUp,
   AlertCircle,
-  RefreshCw,
 } from 'lucide-react'
-import { useEffect } from 'react'
-import { useDashboardStats } from '@/hooks/use-dashboard-stats'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -31,30 +26,24 @@ import { AppointmentsByStatusChart } from '@/components/dashboard/appointments-b
 import { ExpertsBySpecializationChart } from '@/components/dashboard/experts-by-specialization-chart'
 import { MoodTrendChart } from '@/components/dashboard/mood-trend-chart'
 import Link from 'next/link'
+import type { DashboardStats } from '@/lib/queries/dashboard'
+
+interface DashboardOverviewProps {
+  stats?: DashboardStats
+}
 
 /**
- * Dashboard Stats Overview
- * Fetches and displays real statistics from Supabase using Tanstack Query
+ * Dashboard Stats Overview - Client Component
+ * 
+ * Optimized to receive pre-fetched stats from server
+ * No client-side data fetching needed
  */
-export function DashboardOverview() {
-  const { stats, isLoading, error, refetch } = useDashboardStats()
-
-  // Show error toast if fetch fails
-  useEffect(() => {
-    if (error) {
-      toast.error('Failed to load dashboard statistics', {
-        description: 'Please try again or contact support if the issue persists.',
-        action: {
-          label: 'Retry',
-          onClick: () => refetch(),
-        },
-      })
-    }
-  }, [error, refetch])
+export function DashboardOverview({ stats }: DashboardOverviewProps) {
+  const isLoading = !stats
 
   return (
     <div className="space-y-8 p-6">
-      {/* Page header with refresh button */}
+      {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard Overview</h1>
@@ -62,16 +51,6 @@ export function DashboardOverview() {
             Key metrics and statistics for your platform
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Refresh
-        </Button>
       </div>
 
       {/* Primary Stats Grid - Core Metrics */}
@@ -230,31 +209,6 @@ export function DashboardOverview() {
           />
         </div>
       </div>
-
-      {/* Error State */}
-      {error && !isLoading && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-          <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-destructive">Failed to load statistics</p>
-              <p className="text-sm text-destructive/70 mt-1">
-                {error instanceof Error
-                  ? error.message
-                  : 'An error occurred while fetching dashboard data.'}
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetch()}
-                className="mt-3"
-              >
-                Try Again
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Analytics Charts Section */}
       <div className="mt-12">

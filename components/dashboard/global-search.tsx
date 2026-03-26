@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, UserSquare2, Loader2, Link as LinkIcon, Calendar, Bell } from 'lucide-react';

@@ -1,36 +1,40 @@
-'use client';
+import { Suspense } from 'react'
+import { requireAuth } from '@/lib/auth/server'
+import { AdminDashboard } from '@/components/dashboard/admin-dashboard'
+import { ExpertDashboard } from '@/components/dashboard/expert-dashboard'
+import { getDashboardStats } from '@/lib/queries/dashboard'
 
-import { useAuth } from '@/hooks/use-auth';
-import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
-import { ExpertDashboard } from '@/components/dashboard/expert-dashboard';
+// Force dynamic rendering (fetches from database)
+export const dynamic = 'force-dynamic'
 
-export default function DashboardPage() {
-  const { user, isAdmin, loading } = useAuth();
+// Revalidate every 5 minutes
+export const revalidate = 300
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse" />
-        <div className="grid gap-4 md:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+/**
+ * Dashboard Home Page - Server Component
+ * 
+ * Optimizations:
+ * - Server-side auth check (no client fetch)
+ * - Fetches data server-side for admins
+ * - Uses React Suspense for streaming
+ */
+export default async function DashboardPage() {
+  // Get authenticated user (throws if not authenticated)
+  const user = await requireAuth()
 
   // Show admin dashboard for admins
-  if (isAdmin) {
-    return <AdminDashboard />;
+  if (user.role === 'admin') {
+    // Prefetch stats server-side
+    const stats = await getDashboardStats()
+    return <AdminDashboard stats={stats} />
   }
 
   // Show expert dashboard for experts
-  if (user?.id) {
-    return <ExpertDashboard expertId={user.id} />;
+  if (user.role === 'expert') {
+    return <ExpertDashboard expertId={user.id} />
   }
 
-  // Fallback
+  // Fallback (should not reach here due to middleware)
   return (
     <div className="space-y-6">
       <div>
@@ -40,5 +44,19 @@ export default function DashboardPage() {
         </p>
       </div>
     </div>
-  );
+  )
+}
+
+// Loading state for Suspense
+export function DashboardLoadingSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-8 bg-gray-200 rounded w-48 animate-pulse" />
+      <div className="grid gap-4 md:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-24 bg-gray-200 rounded animate-pulse" />
+        ))}
+      </div>
+    </div>
+  )
 }

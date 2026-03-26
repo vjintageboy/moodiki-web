@@ -1,13 +1,13 @@
 'use client';
 
 import { useContext } from 'react';
-import { AuthContext, type AuthContextType } from '@/lib/providers/auth-provider';
+import { AuthContext, type AuthContextType } from '@/lib/auth/client-context';
 
 /**
  * Hook to access authentication context
  * 
  * @returns Auth context with user data, loading state, and auth functions
- * @throws Error if used outside of AuthProvider
+ * @throws Error if used outside of AuthClientProvider
  * 
  * @example
  * ```tsx
@@ -35,8 +35,8 @@ export function useAuth(): AuthContextType {
 
   if (context === undefined) {
     throw new Error(
-      'useAuth must be used within an AuthProvider. ' +
-      'Make sure your component is wrapped with <AuthProvider> in the app layout.'
+      'useAuth must be used within an AuthClientProvider. ' +
+      'Make sure your component is wrapped with <AuthClientProvider> in the app layout.'
     );
   }
 
