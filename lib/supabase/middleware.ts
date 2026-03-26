@@ -1,11 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import crypto from 'crypto'
 
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = ['/login', '/auth', '/unauthorized']
 
 // Cache duration for user session metadata (5 minutes)
 const SESSION_CACHE_TTL = 5 * 60 * 1000 // 5 minutes in milliseconds
+
+// Session secret for HMAC signing
+const SESSION_SECRET = process.env.SESSION_SECRET || 'fallback-development-secret-not-for-production'
+
+if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('⚠️  WARNING: SESSION_SECRET not set in production! Cookie tampering is possible.')
+}
 
 /**
  * User session cache structure stored in cookie
@@ -39,14 +47,55 @@ const DASHBOARD_PATHS = [
 const ADMIN_ONLY_PATHS = ['/users', '/experts', '/analytics', '/posts', '/meditations']
 
 /**
- * Try to read cached session from cookie
+ * Sign data with HMAC-SHA256
+ * Prevents cookie tampering by creating a cryptographic signature
+ */
+function signData(data: string): string {
+  return crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(data)
+    .digest('hex')
+}
+
+/**
+ * Verify HMAC signature using timing-safe comparison
+ * Prevents timing attacks
+ */
+function verifySignature(data: string, signature: string): boolean {
+  const expected = signData(data)
+  
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(expected, 'hex'),
+      Buffer.from(signature, 'hex')
+    )
+  } catch {
+    // Invalid signature format
+    return false
+  }
+}
+
+/**
+ * Try to read cached session from cookie with signature verification
  */
 function getCachedSession(request: NextRequest): CachedUserSession | null {
   const sessionCookie = request.cookies.get('user_session_cache')
-  if (!sessionCookie) return null
+  const signatureCookie = request.cookies.get('user_session_sig')
+  
+  if (!sessionCookie || !signatureCookie) return null
 
   try {
-    const cached: CachedUserSession = JSON.parse(sessionCookie.value)
+    const data = sessionCookie.value
+    const signature = signatureCookie.value
+    
+    // Verify signature before trusting data
+    if (!verifySignature(data, signature)) {
+      console.warn('[Middleware] Invalid session signature - possible tampering attempt')
+      return null
+    }
+    
+    const cached: CachedUserSession = JSON.parse(data)
     const now = Date.now()
     
     // Check if cache is still valid
@@ -63,7 +112,7 @@ function getCachedSession(request: NextRequest): CachedUserSession | null {
 }
 
 /**
- * Store session in cache cookie
+ * Store session in cache cookie with HMAC signature
  */
 function setCachedSession(
   response: NextResponse,
@@ -78,13 +127,34 @@ function setCachedSession(
     cachedAt: Date.now(),
   }
 
-  response.cookies.set('user_session_cache', JSON.stringify(cached), {
+  const data = JSON.stringify(cached)
+  const signature = signData(data)
+  
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     maxAge: 60 * 60 * 24 * 7, // 7 days (but internally checks cachedAt)
     path: '/',
-  })
+  }
+
+  response.cookies.set('user_session_cache', data, cookieOptions)
+  response.cookies.set('user_session_sig', signature, cookieOptions)
+}
+
+/**
+ * Wrap a promise with a timeout
+ * Prevents hanging indefinitely if Supabase is slow or down
+ */
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  errorMessage: string
+): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+  )
+  return Promise.race([promise, timeout])
 }
 
 /**
@@ -167,7 +237,12 @@ export async function updateSession(request: NextRequest) {
 
     try {
       // Quick auth check (verifies JWT, no DB query)
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      // Validate session with Supabase auth (with timeout)
+      const { data: { user }, error: authError } = await withTimeout(
+        supabase.auth.getUser(),
+        3000, // 3 second timeout
+        'Supabase auth timeout - taking too long to respond'
+      )
 
       if (!authError && user && user.id === cachedSession.userId) {
         // Session is valid, use cached data

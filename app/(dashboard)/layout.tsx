@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth/server'
 import { DashboardClientLayout } from '@/components/dashboard/dashboard-client-layout'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 // Force dynamic rendering (uses headers from middleware)
 export const dynamic = 'force-dynamic'
@@ -32,6 +33,10 @@ export default async function DashboardLayout({
     redirect('/unauthorized')
   }
 
-  // Render client-side interactive wrapper
-  return <DashboardClientLayout>{children}</DashboardClientLayout>
+  // Render client-side interactive wrapper with error boundary
+  return (
+    <ErrorBoundary>
+      <DashboardClientLayout>{children}</DashboardClientLayout>
+    </ErrorBoundary>
+  )
 }
