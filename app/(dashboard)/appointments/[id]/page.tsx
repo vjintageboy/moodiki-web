@@ -1,10 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import { format } from 'date-fns';
 import { ArrowLeft, CalendarClock, CheckCircle2, Clock3, Save, XCircle } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { use, useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import {
   useAppointment,
@@ -87,8 +86,9 @@ function paymentVariant(
   }
 }
 
-export default function AppointmentDetailPage() {
-  const params = useParams<{ id: string }>();
+export default function AppointmentDetailPage(props: { params: Promise<{ id: string }> }) {
+  // In Next.js 15, page params are promises.
+  const params = use(props.params);
   const appointmentId = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
   const { user, isAdmin, isExpert, loading: authLoading } = useAuth();

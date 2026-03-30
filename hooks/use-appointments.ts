@@ -494,6 +494,24 @@ export function useUpdateAppointmentPayment() {
       paymentId?: string | null
       paymentTransId?: string | null
     }) => {
+      // If we are issuing a refund, call the reliable backend MoMo API route directly
+      if (paymentStatus === 'refunded') {
+        const response = await fetch('/api/payments/refund', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentId: id }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to process refund via API')
+        }
+
+        return id;
+      }
+
+      // Default logic for 'paid' and 'unpaid' states
       const supabase = createClient()
 
       const updateData: Record<string, unknown> = {
@@ -753,4 +771,40 @@ export function useUserAppointments(
     isFetching,
     refetch,
   }
+}
+
+/**
+ * Refund appointment mutation
+ * Calls the backend API route which interfaces with MoMo
+ */
+export function useRefundAppointment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ appointmentId }: { appointmentId: string }) => {
+      const response = await fetch('/api/payments/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to process refund')
+      }
+
+      return data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['appointment', variables.appointmentId] })
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      
+      toast.success('Refund requested successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Error processing refund')
+    },
+  })
 }

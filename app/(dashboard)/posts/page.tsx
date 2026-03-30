@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Filter, MessageSquare, Heart, Eye, EyeOff, Trash2, User, Calendar } from 'lucide-react';
+import { Search, Filter, MessageSquare, Heart, Eye, EyeOff, Trash2, User, Calendar, ShieldAlert, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -45,7 +45,10 @@ import {
   usePostStats,
   usePostComments,
   useDeleteComment,
+  useModeratePost,
+  useUpdatePost,
 } from '@/hooks/use-posts';
+import { useReportedPosts } from '@/hooks/use-reports';
 import { format } from 'date-fns';
 
 const categories = ['community', 'tips', 'success-story', 'question', 'discussion'];
@@ -54,31 +57,45 @@ export default function PostsPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [visibilityFilter, setVisibilityFilter] = useState<'all' | 'visible' | 'hidden'>('all');
+  const [reportedFilter, setReportedFilter] = useState<'all' | 'reported' | 'flagged'>('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewPostId, setViewPostId] = useState<string | null>(null);
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [moderatingId, setModeratingId] = useState<string | null>(null);
 
   const { toast } = useToast();
 
   const filters = {
     category: categoryFilter !== 'all' ? categoryFilter : undefined,
     search: search || undefined,
+    flaggedOnly: reportedFilter === 'flagged' ? true : undefined,
   };
 
   const { data: posts = [], isLoading } = usePosts(filters);
+  const { data: reportedPosts = [] } = useReportedPosts();
   const { data: stats } = usePostStats();
   const { data: comments = [] } = usePostComments(viewPostId);
   const deleteMutation = useDeletePost();
   const deleteCommentMutation = useDeleteComment();
   const toggleVisibility = useTogglePostVisibility();
+  const moderatePost = useModeratePost();
+  const updatePost = useUpdatePost();
 
   const selectedPost = posts.find((p) => p.id === viewPostId);
 
-  // Apply visibility filter client-side (avoids extra DB query)
+  // Apply visibility and reported filter client-side if needed
   const filteredPosts = posts.filter((p) => {
-    if (visibilityFilter === 'visible') return !p.is_hidden;
-    if (visibilityFilter === 'hidden') return p.is_hidden;
+    // Visibility
+    if (visibilityFilter === 'visible' && p.is_hidden) return false;
+    if (visibilityFilter === 'hidden' && !p.is_hidden) return false;
+    
+    // Reported (flagged is handled server-side via hook parameter)
+    if (reportedFilter === 'reported') {
+      const isReported = reportedPosts.some(rp => rp.id === p.id);
+      if (!isReported) return false;
+    }
+    
     return true;
   });
 
@@ -138,6 +155,31 @@ export default function PostsPage() {
       });
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const handleModerate = async (post: any) => {
+    setModeratingId(post.id);
+    try {
+      const res = await moderatePost.mutateAsync({ postId: post.id, content: post.content });
+      if (res.result.isToxic) {
+        toast({ title: 'AI Flagged', description: `Sytem flagged this post: ${res.result.reason}`, variant: 'destructive' });
+      } else {
+        toast({ title: 'AI Passed', description: 'This post seems safe according to AI.' });
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Moderation failed', variant: 'destructive' });
+    } finally {
+      setModeratingId(null);
+    }
+  };
+
+  const handleClearFlag = async (postId: string) => {
+    try {
+      await updatePost.mutateAsync({ id: postId, updates: { flagged: false } });
+      toast({ title: 'Flag Cleared', description: 'The post has been marked as safe.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -252,9 +294,23 @@ export default function PostsPage() {
                 <SelectValue placeholder="Visibility" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">All Visibility</SelectItem>
+                <SelectItem value="visible">Visible Only</SelectItem>
+                <SelectItem value="hidden">Hidden Only</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={reportedFilter}
+              onValueChange={(value) => setReportedFilter(value as typeof reportedFilter)}
+            >
+              <SelectTrigger className="w-full md:w-[160px]">
+                <ShieldAlert className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Moderation" />
+              </SelectTrigger>
+              <SelectContent>
                 <SelectItem value="all">All Posts</SelectItem>
-                <SelectItem value="visible">Visible</SelectItem>
-                <SelectItem value="hidden">Hidden</SelectItem>
+                <SelectItem value="reported">Reported</SelectItem>
+                <SelectItem value="flagged">AI Flagged</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -347,6 +403,18 @@ export default function PostsPage() {
                         Hidden
                       </Badge>
                     )}
+                    {post.flagged && (
+                      <Badge variant="destructive" className="bg-red-500 hover:bg-red-600">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        ⚠ Flagged
+                      </Badge>
+                    )}
+                    {reportedPosts.some(rp => rp.id === post.id) && (
+                      <Badge variant="outline" className="border-red-400 text-red-500 bg-red-50 dark:bg-red-950/30">
+                        <ShieldAlert className="h-3 w-3 mr-1" />
+                        Reported
+                      </Badge>
+                    )}
                     <div className="flex items-center gap-1">
                       <Heart className="h-4 w-4" />
                       <span>{post.likes_count || 0}</span>
@@ -358,7 +426,7 @@ export default function PostsPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 pt-2 border-t">
+                  <div className="flex gap-2 pt-2 border-t flex-wrap">
                     <Button
                       size="sm"
                       variant="outline"
@@ -367,6 +435,30 @@ export default function PostsPage() {
                       <Eye className="h-4 w-4 mr-2" />
                       View Details
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleModerate(post)}
+                      disabled={moderatingId === post.id}
+                    >
+                      {moderatingId === post.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <ShieldAlert className="h-4 w-4 mr-2" />
+                      )}
+                      Re-analyze
+                    </Button>
+                    {post.flagged && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-green-600 hover:text-green-700 border-green-300"
+                        onClick={() => handleClearFlag(post.id)}
+                        disabled={updatePost.isPending}
+                      >
+                        Approve Flag
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"

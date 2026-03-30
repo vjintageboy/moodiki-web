@@ -457,3 +457,49 @@ export function useInvalidateUsers() {
     queryClient.invalidateQueries({ queryKey: ['users'] });
   }, [queryClient]);
 }
+
+/**
+ * Toggle user lock status
+ *
+ * @example
+ * ```tsx
+ * const toggleLock = useToggleUserLock();
+ *
+ * const handleToggle = async () => {
+ *   await toggleLock.mutateAsync({ userId: '123', is_locked: true });
+ * };
+ * ```
+ */
+export function useToggleUserLock() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId, is_locked }: { userId: string; is_locked: boolean }) => {
+      const supabase = createClient();
+      
+      const { data, error } = await supabase
+        .from('users')
+        .update({ is_locked })
+        .eq('id', userId)
+        .select('id, is_locked')
+        .single();
+
+      if (error) {
+        throw new Error(error.message || 'Failed to update user lock status');
+      }
+
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate the users list so it refetches and updates the UI
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', variables.userId] });
+      
+      toast.success(data.is_locked ? 'User locked successfully' : 'User unlocked successfully');
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Failed to update user lock status: ${message}`);
+    }
+  });
+}

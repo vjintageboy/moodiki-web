@@ -6,7 +6,7 @@ import type { Post } from '@/lib/types/database.types';
 
 const supabase = createClient();
 
-interface PostWithAuthor extends Post {
+export interface PostWithAuthor extends Post {
   author?: {
     id: string;
     full_name: string | null;
@@ -20,6 +20,7 @@ export function usePosts(filters?: {
   category?: string;
   search?: string;
   authorId?: string;
+  flaggedOnly?: boolean;
 }) {
   return useQuery({
     queryKey: ['posts', filters],
@@ -43,6 +44,10 @@ export function usePosts(filters?: {
 
       if (filters?.authorId) {
         query = query.eq('author_id', filters.authorId);
+      }
+
+      if (filters?.flaggedOnly) {
+        query = query.eq('flagged', true);
       }
 
       if (filters?.search) {
@@ -153,6 +158,33 @@ export function useUpdatePost() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       queryClient.invalidateQueries({ queryKey: ['post', variables.id] });
+    },
+  });
+}
+
+// Manually trigger AI moderation
+export function useModeratePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+      const response = await fetch('/api/admin/moderate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId, content }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to moderate post');
+      }
+
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['post', variables.postId] });
     },
   });
 }

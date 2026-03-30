@@ -51,6 +51,7 @@ export type {
   AIConversation,
   AIMessage,
   Notification,
+  Report,
 } from './database.types';
 
 // ============================================================================
@@ -77,6 +78,7 @@ export type {
   AIConversationInsert,
   AIMessageInsert,
   NotificationInsert,
+  ReportInsert,
   TablesInsert,
 } from './database.types';
 

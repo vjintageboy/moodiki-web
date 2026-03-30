@@ -125,6 +125,7 @@ export interface User {
   full_name: string | null;
   avatar_url: string | null;
   role: UserRoleType;
+  is_locked: boolean; // Admin feature
   streak_count: number;
   longest_streak: number;
   date_of_birth: string | null; // ISO timestamp
@@ -248,10 +249,23 @@ export interface Post {
   category: string;
   is_anonymous: boolean;
   is_hidden: boolean; // Admin soft-moderation flag — migration 009
+  flagged: boolean; // AI moderation flag
   likes_count: number;
   comment_count: number;
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
+}
+
+/**
+ * Reports table type
+ * Represents a user report on a post
+ */
+export interface Report {
+  id: string; // UUID
+  post_id: string; // UUID, foreign key to posts(id)
+  user_id: string; // UUID, foreign key to users(id)
+  reason: string;
+  created_at: string; // ISO timestamp
 }
 
 /**
@@ -388,7 +402,8 @@ export type TableType =
   | ChatParticipant
   | AIConversation
   | AIMessage
-  | Notification;
+  | Notification
+  | Report;
 
 /**
  * Mapping of table names to their types
@@ -410,6 +425,7 @@ export type Tables = {
   ai_conversations: AIConversation;
   ai_messages: AIMessage;
   notifications: Notification;
+  reports: Report;
 };
 
 // ============================================================================
@@ -502,6 +518,11 @@ export type AIMessageInsert = Omit<AIMessage, 'id' | 'created_at'>;
 export type NotificationInsert = Omit<Notification, 'id' | 'created_at'>;
 
 /**
+ * Type for inserting a new report
+ */
+export type ReportInsert = Omit<Report, 'id' | 'created_at'>;
+
+/**
  * Mapping of table names to their insert types
  */
 export type TablesInsert = {
@@ -520,6 +541,7 @@ export type TablesInsert = {
   ai_conversations: AIConversationInsert;
   ai_messages: AIMessageInsert;
   notifications: NotificationInsert;
+  reports: ReportInsert;
 };
 
 // ============================================================================
