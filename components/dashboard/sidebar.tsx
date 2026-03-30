@@ -19,7 +19,9 @@ import {
   LogOut,
   Sparkles,
   MessageSquare,
-  Bell
+  Bell,
+  Clock,
+  DollarSign
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
@@ -55,24 +57,24 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
   const t = useTranslations('Sidebar')
 
   const routes: Route[] = [
-    // Available to all authenticated users (admin and expert)
-    { label: t('dashboard'), icon: LayoutDashboard, href: '/' },
-    { label: t('appointments'), icon: Calendar, href: '/appointments' },
-
-    // Admin only routes
+    // --- ADMIN ROUTES ---
+    { label: t('dashboard'), icon: LayoutDashboard, href: '/', roles: ['admin'] },
     { label: t('users'), icon: Users, href: '/users', roles: ['admin'] },
     { label: t('experts'), icon: UserCheck, href: '/experts', roles: ['admin'] },
-
-    // Available to all
-    { label: t('meditations'), icon: Headphones, href: '/meditations' },
-    { label: t('posts'), icon: FileText, href: '/posts' },
-
-    // Admin only routes
+    { label: t('meditations'), icon: Headphones, href: '/meditations', roles: ['admin'] },
+    { label: t('posts'), icon: FileText, href: '/posts', roles: ['admin'] },
     { label: t('analytics'), icon: BarChart3, href: '/analytics', roles: ['admin'] },
     { label: t('chatMonitor'), icon: MessageSquare, href: '/chats', roles: ['admin'] },
+    { label: t('notifications'), icon: Bell, href: '/notifications', roles: ['admin'] },
 
-    // Available to all
-    { label: t('notifications'), icon: Bell, href: '/notifications' },
+    // --- EXPERT ROUTES ---
+    { label: t('dashboard'), icon: LayoutDashboard, href: '/', roles: ['expert'] }, // Optional but good for UX
+    { label: t('appointments'), icon: Calendar, href: '/appointments', roles: ['expert', 'admin'] },
+    { label: 'Availability', icon: Clock, href: '/availability', roles: ['expert'] },
+    { label: 'Earnings', icon: DollarSign, href: '/earnings', roles: ['expert'] },
+    { label: 'Chats', icon: MessageSquare, href: '/chats', roles: ['expert'] },
+
+    // --- SHARED ROUTES ---
     { label: t('settings'), icon: Settings, href: '/settings' },
   ]
   
@@ -88,7 +90,12 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
     setMounted(true)
     const saved = localStorage.getItem('sidebar-collapsed')
     if (saved !== null) {
-      setIsCollapsed(JSON.parse(saved))
+      try {
+        setIsCollapsed(JSON.parse(saved))
+      } catch (e) {
+        setIsCollapsed(false)
+        localStorage.removeItem('sidebar-collapsed')
+      }
     }
   }, [])
 
@@ -124,12 +131,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
   /**
    * Get restricted routes (for user info)
    */
-  const restrictedRoutes = routes.filter(route => {
-    if (!route.roles) return false
-    if (isAdmin && route.roles.includes('admin')) return false
-    if (isExpert && route.roles.includes('expert')) return false
-    return true
-  })
+  const restrictedRoutes: Route[] = [] // Removed the lock block as requested by UX
 
   /**
    * Handle logout

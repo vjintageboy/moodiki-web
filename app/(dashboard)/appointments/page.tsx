@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import {
   useAppointments,
+  useExpertAppointments,
   useCancelAppointment,
   useRescheduleAppointment,
   useUpdateAppointmentPayment,
@@ -408,7 +409,7 @@ export default function AppointmentsPage() {
 
   const debouncedSearch = useDebounce(search);
 
-  const { appointments, isLoading, error, refetch, isFetching } = useAppointments({
+  const filters = {
     status: statusFilter !== 'all' ? statusFilter : undefined,
     paymentStatus: paymentFilter !== 'all' ? paymentFilter : undefined,
     expertId: expertFilter !== 'all' ? expertFilter : undefined,
@@ -416,7 +417,23 @@ export default function AppointmentsPage() {
     dateTo: dateTo ? new Date(dateTo).toISOString() : undefined,
     page: 1,
     pageSize: 500,
+  };
+
+  const adminQuery = useAppointments({
+    ...filters,
+    enabled: !!isAdmin,
   });
+
+  const expertQuery = useExpertAppointments(
+    isExpert && !isAdmin ? currentUser?.id : null,
+    filters
+  );
+
+  const appointments = isAdmin ? adminQuery.appointments : expertQuery.appointments;
+  const isLoading = isAdmin ? adminQuery.isLoading : expertQuery.isLoading;
+  const error = isAdmin ? adminQuery.error : expertQuery.error;
+  const refetch = isAdmin ? adminQuery.refetch : expertQuery.refetch;
+  const isFetching = isAdmin ? adminQuery.isFetching : expertQuery.isFetching;
 
   const { data: experts = [] } = useExperts({ is_approved: true });
 

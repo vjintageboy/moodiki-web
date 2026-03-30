@@ -206,3 +206,51 @@ export function useChatRoom(roomId: string | null) {
     isSending: sendMessage.isPending,
   };
 }
+
+// 5. Fetch all chat rooms for a specific expert
+export function useChatExpert(expertId: string | null | undefined) {
+  const { isExpert } = useAuth();
+  const supabase = createClient();
+
+  const chatRoomsQuery = useQuery({
+    queryKey: ['expert-chat-rooms', expertId],
+    queryFn: async () => {
+      if (!expertId) return [];
+      
+      // 1. Get all room IDs this expert is part of
+      const { data: participantData, error: pError } = await supabase
+        .from('chat_participants')
+        .select('room_id')
+        .eq('user_id', expertId);
+        
+      if (pError) throw pError;
+      
+      const roomIds = participantData?.map(p => p.room_id) || [];
+      if (roomIds.length === 0) return [];
+      
+      // 2. Fetch full details for those rooms
+      const { data, error } = await supabase
+        .from('chat_rooms')
+        .select(`
+          *,
+          participants:chat_participants(
+            user:users(id, full_name, email, avatar_url, role)
+          ),
+          appointment:appointments(id, appointment_date, status)
+        `)
+        .in('id', roomIds)
+        .order('last_message_time', { ascending: false, nullsFirst: false });
+
+      if (error) throw error;
+      return data as unknown as ChatRoomWithDetails[];
+    },
+    enabled: !!expertId && !!isExpert,
+  });
+
+  return {
+    chatRooms: chatRoomsQuery.data || [],
+    isLoadingRooms: chatRoomsQuery.isLoading,
+    errorRooms: chatRoomsQuery.error,
+    refetchRooms: chatRoomsQuery.refetch,
+  };
+}

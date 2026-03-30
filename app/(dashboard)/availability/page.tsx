@@ -58,7 +58,17 @@ export default function AvailabilityPage() {
     );
   };
 
-  const upcomingSlots = (slots || []).filter(slot => !isBefore(parseISO(slot.start_time), startOfToday()));
+  const upcomingSlots = (slots || []).filter(slot => {
+    if (!slot?.start_time || !slot?.end_time) return false;
+    try {
+      const parsedStart = parseISO(slot.start_time);
+      const parsedEnd = parseISO(slot.end_time);
+      if (isNaN(parsedStart.getTime()) || isNaN(parsedEnd.getTime())) return false;
+      return !isBefore(parsedStart, startOfToday());
+    } catch (error) {
+      return false;
+    }
+  });
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">

@@ -69,7 +69,7 @@ export interface PaginationParams {
  * 5-minute stale time
  */
 export function useAppointments(
-  filters?: AppointmentFilterOptions & PaginationParams
+  filters?: AppointmentFilterOptions & PaginationParams & { enabled?: boolean }
 ) {
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['appointments', filters],
@@ -142,6 +142,7 @@ export function useAppointments(
       const appointments = (data as AppointmentWithRelations[]) || []
       return await attachExpertUsers(appointments, supabase)
     },
+    enabled: filters?.enabled !== false,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes (garbage collection)
     retry: 3,

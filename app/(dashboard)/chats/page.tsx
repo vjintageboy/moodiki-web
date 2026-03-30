@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
-import { useChatAdmin } from '@/hooks/use-chat';
+import { useChatAdmin, useChatExpert, useChatRoom } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Search, MessageSquare, Archive, Shield, 
-  Calendar, CheckCircle2, XCircle, AlertCircle, Clock
+  Search, MessageSquare, Archive, Shield,
+  Calendar, CheckCircle2, XCircle, AlertCircle, Clock, Eye, Send
 } from 'lucide-react';
 import type { ChatRoomWithDetails } from '@/hooks/use-chat';
 
@@ -31,14 +31,39 @@ const formatFullTime = (dateStr: string) => {
 };
 
 export default function ChatsPage() {
-  const { user: currentUser } = useAuth();
-  const { chatRooms, isLoadingRooms, updateRoomStatus } = useChatAdmin();
+  const { user: currentUser, isAdmin, isExpert } = useAuth();
+  
+  const adminRoomsData = useChatAdmin();
+  const expertRoomsData = useChatExpert(isExpert && !isAdmin ? currentUser?.id : null);
+  
+  const chatRooms = isAdmin ? adminRoomsData.chatRooms : expertRoomsData.chatRooms;
+  const isLoadingRooms = isAdmin ? adminRoomsData.isLoadingRooms : expertRoomsData.isLoadingRooms;
+  const updateRoomStatus = adminRoomsData.updateRoomStatus; // Only for Admin
+
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStr, setFilterStr] = useState<'all' | 'active' | 'archived' | 'closed'>('all');
+  const [newMessage, setNewMessage] = useState('');
 
   // Load messages for selected room
-  const { data: messages, isLoading: messagesLoading } = useChatAdmin().useMessages(activeRoomId);
+  const adminMessagesData = useChatAdmin().useMessages(isAdmin ? activeRoomId : null);
+  const expertChatRoom = useChatRoom(isExpert && !isAdmin ? activeRoomId : null);
+  
+  const messages = isAdmin ? adminMessagesData.data : expertChatRoom.messages;
+  const messagesLoading = isAdmin ? adminMessagesData.isLoading : expertChatRoom.isLoading;
+  const sendMessage = expertChatRoom.sendMessage;
+  const isSending = expertChatRoom.isSending;
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !isExpert) return;
+    try {
+      await sendMessage(newMessage);
+      setNewMessage('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+  };
 
   // Filter rooms
   const filteredRooms = chatRooms.filter(room => {
@@ -68,9 +93,9 @@ export default function ChatsPage() {
   return (
     <div className="h-[calc(100vh-theme(spacing.20))] flex flex-col p-6 space-y-4">
       <div className="flex-shrink-0">
-        <h1 className="text-3xl font-bold tracking-tight">Chat Monitor</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{isAdmin ? 'Chat Monitor' : 'My Chats'}</h1>
         <p className="text-muted-foreground mt-1">
-          Monitor conversations between experts and users
+          {isAdmin ? 'Monitor conversations between experts and users' : 'Message directly with your clients'}
         </p>
       </div>
 
@@ -173,9 +198,9 @@ export default function ChatsPage() {
               <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
                 <Shield className="w-8 h-8 opacity-40" />
               </div>
-              <h3 className="text-lg font-medium text-foreground">Admin Chat Monitor</h3>
+              <h3 className="text-lg font-medium text-foreground">{isAdmin ? 'Admin Chat Monitor' : 'Your Conversations'}</h3>
               <p className="text-sm mt-2 text-center max-w-sm">
-                Select a conversation from the sidebar to view message history and monitor interactions.
+                Select a conversation from the sidebar to view message history{isAdmin ? ' and monitor interactions.' : '.'}
               </p>
             </div>
           ) : (
@@ -211,28 +236,30 @@ export default function ChatsPage() {
                 </div>
 
                 {/* Admin Actions */}
-                <div className="flex items-center gap-2">
-                  {activeRoom.status !== 'archived' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => updateRoomStatus.mutate({ roomId: activeRoom.id, status: 'archived' })}
-                      className="text-muted-foreground gap-1.5 h-8"
-                    >
-                      <Archive className="w-3.5 h-3.5" /> Force Archive
-                    </Button>
-                  )}
-                  {activeRoom.status === 'active' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => updateRoomStatus.mutate({ roomId: activeRoom.id, status: 'closed' })}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1.5 h-8 dark:hover:bg-red-950"
-                    >
-                      <XCircle className="w-3.5 h-3.5" /> Force Close
-                    </Button>
-                  )}
-                </div>
+                {isAdmin && (
+                  <div className="flex items-center gap-2">
+                    {activeRoom.status !== 'archived' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => updateRoomStatus?.mutate?.({ roomId: activeRoom.id, status: 'archived' })}
+                        className="text-muted-foreground gap-1.5 h-8"
+                      >
+                        <Archive className="w-3.5 h-3.5" /> Force Archive
+                      </Button>
+                    )}
+                    {activeRoom.status === 'active' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => updateRoomStatus?.mutate?.({ roomId: activeRoom.id, status: 'closed' })}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-1.5 h-8 dark:hover:bg-red-950"
+                      >
+                        <XCircle className="w-3.5 h-3.5" /> Force Close
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Messages Area */}
@@ -255,12 +282,14 @@ export default function ChatsPage() {
                   </div>
                 ) : (
                   <div className="space-y-6 pb-4">
-                    {/* Read-only banner */}
-                    <div className="flex justify-center mb-6">
-                      <div className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm border border-blue-100 dark:border-blue-800">
-                        <Eye className="w-3.5 h-3.5" /> You are viewing this chat as an Admin
+                    {/* Read-only banner for Admin */}
+                    {isAdmin && (
+                      <div className="flex justify-center mb-6">
+                        <div className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm border border-blue-100 dark:border-blue-800">
+                          <Eye className="w-3.5 h-3.5" /> You are viewing this chat as an Admin
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {messages.map((message, i) => {
                       const isExpert = message.sender?.role === 'expert';
@@ -315,11 +344,35 @@ export default function ChatsPage() {
                 )}
               </ScrollArea>
               
-              {/* Footer read-only notice */}
-              <div className="p-3 border-t bg-muted/30 flex justify-center flex-shrink-0">
-                <p className="text-xs text-muted-foreground">
-                  Admins cannot participate in private sessions. For intervention, contact the expert directly.
-                </p>
+              {/* Footer: Input Form for Expert or Read-only Notice for Admin */}
+              <div className="p-4 border-t bg-background flex-shrink-0 m-0">
+                {isAdmin ? (
+                  <div className="flex justify-center flex-shrink-0 bg-muted/30 p-2 rounded-lg">
+                    <p className="text-xs text-muted-foreground">
+                      Admins cannot participate in private sessions. For intervention, contact the expert directly.
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
+                    <div className="relative flex-1">
+                      <Input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Type a message..."
+                        className="pr-12 md:text-sm resize-none py-3"
+                        disabled={isSending || activeRoom.status !== 'active'}
+                      />
+                    </div>
+                    <Button 
+                      type="submit" 
+                      disabled={!newMessage.trim() || isSending || activeRoom.status !== 'active'}
+                      size="icon"
+                      className="h-10 w-10 shrink-0"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </form>
+                )}
               </div>
             </>
           )}
@@ -329,23 +382,4 @@ export default function ChatsPage() {
   );
 }
 
-// Eye icon helper since it wasn't imported from lucide
-function Eye(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
+

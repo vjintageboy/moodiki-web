@@ -24,7 +24,12 @@ export function DashboardClientLayout({ children }: DashboardClientLayoutProps) 
   useEffect(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
     if (saved !== null) {
-      setIsCollapsed(JSON.parse(saved))
+      try {
+        setIsCollapsed(JSON.parse(saved))
+      } catch (e) {
+        setIsCollapsed(false)
+        localStorage.removeItem('sidebar-collapsed')
+      }
     }
     // Custom event fired by Sidebar in same tab
     const handleCustom = (e: Event) => {
