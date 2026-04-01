@@ -7,8 +7,11 @@ This directory contains all Supabase-related configuration, migrations, and docu
 ```
 supabase/
 ├── migrations/
-│   ├── 001_initial_schema.sql      # Main schema migration (ALL 15 tables)
-│   └── 002_rls_policies.sql        # RLS security policies (separate)
+│   ├── 001_initial_schema.sql           # Main schema migration (ALL 15 tables)
+│   ├── 002_rls_policies.sql             # RLS security policies (separate)
+│   ├── 003_admin_expert_features.sql    # Admin and expert features
+│   ├── 004-012_*.sql                    # Additional features
+│   └── 013_auto_user_profile_trigger.sql # ⭐ Auto user profile creation
 │
 ├── README.md                        # This file
 ├── SCHEMA_SUMMARY.md               # Detailed table documentation
@@ -45,8 +48,16 @@ supabase migration up
 psql -h your-host.supabase.co -U postgres -d postgres -f migrations/001_initial_schema.sql
 ```
 
-### 3. (Optional) Apply RLS Policies
-After schema is working:
+### 3. Apply Auto User Profile Trigger (IMPORTANT)
+This trigger automatically creates user profiles when auth users are created:
+```
+1. Go to SQL Editor
+2. Copy contents of migrations/013_auto_user_profile_trigger.sql
+3. Paste and run
+```
+
+### 4. (Optional) Apply RLS Policies
+After schema and trigger are working:
 ```
 1. Go to SQL Editor
 2. Copy contents of migrations/002_rls_policies.sql
@@ -145,6 +156,13 @@ See `lib/supabase/client.ts` for proper configuration
 - Users table linked to `auth.users` via id
 - Configure JWT claims for role-based access
 - Use Supabase Auth for authentication
+- **Auto Profile Creation:** Database trigger (`on_auth_user_created`) automatically creates user profile in `public.users` when auth user is created (see migration 013)
+
+### Database Triggers
+- **on_auth_user_created**: Automatically creates profile in `public.users` when user signs up or is created by admin
+- Prevents duplicate profile creation errors
+- Extracts `full_name` and `role` from `user_metadata`
+- Idempotent design with `ON CONFLICT DO NOTHING`
 
 ## ✅ Verification Checklist
 
