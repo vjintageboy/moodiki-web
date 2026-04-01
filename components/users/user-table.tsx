@@ -28,7 +28,7 @@ export function UserTable({ users }: { users: User[] }) {
     toggleLock.mutate({ userId: user.id, is_locked: !user.is_locked });
   };
   return (
-    <div className="rounded-md border bg-white">
+    <div className="rounded-md border bg-card text-card-foreground">
       <Table>
         <TableHeader>
           <TableRow>

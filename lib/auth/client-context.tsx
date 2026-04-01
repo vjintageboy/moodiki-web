@@ -161,6 +161,8 @@ export function AuthClientProvider({ children, initialUser }: AuthClientProvider
       const { error } = await supabase.auth.signOut()
       if (error) throw error
       setUser(null)
+      // Redirect to login page and let middleware handle locale prefixing if necessary
+      window.location.href = '/login'
     } catch (err) {
       console.error('[AuthClient] Error logging out:', err)
       throw err

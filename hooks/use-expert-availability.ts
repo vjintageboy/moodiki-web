@@ -39,18 +39,24 @@ export function useCreateAvailabilityMutation() {
   const supabase = createClient();
   const queryClient = useQueryClient();
 
+  // Note: payload omits expert_id entirely to prevent spoofing.
+  // The PostgreSQL RPC automatically injects auth.uid().
   return useMutation({
-    mutationFn: async (slot: { expert_id: string; start_time: string; end_time: string }) => {
-      const { data, error } = await supabase
-        .from('expert_availability')
-        .insert([slot])
-        .select()
-        .single();
+    mutationFn: async (slot: { start_time: string; end_time: string }) => {
+      // Use secure RPC instead of direct insert
+      const { data, error } = await supabase.rpc('add_expert_availability', {
+        p_start_time: slot.start_time,
+        p_end_time: slot.end_time
+      });
 
       if (error) {
-        // Handle PostgreSQL GiST EXCLUDE Exeception
+        // Handle PostgreSQL EXCLUDE/CHECK exceptions nicely
         if (error.code === '23P01') {
           throw new Error('This time slot overlaps with an existing availability block.');
+        } else if (error.message.includes('valid_duration_minimum')) {
+          throw new Error('Availability block must be at least 15 minutes long.');
+        } else if (error.message.includes('in the past')) {
+          throw new Error('Cannot schedule availability slots in the past.');
         }
         throw new Error(error.message);
       }
@@ -78,6 +84,8 @@ export function useDeleteAvailabilityMutation() {
         .delete()
         .eq('id', id);
 
+      // Note: RLS ensures only the owner can delete, so id alone is structurally safe
+
       if (error) {
         throw new Error(error.message);
       }
@@ -89,6 +97,41 @@ export function useDeleteAvailabilityMutation() {
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to remove availability');
+    },
+  });
+}
+
+export function useCreateBulkAvailabilityMutation() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (slots: { start_time: string; end_time: string }[]) => {
+      const { data, error } = await supabase.rpc('add_expert_availability_bulk', {
+        p_slots: slots
+      });
+
+      if (error) {
+        if (error.code === '23P01') {
+          throw new Error('One or more of the generated time slots overlaps with an existing availability block.');
+        } else if (error.message.includes('valid_duration_minimum')) {
+          throw new Error('All availability blocks must be at least 15 minutes long.');
+        } else if (error.message.includes('in the past')) {
+          throw new Error('Cannot schedule availability slots in the past.');
+        }
+        throw new Error(error.message);
+      }
+
+      return data as AvailabilitySlot[];
+    },
+    onSuccess: (data) => {
+      if (data && data.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ['expert-availability', data[0].expert_id] });
+        toast.success(`Successfully added ${data.length} recurring availability block(s)!`);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to generate bulk availability');
     },
   });
 }

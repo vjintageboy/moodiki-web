@@ -1,4 +1,5 @@
 import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import type { UserRoleType } from '@/lib/types/database.types'
 
 /**
@@ -34,7 +35,7 @@ export async function getAuthUser(): Promise<UserContext | null> {
   try {
     const headersList = await headers()
     const userContextHeader = headersList.get('x-user-context')
-    
+
     if (!userContextHeader) {
       return null
     }
@@ -42,7 +43,7 @@ export async function getAuthUser(): Promise<UserContext | null> {
     // Decode base64 JSON
     const decoded = Buffer.from(userContextHeader, 'base64').toString('utf-8')
     const userContext: UserContext = JSON.parse(decoded)
-    
+
     return userContext
   } catch (err) {
     console.error('[getAuthUser] Failed to parse user context:', err)
@@ -72,11 +73,12 @@ export async function getAuthUser(): Promise<UserContext | null> {
  */
 export async function requireAuth(): Promise<UserContext> {
   const user = await getAuthUser()
-  
+
   if (!user) {
-    throw new Error('Unauthenticated: User must be logged in to access this resource')
+    // Thay thế throw Error bằng redirect
+    redirect('/login')
   }
-  
+
   return user
 }
 
@@ -99,11 +101,12 @@ export async function requireAuth(): Promise<UserContext> {
  */
 export async function requireAdmin(): Promise<UserContext> {
   const user = await requireAuth()
-  
+
   if (user.role !== 'admin') {
-    throw new Error('Unauthorized: Admin access required')
+    // Chuyển về trang báo lỗi không có quyền
+    redirect('/unauthorized')
   }
-  
+
   return user
 }
 
@@ -129,13 +132,13 @@ export async function requireRole(
   allowedRoles: UserRoleType | UserRoleType[]
 ): Promise<UserContext> {
   const user = await requireAuth()
-  
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles]
-  
+
   if (!roles.includes(user.role)) {
-    throw new Error(`Unauthorized: Required role(s): ${roles.join(', ')}`)
+    // Chuyển về trang báo lỗi không có quyền
+    redirect('/unauthorized')
   }
-  
+
   return user
 }
 

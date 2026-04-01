@@ -110,7 +110,7 @@ export function UserGrowthChart() {
               labelStyle={{ color: textColor }}
               itemStyle={{ color: lineColor }}
               formatter={(value) => [
-                t('usersCount', { count: value }),
+                t('usersCount', { count: value as number }),
                 t('newUsersLabel'),
               ]}
               labelFormatter={(label) => `${label}`}

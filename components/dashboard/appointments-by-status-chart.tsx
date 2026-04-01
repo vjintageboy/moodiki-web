@@ -112,7 +112,7 @@ export function AppointmentsByStatusChart() {
               cursor={{ fill: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}
               formatter={(value, name) => {
                 if (name === 'count') {
-                  return [t('appointmentsCount', { count: value }), t('countLabel')];
+                  return [t('appointmentsCount', { count: value as number }), t('countLabel')];
                 }
                 if (name === 'percentage') {
                   return [`${value}%`, t('percentageLabel')];

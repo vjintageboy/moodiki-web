@@ -112,6 +112,7 @@ export function CreateUserForm({ onSubmit }: CreateUserFormProps) {
       email: formData.get('email') as string,
       full_name: formData.get('fullName') as string,
       role: (formData.get('role') as any) || 'user',
+      is_locked: false,
       streak_count: 0,
       longest_streak: 0,
       total_activities: 0,

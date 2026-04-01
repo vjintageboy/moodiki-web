@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useUsers, useUpdateUser, useDeleteUser } from '@/hooks/use-users';
 import { DataTable, Column } from '@/components/ui/data-table';
@@ -229,6 +230,7 @@ function DeleteConfirmDialog({
  * User Actions Menu
  */
 function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
+  const router = useRouter();
   const [changeRoleOpen, setChangeRoleOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const updateUser = useUpdateUser();
@@ -275,10 +277,11 @@ function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
           
-          <DropdownMenuItem>
-            <a href={`/users/${user.id}`} className="w-full cursor-pointer">
-              View Details
-            </a>
+          <DropdownMenuItem
+            onClick={() => router.push(`/users/${user.id}`)}
+            className="cursor-pointer"
+          >
+            View Details
           </DropdownMenuItem>
 
           {isAdmin && (
@@ -329,6 +332,7 @@ function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
  */
 export default function UsersPage() {
   const { user: currentUser, isAdmin } = useAuth();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [addUserOpen, setAddUserOpen] = useState(false);
@@ -368,10 +372,14 @@ export default function UsersPage() {
       header: 'Full Name',
       sortable: true,
       render: (user) => (
-        <div>
+        <button
+          type="button"
+          className="text-left hover:underline cursor-pointer"
+          onClick={() => router.push(`/users/${user.id}`)}
+        >
           <p className="font-medium">{user.full_name || 'N/A'}</p>
           <p className="text-sm text-muted-foreground">{user.email}</p>
-        </div>
+        </button>
       ),
     },
     {

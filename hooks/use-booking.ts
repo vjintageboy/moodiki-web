@@ -8,6 +8,11 @@ export type AvailableSlot = {
   end_time: string;
 };
 
+export type AvailableSlotResponse = {
+  slots: AvailableSlot[];
+  nextAvailableDate: string | null;
+};
+
 export function useAvailableSlots(expertId: string, date: Date | undefined) {
   const supabase = createClient();
 
@@ -17,10 +22,12 @@ export function useAvailableSlots(expertId: string, date: Date | undefined) {
       if (!expertId || !date) return [];
 
       const targetDate = date.toISOString().split('T')[0];
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Ho_Chi_Minh';
 
-      const { data, error } = await supabase.rpc('get_available_slots', {
+      const { data, error } = await supabase.rpc('get_split_available_slots', {
         p_expert_id: expertId,
         p_date: targetDate,
+        p_timezone: timezone
       });
 
       if (error) {
@@ -28,7 +35,8 @@ export function useAvailableSlots(expertId: string, date: Date | undefined) {
         throw error;
       }
 
-      return (data as AvailableSlot[]) || [];
+      // The RPC returns a JSONB object with `slots` and `nextAvailableDate`
+      return (data as unknown) as AvailableSlotResponse;
     },
     enabled: !!expertId && !!date,
   });

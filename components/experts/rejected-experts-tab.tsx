@@ -215,7 +215,7 @@ export function RejectedExpertsTab({
 
   if (isLoading) {
     return (
-      <div className="rounded-md border bg-white p-8 text-center text-muted-foreground">
+      <div className="rounded-md border bg-card text-card-foreground p-8 text-center text-muted-foreground">
         {t('loading')}
       </div>
     );
@@ -223,7 +223,7 @@ export function RejectedExpertsTab({
 
   return (
     <>
-      <div className="space-y-4 bg-white rounded-lg border p-4">
+      <div className="space-y-4 bg-card text-card-foreground rounded-lg border p-4">
         {/* Search and Filter */}
         <div className="grid gap-4 md:grid-cols-2">
           <div>

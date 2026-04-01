@@ -20,7 +20,7 @@ interface Expert {
 
 export function ExpertTable({ experts }: { experts: Expert[] }) {
   return (
-    <div className="rounded-md border bg-white">
+    <div className="rounded-md border bg-card text-card-foreground">
       <Table>
         <TableHeader>
           <TableRow>

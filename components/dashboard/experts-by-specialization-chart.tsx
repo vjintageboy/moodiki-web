@@ -130,7 +130,7 @@ export function ExpertsBySpecializationChart() {
               }}
               labelStyle={{ color: textColor }}
               formatter={(value) => [
-                t('expertsCount', { count: value }),
+                t('expertsCount', { count: value as number }),
                 t('countLabel'),
               ]}
             />

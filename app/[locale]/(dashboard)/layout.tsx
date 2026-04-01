@@ -21,7 +21,7 @@ export default async function DashboardLayout({
     redirect({ href: '/login', locale })
   }
 
-  if (user.role !== 'admin' && user.role !== 'expert') {
+  if (!user || (user.role !== 'admin' && user.role !== 'expert')) {
     redirect({ href: '/unauthorized', locale })
   }
 
