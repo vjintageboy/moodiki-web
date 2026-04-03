@@ -70,9 +70,9 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
     // --- EXPERT ROUTES ---
     { label: t('dashboard'), icon: LayoutDashboard, href: '/', roles: ['expert'] }, // Optional but good for UX
     { label: t('appointments'), icon: Calendar, href: '/appointments', roles: ['expert', 'admin'] },
-    { label: 'Availability', icon: Clock, href: '/availability', roles: ['expert'] },
-    { label: 'Earnings', icon: DollarSign, href: '/earnings', roles: ['expert'] },
-    { label: 'Chats', icon: MessageSquare, href: '/chats', roles: ['expert'] },
+    { label: t('availability'), icon: Clock, href: '/availability', roles: ['expert'] },
+    { label: t('earnings'), icon: DollarSign, href: '/earnings', roles: ['expert'] },
+    { label: t('chats'), icon: MessageSquare, href: '/chats', roles: ['expert'] },
 
     // --- SHARED ROUTES ---
     { label: t('settings'), icon: Settings, href: '/settings' },

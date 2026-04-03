@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { vi, enUS } from 'date-fns/locale';
 import { useNotifications } from '@/hooks/use-notifications';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations, useLocale } from 'next-intl';
 import { 
   Bell, Check, Trash2, Calendar, MessageSquare, 
   AlertCircle, Info, RefreshCw, Send 
@@ -45,6 +47,10 @@ const getNotificationMetadata = (type: string, isRead: boolean) => {
 };
 
 export default function NotificationsPage() {
+  const t = useTranslations('Notifications');
+  const locale = useLocale();
+  const dateLocale = locale === 'vi' ? vi : enUS;
+
   const { 
     notifications, isLoading, error, refetch, unreadCount,
     markAsRead, markAllAsRead, deleteNotification 
@@ -73,15 +79,15 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-between flex-shrink-0">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            Notifications
+            {t('title')}
             {unreadCount > 0 && (
               <Badge variant="destructive" className="ml-2 rounded-full px-2 py-0.5 text-xs">
-                {unreadCount} new
+                {unreadCount} {t('new')}
               </Badge>
             )}
           </h1>
           <p className="text-muted-foreground mt-1">
-            View and manage your alerts and messages
+            {t('subtitle')}
           </p>
         </div>
         
@@ -94,7 +100,7 @@ export default function NotificationsPage() {
             className="gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('refresh')}
           </Button>
           
           <Button 
@@ -105,7 +111,7 @@ export default function NotificationsPage() {
             className="gap-2 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900"
           >
             <Check className="w-4 h-4" />
-            Mark all read
+            {t('markAllRead')}
           </Button>
         </div>
       </div>
@@ -115,9 +121,9 @@ export default function NotificationsPage() {
         <Tabs defaultValue="all" value={filter} onValueChange={(v) => setFilter(v as any)} className="flex-1 flex flex-col">
           <div className="px-6 py-4 border-b flex items-center justify-between flex-shrink-0 bg-muted/30">
             <TabsList>
-              <TabsTrigger value="all">All Notifications</TabsTrigger>
+              <TabsTrigger value="all">{t('allNotifications')}</TabsTrigger>
               <TabsTrigger value="unread" className="gap-2">
-                Unread
+                {t('unread')}
                 {unreadCount > 0 && (
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-[10px] text-primary">
                     {unreadCount}
@@ -127,7 +133,7 @@ export default function NotificationsPage() {
             </TabsList>
             
             <div className="text-sm text-muted-foreground">
-              {filteredNotifications.length} items
+              {filteredNotifications.length} {t('items')}
             </div>
           </div>
 
@@ -153,12 +159,12 @@ export default function NotificationsPage() {
                   <div className="inline-flex w-16 h-16 items-center justify-center rounded-full bg-red-100 text-red-600 mb-4 dark:bg-red-900/30">
                     <AlertCircle className="w-8 h-8" />
                   </div>
-                  <h3 className="text-lg font-medium text-foreground">Failed to load notifications</h3>
+                  <h3 className="text-lg font-medium text-foreground">{t('failedToLoad')}</h3>
                   <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-                    {error.message || 'There was a problem retrieving your notifications. Please try again.'}
+                    {error.message || t('failedToLoadDesc')}
                   </p>
                   <Button variant="outline" className="mt-6" onClick={() => refetch()}>
-                    Try Again
+                    {t('tryAgain')}
                   </Button>
                 </div>
               ) : filteredNotifications.length === 0 ? (
@@ -167,11 +173,11 @@ export default function NotificationsPage() {
                   <div className="inline-flex w-20 h-20 items-center justify-center rounded-full bg-muted text-muted-foreground mb-4">
                     <Bell className="w-10 h-10 opacity-50" />
                   </div>
-                  <h3 className="text-xl font-medium text-foreground">All caught up!</h3>
+                  <h3 className="text-xl font-medium text-foreground">{t('allCaughtUp')}</h3>
                   <p className="text-sm text-muted-foreground mt-2">
                     {filter === 'unread' 
-                      ? "You don't have any unread notifications."
-                      : "You don't have any notifications yet."}
+                      ? t('noUnread')
+                      : t('noNotifications')}
                   </p>
                 </div>
               ) : (
@@ -205,9 +211,9 @@ export default function NotificationsPage() {
                             {notification.message}
                           </p>
                           <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
-                            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                            {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: dateLocale })}
                             <span className="mx-1">•</span>
-                            <span className="capitalize">{notification.type}</span>
+                            <span className="capitalize">{t(`types.${notification.type.toLowerCase()}` as any)}</span>
                           </p>
                         </div>
 
@@ -219,7 +225,7 @@ export default function NotificationsPage() {
                               size="icon" 
                               onClick={(e) => handleMarkAsRead(notification.id, e)}
                               className="h-8 w-8 text-muted-foreground hover:text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900/40"
-                              title="Mark as read"
+                              title={t('markAsRead')}
                             >
                               <Check className="w-4 h-4" />
                             </Button>
@@ -229,7 +235,7 @@ export default function NotificationsPage() {
                             size="icon" 
                             onClick={(e) => handleDelete(notification.id, e)}
                             className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40"
-                            title="Delete notification"
+                            title={t('delete')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

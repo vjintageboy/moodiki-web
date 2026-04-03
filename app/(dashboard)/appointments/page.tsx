@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 import { format } from 'date-fns';
+import { vi, enUS } from 'date-fns/locale';
 import {
   CalendarClock,
   CheckCircle2,
@@ -53,6 +54,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTranslations, useLocale } from 'next-intl';
 import type {
   AppointmentStatusType,
   CallTypeType,
@@ -116,16 +118,19 @@ function getCallTypeIcon(callType: CallTypeType) {
   }
 }
 
-function formatDateTime(value: string): string {
+function formatDateTime(value: string, locale: any): string {
   try {
-    return format(new Date(value), 'MMM dd, yyyy HH:mm');
+    return format(new Date(value), 'MMM dd, yyyy HH:mm', { locale });
   } catch {
     return 'Invalid date';
   }
 }
 
-function formatPrice(price: number | null): string {
+function formatPrice(price: number | null, locale: string): string {
   if (price === null) return 'N/A';
+  if (locale === 'vi') {
+    return `${price.toLocaleString('vi-VN')} ₫`;
+  }
   return `$${price.toLocaleString('en-US')}`;
 }
 
@@ -154,6 +159,7 @@ function AppointmentActionsMenu({
   currentUserId: string;
   currentUserRole: 'admin' | 'expert';
 }) {
+  const t = useTranslations('Appointments');
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -172,7 +178,7 @@ function AppointmentActionsMenu({
 
   const handleStatusChange = async (newStatus: AppointmentStatusType) => {
     if (newStatus === 'completed' && appointment.payment_status !== 'paid') {
-      toast.error('Payment must be paid before marking appointment as completed');
+      toast.error(t('toasts.paymentRequired'));
       return;
     }
 
@@ -199,7 +205,7 @@ function AppointmentActionsMenu({
 
   const handleCancel = async () => {
     if (!cancelReason.trim()) {
-      toast.error('Cancellation reason is required');
+      toast.error(t('toasts.cancelReasonRequired'));
       return;
     }
 
@@ -220,12 +226,12 @@ function AppointmentActionsMenu({
 
   const handleReschedule = async () => {
     if (!newDate) {
-      toast.error('Please select a new date and time');
+      toast.error(t('toasts.selectDateTime'));
       return;
     }
 
     if (newDuration <= 0) {
-      toast.error('Duration must be greater than 0 minutes');
+      toast.error(t('toasts.positiveDuration'));
       return;
     }
 
@@ -250,25 +256,25 @@ function AppointmentActionsMenu({
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('actions.label')}</DropdownMenuLabel>
           <DropdownMenuSeparator />
 
           <DropdownMenuItem>
             <Link href={`/appointments/${appointment.id}`} className="w-full cursor-pointer">
-              View Details
+              {t('actions.viewDetails')}
             </Link>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuLabel className="text-xs text-muted-foreground">Status</DropdownMenuLabel>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">{t('actions.status')}</DropdownMenuLabel>
           <DropdownMenuItem
             disabled={!canMoveToConfirmed || updateStatus.isPending}
             onClick={() => handleStatusChange('confirmed')}
             className="cursor-pointer"
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            Mark Confirmed
+            {t('actions.markConfirmed')}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={!canMoveToCompleted || updateStatus.isPending}
@@ -276,32 +282,32 @@ function AppointmentActionsMenu({
             className="cursor-pointer"
           >
             <CalendarClock className="mr-2 h-4 w-4" />
-            Mark Completed
+            {t('actions.markCompleted')}
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuLabel className="text-xs text-muted-foreground">Payment</DropdownMenuLabel>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">{t('actions.payment')}</DropdownMenuLabel>
           <DropdownMenuItem
             disabled={updatePayment.isPending}
             onClick={() => handlePaymentStatusChange('unpaid')}
             className="cursor-pointer"
           >
-            Set Unpaid
+            {t('actions.setUnpaid')}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={updatePayment.isPending}
             onClick={() => handlePaymentStatusChange('paid')}
             className="cursor-pointer"
           >
-            Set Paid
+            {t('actions.setPaid')}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={updatePayment.isPending}
             onClick={() => handlePaymentStatusChange('refunded')}
             className="cursor-pointer"
           >
-            Set Refunded
+            {t('actions.setRefunded')}
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
@@ -312,7 +318,7 @@ function AppointmentActionsMenu({
             className="cursor-pointer"
           >
             <Clock3 className="mr-2 h-4 w-4" />
-            Reschedule
+            {t('actions.reschedule')}
           </DropdownMenuItem>
 
           <DropdownMenuItem
@@ -321,7 +327,7 @@ function AppointmentActionsMenu({
             className="cursor-pointer text-destructive focus:text-destructive"
           >
             <XCircle className="mr-2 h-4 w-4" />
-            Cancel Appointment
+            {t('actions.cancel')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -329,28 +335,28 @@ function AppointmentActionsMenu({
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogTitle>{t('dialogs.cancelTitle')}</DialogTitle>
             <DialogDescription>
-              Provide a reason for cancellation. This action will update the appointment status to cancelled.
+              {t('dialogs.cancelDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Input
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Reason for cancellation"
+              placeholder={t('dialogs.cancelReasonPlaceholder')}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
-              Back
+              {t('dialogs.back')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancel}
               disabled={cancelAppointment.isPending}
             >
-              {cancelAppointment.isPending ? 'Cancelling...' : 'Confirm Cancel'}
+              {cancelAppointment.isPending ? t('dialogs.cancelling') : t('dialogs.confirmCancel')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -359,14 +365,14 @@ function AppointmentActionsMenu({
       <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reschedule Appointment</DialogTitle>
+            <DialogTitle>{t('dialogs.rescheduleTitle')}</DialogTitle>
             <DialogDescription>
-              Choose a new date/time and duration for this appointment.
+              {t('dialogs.rescheduleDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1">
-              <label className="text-sm font-medium">New Date & Time</label>
+              <label className="text-sm font-medium">{t('dialogs.newDateTime')}</label>
               <Input
                 type="datetime-local"
                 value={newDate}
@@ -374,7 +380,7 @@ function AppointmentActionsMenu({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium">Duration (minutes)</label>
+              <label className="text-sm font-medium">{t('dialogs.duration')}</label>
               <Input
                 type="number"
                 min={1}
@@ -385,10 +391,10 @@ function AppointmentActionsMenu({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleOpen(false)}>
-              Back
+              {t('dialogs.back')}
             </Button>
             <Button onClick={handleReschedule} disabled={rescheduleAppointment.isPending}>
-              {rescheduleAppointment.isPending ? 'Saving...' : 'Save Changes'}
+              {rescheduleAppointment.isPending ? t('dialogs.saving') : t('dialogs.saveChanges')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -398,6 +404,10 @@ function AppointmentActionsMenu({
 }
 
 export default function AppointmentsPage() {
+  const t = useTranslations('Appointments');
+  const locale = useLocale();
+  const dateLocale = locale === 'vi' ? vi : enUS;
+
   const { user: currentUser, isAdmin, isExpert, loading } = useAuth();
 
   const [search, setSearch] = useState('');
@@ -459,7 +469,7 @@ export default function AppointmentsPage() {
   const columns: Column<AppointmentWithRelations>[] = [
     {
       key: 'participants',
-      header: 'Participants',
+      header: t('table.participants'),
       render: (appointment) => (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -478,7 +488,7 @@ export default function AppointmentsPage() {
               <p className="text-sm font-medium leading-none">
                 {appointment.user?.full_name || 'Unknown user'}
               </p>
-              <p className="text-xs text-muted-foreground">User</p>
+              <p className="text-xs text-muted-foreground">{t('table.user')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -497,7 +507,7 @@ export default function AppointmentsPage() {
               <p className="text-sm font-medium leading-none">
                 {appointment.expertUser?.full_name || 'Unknown expert'}
               </p>
-              <p className="text-xs text-muted-foreground">Expert</p>
+              <p className="text-xs text-muted-foreground">{t('table.expert')}</p>
             </div>
           </div>
         </div>
@@ -505,45 +515,45 @@ export default function AppointmentsPage() {
     },
     {
       key: 'appointment_date',
-      header: 'Date & Time',
+      header: t('table.dateTime'),
       sortable: true,
       render: (appointment) => (
         <div className="space-y-1">
-          <p className="text-sm font-medium">{formatDateTime(appointment.appointment_date)}</p>
-          <p className="text-xs text-muted-foreground">{appointment.duration_minutes} min</p>
+          <p className="text-sm font-medium">{formatDateTime(appointment.appointment_date, dateLocale)}</p>
+          <p className="text-xs text-muted-foreground">{appointment.duration_minutes} {t('table.minutes')}</p>
         </div>
       ),
     },
     {
       key: 'call_type',
-      header: 'Call Type',
+      header: t('table.callType'),
       render: (appointment) => (
         <Badge variant="outline" className="inline-flex items-center gap-1">
           {getCallTypeIcon(appointment.call_type)}
-          <span className="capitalize">{appointment.call_type}</span>
+          <span className="capitalize">{t(`callType.${appointment.call_type.toLowerCase()}` as any)}</span>
         </Badge>
       ),
     },
     {
       key: 'payment_status',
-      header: 'Payment',
+      header: t('table.payment'),
       sortable: true,
       render: (appointment) => (
         <div className="space-y-1">
           <Badge variant={getPaymentVariant(appointment.payment_status)}>
-            {appointment.payment_status}
+            {t(`paymentStatus.${appointment.payment_status.toLowerCase()}` as any)}
           </Badge>
-          <p className="text-xs text-muted-foreground">{formatPrice(appointment.expert_base_price)}</p>
+          <p className="text-xs text-muted-foreground">{formatPrice(appointment.expert_base_price, locale)}</p>
         </div>
       ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('table.status'),
       sortable: true,
       render: (appointment) => (
         <Badge variant={getStatusVariant(appointment.status)}>
-          {appointment.status}
+          {t(`status.${appointment.status.toLowerCase()}` as any)}
         </Badge>
       ),
     },
@@ -553,10 +563,10 @@ export default function AppointmentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Appointments</h2>
-          <p className="text-muted-foreground">Manage platform appointments.</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
-        <div className="rounded-lg border p-6 text-sm text-muted-foreground">Loading permissions...</div>
+        <div className="rounded-lg border p-6 text-sm text-muted-foreground">{t('loadingPermissions')}</div>
       </div>
     );
   }
@@ -564,7 +574,7 @@ export default function AppointmentsPage() {
   if (!isAdmin && !isExpert) {
     return (
       <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
-        <p className="text-sm font-medium text-destructive">Access denied for appointments management.</p>
+        <p className="text-sm font-medium text-destructive">{t('accessDenied')}</p>
       </div>
     );
   }
@@ -577,11 +587,11 @@ export default function AppointmentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Appointments</h2>
-          <p className="text-muted-foreground">Manage platform appointments.</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          {isFetching ? 'Refreshing...' : 'Refresh'}
+          {isFetching ? t('refreshing') : t('refresh')}
         </Button>
       </div>
 
@@ -592,32 +602,32 @@ export default function AppointmentsPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="pl-8"
-            placeholder="Search by user or expert..."
+            placeholder={t('searchPlaceholder')}
           />
         </div>
 
         <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as 'all' | AppointmentStatusType)}>
           <SelectTrigger>
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t('filters.status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="all">{t('filters.allStatuses')}</SelectItem>
+            <SelectItem value="pending">{t('status.pending')}</SelectItem>
+            <SelectItem value="confirmed">{t('status.confirmed')}</SelectItem>
+            <SelectItem value="completed">{t('status.completed')}</SelectItem>
+            <SelectItem value="cancelled">{t('status.cancelled')}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={paymentFilter} onValueChange={(value) => setPaymentFilter(value as 'all' | PaymentStatusType)}>
           <SelectTrigger>
-            <SelectValue placeholder="Payment" />
+            <SelectValue placeholder={t('filters.payment')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Payments</SelectItem>
-            <SelectItem value="unpaid">Unpaid</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="refunded">Refunded</SelectItem>
+            <SelectItem value="all">{t('filters.allPayments')}</SelectItem>
+            <SelectItem value="unpaid">{t('paymentStatus.unpaid')}</SelectItem>
+            <SelectItem value="paid">{t('paymentStatus.paid')}</SelectItem>
+            <SelectItem value="refunded">{t('paymentStatus.refunded')}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -628,10 +638,10 @@ export default function AppointmentsPage() {
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Expert" />
+            <SelectValue placeholder={t('filters.expert')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Experts</SelectItem>
+            <SelectItem value="all">{t('filters.allExperts')}</SelectItem>
             {experts.map((expert) => (
               <SelectItem key={expert.id} value={expert.id}>
                 {expert.users?.full_name || expert.users?.email || expert.id}
@@ -643,7 +653,7 @@ export default function AppointmentsPage() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <label className="text-sm font-medium">Date From</label>
+          <label className="text-sm font-medium">{t('filters.dateFrom')}</label>
           <Input
             type="datetime-local"
             value={dateFrom}
@@ -651,7 +661,7 @@ export default function AppointmentsPage() {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium">Date To</label>
+          <label className="text-sm font-medium">{t('filters.dateTo')}</label>
           <Input
             type="datetime-local"
             value={dateTo}
@@ -675,8 +685,8 @@ export default function AppointmentsPage() {
         isLoading={isLoading}
         emptyMessage={
           search || statusFilter !== 'all' || paymentFilter !== 'all' || expertFilter !== 'all' || dateFrom || dateTo
-            ? 'No appointments found matching your filters'
-            : 'No appointments found'
+            ? t('empty.noResults')
+            : t('empty.noAppointments')
         }
         actions={(appointment) => (
           <AppointmentActionsMenu
@@ -690,7 +700,9 @@ export default function AppointmentsPage() {
 
       {!isLoading && (
         <p className="text-sm text-muted-foreground">
-          Showing {filteredAppointments.length} appointment{filteredAppointments.length === 1 ? '' : 's'}
+          {t(filteredAppointments.length === 1 ? 'footer.showing' : 'footer.showingPlural', {
+            count: filteredAppointments.length
+          })}
         </p>
       )}
     </div>

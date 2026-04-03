@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from '@/components/ui/badge'
 import { useNotifications } from '@/hooks/use-notifications'
 import { formatDistanceToNow } from 'date-fns'
+import { vi, enUS } from 'date-fns/locale'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -121,7 +122,9 @@ export function Header({ onMenuClick }: HeaderProps) {
     posts: tSidebar('posts'),
     settings: tSidebar('settings'),
     notifications: tSidebar('notifications'),
-    chats: tSidebar('chatMonitor'),
+    chats: tSidebar('chats'),
+    availability: tSidebar('availability'),
+    earnings: tSidebar('earnings'),
   }
 
   const pageTitle = extractPageTitle(pathname, tSidebar('dashboard'), segmentLabelMap)
@@ -275,7 +278,10 @@ export function Header({ onMenuClick }: HeaderProps) {
                           {notification.message}
                         </p>
                         <p className="text-[10px] text-muted-foreground mt-1">
-                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(notification.created_at), { 
+                            addSuffix: true,
+                            locale: locale === 'vi' ? vi : enUS
+                          })}
                         </p>
                       </div>
                       {!notification.is_read && (

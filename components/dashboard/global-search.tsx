@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Search, MapPin, UserSquare2, Loader2, Link as LinkIcon, Calendar, Bell } from 'lucide-react';
 import { useGlobalSearch } from '@/hooks/use-global-search';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -9,6 +10,7 @@ import { Input } from '@/components/ui/input';
 
 export function GlobalSearch() {
   const router = useRouter();
+  const t = useTranslations('GlobalSearch');
   const [query, setQuery] = React.useState('');
   const [isOpen, setIsOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -41,7 +43,7 @@ export function GlobalSearch() {
       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         type="search"
-        placeholder="Search users, experts..."
+        placeholder={t('placeholder')}
         className="w-full bg-accent/50 border-none focus-visible:ring-1 pl-9"
         value={query}
         onChange={(e) => {
@@ -56,20 +58,20 @@ export function GlobalSearch() {
           {isLoading && (
             <div className="p-4 flex justify-center items-center text-sm text-muted-foreground">
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Searching...
+              {t('searching')}
             </div>
           )}
 
           {!isLoading && !hasResults && debouncedQuery.length >= 2 && (
             <div className="p-4 text-center text-sm text-muted-foreground">
-              No results found for "{debouncedQuery}"
+              {t('noResults', { query: debouncedQuery })}
             </div>
           )}
 
           {!isLoading && hasResults && (
             <div className="py-2">
               <div className="px-3 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Results
+                {t('results')}
               </div>
               <ul className="flex flex-col">
                 {results.map((item) => (

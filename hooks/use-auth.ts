@@ -3,7 +3,7 @@
 import { useContext } from 'react';
 import { AuthContext, type AuthContextType } from '@/lib/auth/client-context';
 
-/**
+/**i877
  * Hook to access authentication context
  * 
  * @returns Auth context with user data, loading state, and auth functions

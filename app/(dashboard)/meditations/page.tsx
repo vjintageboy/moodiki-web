@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, Search, Filter, Music, Clock, Star, Trash2, Pencil, Download } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -52,10 +53,11 @@ import {
 } from '@/hooks/use-meditations';
 import type { Meditation } from '@/lib/types/database.types';
 
-const categories = ['Sleep', 'Anxiety', 'Stress', 'Mindfulness', 'Focus', 'Self-Love', 'Gratitude'];
+const categories = ['Sleep', 'Anxiety', 'Stress', 'Mindfulness', 'Focus', 'Self-Love', 'Gratitude', 'Relax', 'Healing', 'Morning', 'Evening', 'Giấc ngủ', 'Tập trung', 'Lo âu', 'Căng thẳng'];
 const levels = ['beginner', 'intermediate', 'advanced'];
 
 export default function MeditationsPage() {
+  const t = useTranslations('Meditations');
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
@@ -90,8 +92,8 @@ export default function MeditationsPage() {
 
       if (!title || !audioFile) {
         toast({
-          title: 'Error',
-          description: 'Title and audio file are required',
+          title: t('error'),
+          description: t('titleAndAudioRequired'),
           variant: 'destructive',
         });
         return;
@@ -119,15 +121,15 @@ export default function MeditationsPage() {
       });
 
       toast({
-        title: 'Success',
-        description: 'Meditation created successfully',
+        title: t('success'),
+        description: t('createdSuccessfully'),
       });
 
       setIsCreateOpen(false);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create meditation',
+        title: t('error'),
+        description: error.message || t('failedToCreate'),
         variant: 'destructive',
       });
     }
@@ -179,16 +181,16 @@ export default function MeditationsPage() {
       });
 
       toast({
-        title: 'Success',
-        description: 'Meditation updated successfully',
+        title: t('success'),
+        description: t('updatedSuccessfully'),
       });
 
       setIsEditOpen(false);
       setSelectedMeditation(null);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update meditation',
+        title: t('error'),
+        description: error.message || t('failedToUpdate'),
         variant: 'destructive',
       });
     }
@@ -212,15 +214,15 @@ export default function MeditationsPage() {
       await deleteMutation.mutateAsync(deleteId);
 
       toast({
-        title: 'Success',
-        description: 'Meditation deleted successfully',
+        title: t('success'),
+        description: t('deletedSuccessfully'),
       });
 
       setDeleteId(null);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete meditation',
+        title: t('error'),
+        description: error.message || t('failedToDelete'),
         variant: 'destructive',
       });
     }
@@ -244,14 +246,14 @@ export default function MeditationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Meditations</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
           <p className="text-muted-foreground">
-            Manage meditation audio content and resources
+            {t('subtitle')}
           </p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Meditation
+          {t('addMeditation')}
         </Button>
       </div>
 
@@ -261,25 +263,28 @@ export default function MeditationsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Meditations
+                {t('totalMeditations')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.total}</div>
             </CardContent>
           </Card>
-          {Object.entries(stats.byCategory).slice(0, 3).map(([cat, count]) => (
-            <Card key={cat}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {cat}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{count}</div>
-              </CardContent>
-            </Card>
-          ))}
+          {Object.entries(stats.byCategory).slice(0, 3).map(([cat, count]) => {
+            const key = `category_${cat.toLowerCase().trim().replace(/[\s-]/g, '_')}`;
+            return (
+              <Card key={cat}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {t(key as any) || cat}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{count as number}</div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -290,7 +295,7 @@ export default function MeditationsPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search meditations..."
+                placeholder={t('searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -299,26 +304,29 @@ export default function MeditationsPage() {
             <Select value={categoryFilter} onValueChange={(value) => value && setCategoryFilter(value)}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t('category')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">{t('allCategories')}</SelectItem>
+                {categories.map((cat) => {
+                  const key = `category_${cat.toLowerCase().trim().replace(/[\s-]/g, '_')}`;
+                  return (
+                    <SelectItem key={cat} value={cat}>
+                      {t(key as any) || cat}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             <Select value={levelFilter} onValueChange={(value) => value && setLevelFilter(value)}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Level" />
+                <SelectValue placeholder={t('level')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="all">{t('allLevels')}</SelectItem>
                 {levels.map((level) => (
                   <SelectItem key={level} value={level}>
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                    {t(`level_${level}` as any)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -344,7 +352,7 @@ export default function MeditationsPage() {
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <Music className="mx-auto h-12 w-12 mb-4 opacity-50" />
-            <p>No meditations found. Create your first meditation to get started.</p>
+            <p>{t('emptyMessage')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -371,19 +379,19 @@ export default function MeditationsPage() {
                       {meditation.title}
                     </h3>
                     <p className="text-sm text-muted-foreground line-clamp-2">
-                      {meditation.description || 'No description'}
+                      {meditation.description || t('noDescription')}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
                     {meditation.category && (
                       <Badge variant="outline" className="text-xs">
-                        {meditation.category}
+                        {t(`category_${meditation.category.toLowerCase().trim().replace(/[\s-]/g, '_')}` as any) || meditation.category}
                       </Badge>
                     )}
                     {meditation.level && (
                       <Badge className={getLevelColor(meditation.level)}>
-                        {meditation.level}
+                        {t(`level_${meditation.level}` as any) || meditation.level}
                       </Badge>
                     )}
                   </div>
@@ -391,7 +399,7 @@ export default function MeditationsPage() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      <span>{meditation.duration_minutes || 0} min</span>
+                      <span>{meditation.duration_minutes || 0} {t('minutesShort')}</span>
                     </div>
                     {meditation.rating !== undefined && (
                       <div className="flex items-center gap-1">
@@ -412,7 +420,7 @@ export default function MeditationsPage() {
                       }}
                     >
                       <Pencil className="h-4 w-4 mr-1" />
-                      Edit
+                      {t('edit')}
                     </Button>
                     <Button
                       size="sm"
@@ -445,9 +453,9 @@ export default function MeditationsPage() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Meditation</DialogTitle>
+            <DialogTitle>{t('createTitle')}</DialogTitle>
             <DialogDescription>
-              Add a new meditation audio with details
+              {t('createDescription')}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -458,18 +466,18 @@ export default function MeditationsPage() {
           >
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">{t('fieldTitle')} *</Label>
                 <Input id="title" name="title" required />
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t('fieldDescription')}</Label>
                 <Textarea id="description" name="description" rows={3} />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">{t('category')}</Label>
                   <Select name="category" defaultValue={categories[0]}>
                     <SelectTrigger>
                       <SelectValue />
@@ -477,7 +485,7 @@ export default function MeditationsPage() {
                     <SelectContent>
                       {categories.map((cat) => (
                         <SelectItem key={cat} value={cat}>
-                          {cat}
+                          {t(`category_${cat.toLowerCase().trim().replace(/[\s-]/g, '_')}` as any) || cat}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -485,7 +493,7 @@ export default function MeditationsPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="level">Level</Label>
+                  <Label htmlFor="level">{t('level')}</Label>
                   <Select name="level" defaultValue="beginner">
                     <SelectTrigger>
                       <SelectValue />
@@ -493,7 +501,7 @@ export default function MeditationsPage() {
                     <SelectContent>
                       {levels.map((level) => (
                         <SelectItem key={level} value={level}>
-                          {level.charAt(0).toUpperCase() + level.slice(1)}
+                          {t(`level_${level}` as any)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -502,7 +510,7 @@ export default function MeditationsPage() {
               </div>
 
               <div>
-                <Label htmlFor="duration">Duration (minutes)</Label>
+                <Label htmlFor="duration">{t('durationMinutes')}</Label>
                 <Input
                   id="duration"
                   name="duration"
@@ -514,7 +522,7 @@ export default function MeditationsPage() {
               </div>
 
               <div>
-                <Label htmlFor="audio">Audio File * (MP3, WAV)</Label>
+                <Label htmlFor="audio">{t('audioFileLabel')}</Label>
                 <Input
                   id="audio"
                   name="audio"
@@ -525,7 +533,7 @@ export default function MeditationsPage() {
               </div>
 
               <div>
-                <Label htmlFor="thumbnail">Thumbnail Image (JPG, PNG)</Label>
+                <Label htmlFor="thumbnail">{t('thumbnailLabel')}</Label>
                 <Input
                   id="thumbnail"
                   name="thumbnail"
@@ -541,10 +549,10 @@ export default function MeditationsPage() {
                 variant="outline"
                 onClick={() => setIsCreateOpen(false)}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Creating...' : 'Create'}
+                {createMutation.isPending ? t('creating') : t('create')}
               </Button>
             </DialogFooter>
           </form>
@@ -555,8 +563,8 @@ export default function MeditationsPage() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Meditation</DialogTitle>
-            <DialogDescription>Update meditation details</DialogDescription>
+            <DialogTitle>{t('editTitle')}</DialogTitle>
+            <DialogDescription>{t('editDescription')}</DialogDescription>
           </DialogHeader>
           {selectedMeditation && (
             <form
@@ -567,7 +575,7 @@ export default function MeditationsPage() {
             >
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="edit-title">Title *</Label>
+                  <Label htmlFor="edit-title">{t('fieldTitle')} *</Label>
                   <Input
                     id="edit-title"
                     name="title"
@@ -577,7 +585,7 @@ export default function MeditationsPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="edit-description">Description</Label>
+                  <Label htmlFor="edit-description">{t('fieldDescription')}</Label>
                   <Textarea
                     id="edit-description"
                     name="description"
@@ -588,7 +596,7 @@ export default function MeditationsPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label htmlFor="edit-category">Category</Label>
+                    <Label htmlFor="edit-category">{t('category')}</Label>
                     <Select
                       name="category"
                       defaultValue={selectedMeditation.category || categories[0]}
@@ -599,7 +607,7 @@ export default function MeditationsPage() {
                       <SelectContent>
                         {categories.map((cat) => (
                           <SelectItem key={cat} value={cat}>
-                            {cat}
+                            {t(`category_${cat.toLowerCase().trim().replace(/[\s-]/g, '_')}` as any) || cat}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -607,7 +615,7 @@ export default function MeditationsPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="edit-level">Level</Label>
+                    <Label htmlFor="edit-level">{t('level')}</Label>
                     <Select
                       name="level"
                       defaultValue={selectedMeditation.level || 'beginner'}
@@ -618,7 +626,7 @@ export default function MeditationsPage() {
                       <SelectContent>
                         {levels.map((level) => (
                           <SelectItem key={level} value={level}>
-                            {level.charAt(0).toUpperCase() + level.slice(1)}
+                            {t(`level_${level}` as any)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -627,7 +635,7 @@ export default function MeditationsPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="edit-duration">Duration (minutes)</Label>
+                  <Label htmlFor="edit-duration">{t('durationMinutes')}</Label>
                   <Input
                     id="edit-duration"
                     name="duration"
@@ -639,7 +647,7 @@ export default function MeditationsPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="edit-audio">Replace Audio File (optional)</Label>
+                  <Label htmlFor="edit-audio">{t('replaceAudioOptional')}</Label>
                   <Input
                     id="edit-audio"
                     name="audio"
@@ -648,13 +656,13 @@ export default function MeditationsPage() {
                   />
                   {selectedMeditation.audio_url && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Current: {selectedMeditation.audio_url.split('/').pop()}
+                      {t('currentFile', { fileName: selectedMeditation.audio_url.split('/').pop() || '' })}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="edit-thumbnail">Replace Thumbnail (optional)</Label>
+                  <Label htmlFor="edit-thumbnail">{t('replaceThumbnailOptional')}</Label>
                   <Input
                     id="edit-thumbnail"
                     name="thumbnail"
@@ -663,7 +671,7 @@ export default function MeditationsPage() {
                   />
                   {selectedMeditation.thumbnail_url && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Current: {selectedMeditation.thumbnail_url.split('/').pop()}
+                      {t('currentFile', { fileName: selectedMeditation.thumbnail_url.split('/').pop() || '' })}
                     </p>
                   )}
                 </div>
@@ -678,10 +686,10 @@ export default function MeditationsPage() {
                     setSelectedMeditation(null);
                   }}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Updating...' : 'Update'}
+                  {updateMutation.isPending ? t('updating') : t('update')}
                 </Button>
               </DialogFooter>
             </form>
@@ -693,19 +701,18 @@ export default function MeditationsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Meditation</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this meditation? This action cannot be
-              undone and will also delete the associated audio and thumbnail files.
+              {t('deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-500 hover:bg-red-600"
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? t('deleting') : t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

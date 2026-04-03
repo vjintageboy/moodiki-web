@@ -5,8 +5,10 @@ import { useApprovedExperts, usePendingExperts } from '@/hooks/use-recent-activi
 import { ApprovedExpertsTable } from '@/components/experts/approved-experts-table';
 import { PendingExpertsTab } from '@/components/experts/pending-experts-tab';
 import { RejectedExpertsTab } from '@/components/experts/rejected-experts-tab';
+import { useTranslations } from 'next-intl';
 
 export default function ExpertsPage() {
+  const t = useTranslations('ExpertsPage');
   const { data: approvedExperts, isLoading: approvedLoading } = useApprovedExperts();
   const { data: pendingExperts, isLoading: pendingLoading } = usePendingExperts();
   const rejectedExperts = approvedExperts?.filter(e => !e.is_approved) || [];
@@ -19,9 +21,9 @@ export default function ExpertsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Experts</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
         <p className="text-muted-foreground">
-          Manage platform experts, approve applications, and handle suspensions
+          {t('description')}
         </p>
       </div>
 
@@ -29,13 +31,13 @@ export default function ExpertsPage() {
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">
-            All Experts ({approvedCount})
+            {t('allExperts', { count: approvedCount })}
           </TabsTrigger>
           <TabsTrigger value="pending">
-            Pending ({pendingCount})
+            {t('pending', { count: pendingCount })}
           </TabsTrigger>
           <TabsTrigger value="rejected">
-            Rejected ({rejectedCount})
+            {t('rejected', { count: rejectedCount })}
           </TabsTrigger>
         </TabsList>
 

@@ -79,13 +79,13 @@ CREATE TABLE public.chat_rooms (
 CREATE TABLE public.expert_availability (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   expert_id uuid NOT NULL,
-  day_of_week integer CHECK (day_of_week >= 0 AND day_of_week <= 6),
-  start_time time without time zone NOT NULL,
-  end_time time without time zone NOT NULL,
+  start_time timestamp with time zone NOT NULL,
+  end_time timestamp with time zone NOT NULL,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
   CONSTRAINT expert_availability_pkey PRIMARY KEY (id),
-  CONSTRAINT expert_availability_expert_id_fkey FOREIGN KEY (expert_id) REFERENCES public.experts(id)
+  CONSTRAINT expert_availability_expert_id_fkey FOREIGN KEY (expert_id) REFERENCES public.experts(id),
+  CONSTRAINT valid_duration_minimum CHECK (end_time >= (start_time + '00:15:00'::interval))
 );
 CREATE TABLE public.experts (
   id uuid NOT NULL,
@@ -222,3 +222,59 @@ CREATE TABLE public.users (
   CONSTRAINT users_pkey PRIMARY KEY (id),
   CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
+
+-- RPC FUNCTIONS
+
+CREATE OR REPLACE FUNCTION public.add_expert_availability(p_start_time timestamp with time zone, p_end_time timestamp with time zone)
+ RETURNS public.expert_availability
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+DECLARE
+  v_expert_id uuid;
+  v_inserted_row public.expert_availability;
+BEGIN
+  v_expert_id := auth.uid();
+  IF v_expert_id IS NULL THEN
+    RAISE EXCEPTION 'Unauthorized: Must be logged in';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.experts WHERE id = v_expert_id) THEN
+    RAISE EXCEPTION 'Unauthorized: User is not configured as an expert';
+  END IF;
+
+  INSERT INTO public.expert_availability (expert_id, start_time, end_time)
+  VALUES (v_expert_id, p_start_time, p_end_time)
+  RETURNING * INTO v_inserted_row;
+
+  RETURN v_inserted_row;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.add_expert_availability_bulk(p_slots jsonb)
+ RETURNS SETOF public.expert_availability
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+DECLARE
+  v_expert_id uuid;
+BEGIN
+  v_expert_id := auth.uid();
+  IF v_expert_id IS NULL THEN
+    RAISE EXCEPTION 'Unauthorized: Must be logged in';
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM public.experts WHERE id = v_expert_id) THEN
+    RAISE EXCEPTION 'Unauthorized: User is not configured as an expert';
+  END IF;
+
+  RETURN QUERY 
+    INSERT INTO public.expert_availability (expert_id, start_time, end_time)
+    SELECT 
+      v_expert_id, 
+      (slot->>'start_time')::timestamptz, 
+      (slot->>'end_time')::timestamptz
+    FROM jsonb_array_elements(p_slots) AS slot
+    RETURNING *;
+END;
+$function$;

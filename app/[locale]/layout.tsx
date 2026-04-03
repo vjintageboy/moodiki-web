@@ -11,6 +11,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import { notFound } from 'next/navigation'
+import { LangUpdater } from '@/components/i18n/lang-updater'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -41,40 +42,13 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale)
 
-  // User context from middleware (server-side, no fetch)
-  const userContext = await getAuthUser()
-
-  const initialUser = userContext
-    ? {
-        id: userContext.id,
-        email: userContext.email,
-        role: userContext.role,
-        full_name: undefined,
-        avatar_url: undefined,
-      }
-    : null
-
   const messages = await getMessages()
 
   return (
-    <html
-      lang={locale}
-      className={cn('font-sans', geist.variable)}
-      suppressHydrationWarning
-    >
-      <body suppressHydrationWarning>
-        <NextIntlClientProvider messages={messages}>
-          <ThemeProvider>
-            <QueryProvider>
-              <AuthClientProvider initialUser={initialUser}>
-                {children}
-              </AuthClientProvider>
-            </QueryProvider>
-          </ThemeProvider>
-          <Toaster />
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages} locale={locale}>
+      <LangUpdater locale={locale} />
+      {children}
+    </NextIntlClientProvider>
   )
 }
 

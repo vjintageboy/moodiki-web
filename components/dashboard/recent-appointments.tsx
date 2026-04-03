@@ -13,7 +13,8 @@ import { CardSkeleton } from './skeleton-loaders';
 import { Link } from '@/i18n/routing';
 import { format } from 'date-fns';
 import { Calendar, Users } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { cn } from '@/lib/utils';
 
 function getInitials(name: string): string {
   return name
@@ -56,6 +57,7 @@ function getStatusColor(status: string): string {
 
 export function RecentAppointments() {
   const t = useTranslations('DashboardHome')
+  const locale = useLocale()
   const { data: appointments, isLoading, error } = useRecentAppointments();
 
   if (isLoading) return <CardSkeleton />;
@@ -108,16 +110,13 @@ export function RecentAppointments() {
                 {appointment.user.full_name} → {appointment.expert.full_name}
               </p>
               <p className="text-xs text-muted-foreground">
-                {format(new Date(appointment.appointment_date), 'MMM dd, yyyy HH:mm')}
+                {format(new Date(appointment.appointment_date), locale === 'vi' ? 'dd/MM/yyyy HH:mm' : 'MMM dd, yyyy HH:mm')}
               </p>
             </div>
 
             {/* Status Badge */}
-            <Badge
-              variant={getStatusBadgeVariant(appointment.status)}
-              className={`capitalize ${getStatusColor(appointment.status)}`}
-            >
-              {appointment.status}
+            <Badge className={cn('capitalize', getStatusColor(appointment.status))}>
+              {t(`status.${appointment.status.toLowerCase()}` as any) || appointment.status}
             </Badge>
           </div>
         </Link>

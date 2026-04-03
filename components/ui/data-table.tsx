@@ -23,6 +23,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 /**
  * Column definition for DataTable
@@ -103,14 +104,15 @@ function SkeletonRow() {
  * Empty state component
  */
 function EmptyState({ message }: { message?: string }) {
+  const t = useTranslations('Common');
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <Package className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
       <p className="text-gray-600 dark:text-gray-400 font-medium">
-        {message || 'No data available'}
+        {message || t('noData')}
       </p>
       <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-        Try adjusting your filters or add some data to get started.
+        {t('tryAdjustFilters')}
       </p>
     </div>
   );
@@ -175,13 +177,14 @@ function PaginationControls({
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }) {
+  const t = useTranslations('Common');
   const pageSizeOptions = [10, 25, 50, 100];
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4 border-t dark:border-gray-700">
       {/* Items per page selector */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600 dark:text-gray-400">Items per page:</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400">{t('itemsPerPage')}:</span>
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
@@ -199,12 +202,13 @@ function PaginationControls({
       {/* Page info */}
       <div className="text-sm text-gray-600 dark:text-gray-400">
         {totalItems === 0 ? (
-          'No items'
+          t('noItems')
         ) : (
-          <>
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, totalItems)} of {totalItems} items
-          </>
+          t('showingItems', {
+            start: (currentPage - 1) * pageSize + 1,
+            end: Math.min(currentPage * pageSize, totalItems),
+            total: totalItems
+          })
         )}
       </div>
 
@@ -220,7 +224,7 @@ function PaginationControls({
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <span className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
-          Page {currentPage} of {Math.max(1, totalPages)}
+          {t('pageOf', { current: currentPage, total: Math.max(1, totalPages) })}
         </span>
         <Button
           variant="outline"
@@ -277,11 +281,12 @@ export function DataTable<T extends Record<string, any>>({
   selectable = false,
   onSelectionChange,
   actions,
-  emptyMessage = 'No data available',
+  emptyMessage,
   initialPageSize = 10,
   onDataChange,
   className,
 }: DataTableProps<T>) {
+  const t = useTranslations('Common');
   // State management
   const [sort, setSort] = useState<SortState>({ column: null, direction: null });
   const [currentPage, setCurrentPage] = useState(1);
@@ -444,7 +449,7 @@ export function DataTable<T extends Record<string, any>>({
                   {column.header}
                 </TableHead>
               ))}
-              {actions && <TableHead className="w-12">Actions</TableHead>}
+              {actions && <TableHead className="w-12">{t('actions')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -476,7 +481,7 @@ export function DataTable<T extends Record<string, any>>({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <Input
               type="text"
-              placeholder="Search..."
+              placeholder={t('search')}
               value={localSearchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-9 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
@@ -521,7 +526,7 @@ export function DataTable<T extends Record<string, any>>({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <Input
             type="text"
-            placeholder="Search..."
+            placeholder={t('search')}
             value={localSearchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-9 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
@@ -576,7 +581,7 @@ export function DataTable<T extends Record<string, any>>({
                 ))}
 
                 {/* Actions column header */}
-                {actions && <TableHead className="w-12">Actions</TableHead>}
+                {actions && <TableHead className="w-12">{t('actions')}</TableHead>}
               </TableRow>
             </TableHeader>
 
@@ -597,60 +602,60 @@ export function DataTable<T extends Record<string, any>>({
                     {selectable && (
                       <TableCell className="w-12">
                         <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={(e) => handleSelectRow(idx, e.target.checked)}
-                          className="rounded dark:bg-gray-900"
-                          aria-label={`Select item ${absoluteIndex + 1}`}
-                        />
-                      </TableCell>
-                    )}
-
-                    {/* Data cells */}
-                    {columns.map((column) => (
-                      <TableCell
-                        key={String(column.key)}
-                        className={cn(
-                          'dark:text-gray-300',
-                          column.className
-                        )}
-                        style={{ width: column.width }}
-                      >
-                        {column.render ? (
-                          column.render(item, absoluteIndex)
-                        ) : (
-                          <span>{String((item as any)[String(column.key)] ?? '')}</span>
-                        )}
-                      </TableCell>
-                    ))}
-
-                    {/* Actions cell */}
-                    {actions && (
-                      <TableCell className="w-12">
-                        {actions(item, absoluteIndex)}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Pagination controls */}
-      <PaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        totalItems={filteredData.length}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={(size) => {
-          setPageSize(size);
-          setCurrentPage(1);
-        }}
-      />
-    </div>
-  );
-}
+                           type="checkbox"
+                           checked={isSelected}
+                           onChange={(e) => handleSelectRow(idx, e.target.checked)}
+                           className="rounded dark:bg-gray-900"
+                           aria-label={`Select item ${absoluteIndex + 1}`}
+                         />
+                       </TableCell>
+                     )}
+ 
+                     {/* Data cells */}
+                     {columns.map((column) => (
+                       <TableCell
+                         key={String(column.key)}
+                         className={cn(
+                           'dark:text-gray-300',
+                           column.className
+                         )}
+                         style={{ width: column.width }}
+                       >
+                         {column.render ? (
+                           column.render(item, absoluteIndex)
+                         ) : (
+                           <span>{String((item as any)[String(column.key)] ?? '')}</span>
+                         )}
+                       </TableCell>
+                     ))}
+ 
+                     {/* Actions cell */}
+                     {actions && (
+                       <TableCell className="w-12">
+                         {actions(item, absoluteIndex)}
+                       </TableCell>
+                     )}
+                   </TableRow>
+                 );
+               })}
+             </TableBody>
+           </Table>
+         </div>
+       </div>
+ 
+       {/* Pagination controls */}
+       <PaginationControls
+         currentPage={currentPage}
+         totalPages={totalPages}
+         pageSize={pageSize}
+         totalItems={filteredData.length}
+         onPageChange={setCurrentPage}
+         onPageSizeChange={(size) => {
+           setPageSize(size);
+           setCurrentPage(1);
+         }}
+       />
+     </div>
+   );
+ }
 

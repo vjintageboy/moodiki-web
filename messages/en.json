@@ -1,8 +1,52 @@
 {
+  "Common": {
+    "actions": "Actions",
+    "itemsPerPage": "Items per page",
+    "pageOf": "Page {current} of {total}",
+    "noData": "No data available",
+    "search": "Search...",
+    "showingItems": "Showing {start} to {end} of {total} items",
+    "noItems": "No items",
+    "tryAdjustFilters": "Try adjusting your filters or add some data to get started."
+  },
   "Dashboard": {
     "title": "Dashboard",
     "description": "Overview of your mental health platform.",
     "unableToLoadDashboard": "Unable to load dashboard. Please refresh or contact support."
+  },
+  "ExpertsPage": {
+    "title": "Experts",
+    "description": "Manage platform experts, approve applications, and handle suspensions",
+    "allExperts": "All Experts ({count})",
+    "pending": "Pending ({count})",
+    "rejected": "Rejected ({count})"
+  },
+  "ApprovedExperts": {
+    "searchPlaceholder": "Search by name or specialization...",
+    "filterBySpecialization": "Filter by specialization",
+    "allSpecializations": "All Specializations",
+    "name": "Name",
+    "email": "Email",
+    "specialization": "Specialization",
+    "experience": "Experience",
+    "hourlyRate": "Hourly Rate",
+    "rating": "Rating",
+    "reviews": "Reviews",
+    "status": "Status",
+    "actions": "Actions",
+    "noApprovedExperts": "No approved experts yet.",
+    "noMatch": "No experts match your search.",
+    "notAvailable": "N/A",
+    "years": "{count} years",
+    "perHour": "₫/hour",
+    "noRating": "No rating",
+    "active": "Active",
+    "details": "Details",
+    "suspend": "Suspend",
+    "suspendTitle": "Suspend Expert",
+    "suspendDescription": "Are you sure you want to suspend {expertName}? They will not be able to accept new appointments.",
+    "cancel": "Cancel",
+    "loading": "Loading experts..."
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -11,6 +55,9 @@
     "experts": "Experts",
     "meditations": "Meditations",
     "posts": "Posts",
+    "availability": "Availability",
+    "earnings": "Earnings",
+    "chats": "Chats",
     "settings": "Settings",
     "analytics": "Analytics",
     "chatMonitor": "Chat Monitor",
@@ -44,49 +91,40 @@
   "DashboardHome": {
     "adminDashboardTitle": "Dashboard",
     "adminDashboardDescription": "Overview of your platform's key metrics.",
-
     "dashboardOverviewTitle": "Dashboard Overview",
     "dashboardOverviewDescription": "Key metrics and statistics for your platform.",
     "engagementMetricsTitle": "Engagement Metrics",
     "platformPerformanceTitle": "Platform Performance",
     "analyticsTitle": "Analytics",
     "recentActivitiesTitle": "Recent Activities",
-
     "totalUsersTitle": "Total Users",
     "approvedExpertsTitle": "Approved Experts",
     "pendingApprovalsTitle": "Pending Approvals",
     "totalAppointmentsTitle": "Total Appointments",
-
     "newUsersThisMonth": "+{count} this month",
     "approvedExpertsAvailable": "{count} available",
     "pendingApprovalsWaiting": "{count} waiting",
     "allCaughtUp": "All caught up",
     "appointmentsToday": "{count} today",
     "noAppointments": "No appointments",
-
     "appointmentsThisWeekTitle": "Appointments This Week",
     "appointmentsThisWeekScheduled": "{count} scheduled",
-
     "communityPostsTitle": "Community Posts",
     "communityPostsDescription": "User discussions",
     "guidedMeditationsTitle": "Guided Meditations",
     "guidedMeditationsDescription": "Available sessions",
     "activeChatRoomsTitle": "Active Chat Rooms",
     "activeChatRoomsDescription": "Live conversations",
-
     "totalRevenueTitle": "Total Revenue",
     "paidAppointments": "{count} paid appointments",
     "noRevenueYet": "No revenue yet",
-
     "averageAppointmentRatingTitle": "Average Appointment Rating",
     "outOfFiveStars": "Out of 5.0 stars",
     "noRatingsYet": "No ratings yet",
-
     "recentAppointmentsTitle": "Recent Appointments",
     "pendingExpertsTitle": "Pending Experts",
     "latestUserRegistrationsTitle": "Latest User Registrations",
     "viewAll": "View All",
-
     "welcomeBack": "Welcome back, {title} {education}",
     "expertDashboardSubtitle": "Here's your appointment summary and upcoming sessions.",
     "allTime": "All time",
@@ -104,7 +142,6 @@
     "ratingTierGood": "Good",
     "ratingTierFair": "Fair",
     "aUser": "a user",
-
     "upcomingAppointmentsHeading": "Upcoming Appointments",
     "quickActionsHeading": "Quick Actions",
     "updateAvailability": "Update Availability",
@@ -114,18 +151,20 @@
     "pendingConfirmationLabel": "Pending Confirmation",
     "avgRatingLabel": "Avg. Rating",
     "notAvailable": "N/A",
-
     "recentActivityHeading": "Recent Activity",
     "noRecentActivity": "No recent activity",
     "appointmentLabel": "Appointment {status}",
+    "status": {
+      "completed": "Completed",
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "cancelled": "Cancelled"
+    },
     "sessionWithOn": "Session with {name} on {date}",
-
     "recentAppointmentsError": "Failed to load appointments",
     "recentAppointmentsEmpty": "No appointments yet",
-
     "recentUsersError": "Failed to load users",
     "recentUsersEmpty": "No recent user registrations",
-
     "approveExpert": "Approve Expert",
     "rejectExpert": "Reject Expert",
     "approve": "Approve",
@@ -139,13 +178,11 @@
     "yearsExperience": "{years} years experience",
     "ratingLabel": "Rating:",
     "view": "View",
-
     "noUpcomingAppointments": "No upcoming appointments",
     "unknownUser": "Unknown User",
     "paid": "✓ Paid",
     "unpaid": "Unpaid",
     "notesLabel": "Notes:",
-
     "chartAppointmentsByStatusTitle": "Appointments by Status",
     "chartAppointmentsByStatusDescription": "Breakdown of appointment statuses",
     "chartExpertsBySpecializationTitle": "Experts by Specialization",
@@ -155,7 +192,6 @@
     "chartUserGrowthTitle": "User Growth",
     "chartUserGrowthDescription": "New user registrations over time",
     "failedToLoadChartData": "Failed to load chart data",
-
     "noAppointmentDataAvailable": "No appointment data available",
     "noExpertDataAvailable": "No expert data available",
     "noMoodDataAvailable": "No mood data available",
@@ -173,8 +209,7 @@
     "expertsCount": "{count} experts",
     "averageMoodLabel": "Average Mood",
     "moodScoreLabel": "Mood Score"
-  }
-  ,
+  },
   "Unauthorized": {
     "accessDeniedTitle": "Access Denied",
     "noPermissionMessage": "You do not have permission to access this page.",
@@ -303,6 +338,19 @@
     "category_focus": "Focus",
     "category_self_love": "Self-Love",
     "category_gratitude": "Gratitude",
+    "category_relax": "Relax",
+    "category_thư_giãn": "Relax",
+    "category_healing": "Healing",
+    "category_giấc_ngủ": "Sleep",
+    "category_buổi_sáng": "Morning",
+    "category_buổi_tối": "Evening",
+    "category_morning": "Morning",
+    "category_evening": "Evening",
+    "category_all": "All",
+    "all": "All",
+    "category_tập_trung": "Focus",
+    "category_lo_âu": "Anxiety",
+    "category_căng_thẳng": "Stress",
     "level_beginner": "Beginner",
     "level_intermediate": "Intermediate",
     "level_advanced": "Advanced",
@@ -339,6 +387,453 @@
     "failedToUpdate": "Failed to update meditation",
     "failedToDelete": "Failed to delete meditation",
     "cancel": "Cancel"
+  },
+  "Posts": {
+    "title": "Community Posts",
+    "subtitle": "Manage and moderate community posts and discussions",
+    "totalPosts": "Total Posts",
+    "totalLikes": "Total Likes",
+    "totalComments": "Total Comments",
+    "avgEngagement": "Avg. Engagement",
+    "searchPlaceholder": "Search posts...",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "visibility": "Visibility",
+    "allVisibility": "All Visibility",
+    "visibleOnly": "Visible Only",
+    "hiddenOnly": "Hidden Only",
+    "moderation": "Moderation",
+    "allPosts": "All Posts",
+    "reported": "Reported",
+    "aiFlagged": "AI Flagged",
+    "empty": {
+      "noHidden": "No hidden posts.",
+      "noVisible": "No visible posts found.",
+      "noPosts": "No posts found. Users can create posts in the mobile app."
+    },
+    "post": {
+      "anonymous": "Anonymous User",
+      "anonymousShort": "AN",
+      "unknownUser": "Unknown User",
+      "hidden": "Hidden",
+      "flagged": "Flagged",
+      "reported": "Reported",
+      "likesCount": "{count} likes",
+      "commentsCount": "{count} comments"
+    },
+    "categories": {
+      "community": "Community",
+      "tips": "Tips",
+      "success_story": "Success Story",
+      "question": "Question",
+      "discussion": "Discussion"
+    },
+    "actions": {
+      "viewDetails": "View Details",
+      "reAnalyze": "Re-analyze",
+      "approveFlag": "Approve Flag",
+      "unhide": "Unhide",
+      "hide": "Hide",
+      "delete": "Delete"
+    },
+    "dialogs": {
+      "postDetails": "Post Details",
+      "comments": "Comments ({count})",
+      "noComments": "No comments yet",
+      "deletePostTitle": "Delete Post",
+      "deletePostDesc": "Are you sure you want to delete this post? This action cannot be undone. All comments and likes will also be removed.",
+      "deleteCommentTitle": "Delete Comment",
+      "deleteCommentDesc": "Are you sure you want to delete this comment? This action cannot be undone.",
+      "cancel": "Cancel",
+      "deleting": "Deleting...",
+      "delete": "Delete"
+    },
+    "toasts": {
+      "success": "Success",
+      "error": "Error",
+      "postDeleted": "Post deleted successfully",
+      "commentDeleted": "Comment deleted successfully",
+      "postUnhidden": "Post Unhidden",
+      "postHidden": "Post Hidden",
+      "unhiddenDesc": "The post is now visible to users.",
+      "hiddenDesc": "The post is now hidden from users.",
+      "aiFlagged": "AI Flagged",
+      "aiPassed": "AI Passed",
+      "flagCleared": "Flag Cleared",
+      "flagClearedDesc": "The post has been marked as safe."
+    }
+  },
+  "Analytics": {
+    "title": "Analytics",
+    "subtitle": "Platform performance metrics and trends",
+    "refresh": "Refresh",
+    "kpi": {
+      "totalUsers": "Total Users",
+      "newUsersThisMonth": "+{count} this month",
+      "approvedExperts": "Approved Experts",
+      "pendingExperts": "{count} pending",
+      "totalAppointments": "Total Appointments",
+      "appointmentsToday": "{count} today",
+      "totalRevenue": "Total Revenue",
+      "revenueSubtext": "Gross earnings",
+      "avgRating": "Avg. Rating",
+      "rating": "{value} / 5.0",
+      "ratingSubtext": "From users",
+      "meditations": "Meditations",
+      "meditationsSubtext": "Audio content",
+      "communityPosts": "Community Posts",
+      "postsSubtext": "User discussions",
+      "weeklyAppointments": "Weekly Appointments",
+      "weeklyAppointmentsSubtext": "Last 7 days"
+    },
+    "charts": {
+      "userGrowth": {
+        "title": "User Growth",
+        "desc": "New user registrations over time"
+      },
+      "usersCount": "{value} users",
+      "newUsers": "New Users"
+    },
+    "empty": {
+      "noSpecialization": "No specialization data available"
+    },
+    "common": {
+      "zeroCurrency": "$0.00"
+    }
+  },
+  "Chats": {
+    "adminTitle": "Chat Monitor",
+    "expertTitle": "My Chats",
+    "adminSubtitle": "Monitor conversations between experts and users",
+    "expertSubtitle": "Message directly with your clients",
+    "searchPlaceholder": "Search participants...",
+    "tabs": {
+      "all": "All",
+      "active": "Active",
+      "closed": "Closed",
+      "archived": "Archive"
+    },
+    "noRooms": "No chat rooms found",
+    "unknownUser": "User",
+    "unknownExpert": "Expert",
+    "noMessages": "No messages yet",
+    "yesterday": "Yesterday",
+    "emptyState": {
+      "adminTitle": "Admin Chat Monitor",
+      "expertTitle": "Your Conversations",
+      "adminDesc": "Select a conversation from the sidebar to view message history and monitor interactions.",
+      "expertDesc": "Select a conversation from the sidebar to view message history."
+    },
+    "header": {
+      "session": "Session",
+      "noAppointment": "No appointment"
+    },
+    "status": {
+      "active": "active",
+      "closed": "closed",
+      "archived": "archived"
+    },
+    "actions": {
+      "forceArchive": "Force Archive",
+      "forceClose": "Force Close"
+    },
+    "messages": {
+      "noMessages": "No messages have been sent yet.",
+      "adminViewNotice": "You are viewing this chat as an Admin",
+      "adminReadOnlyNotice": "Admins cannot participate in private sessions. For intervention, contact the expert directly.",
+      "typePlaceholder": "Type a message..."
+    }
+  },
+  "UsersPage": {
+    "title": "Users",
+    "description": "Manage platform users, roles, and access",
+    "addUser": "Add User",
+    "searchPlaceholder": "Search by name or email...",
+    "filterRole": "Filter by role",
+    "allRoles": "All Roles",
+    "admin": "Admin",
+    "expert": "Expert",
+    "user": "User",
+    "failedToLoad": "Failed to load users",
+    "retry": "Retry",
+    "showingCount": "Showing {count} of {total} users",
+    "table": {
+      "avatar": "Avatar",
+      "fullName": "Full Name",
+      "email": "Email",
+      "role": "Role",
+      "streak": "Streak",
+      "max": "Max",
+      "lastLogin": "Last Login",
+      "createdAt": "Created At",
+      "never": "Never"
+    },
+    "actions": {
+      "label": "Actions",
+      "viewDetails": "View Details",
+      "changeRole": "Change Role",
+      "deleteUser": "Delete User"
+    },
+    "dialogs": {
+      "changeRoleTitle": "Change User Role",
+      "changeRoleDesc": "Update the role for {name}",
+      "newRole": "New Role",
+      "updating": "Updating...",
+      "updateRole": "Update Role",
+      "deleteTitle": "Delete User",
+      "deleteDesc": "Are you sure you want to delete {name}? This action cannot be undone.",
+      "deleting": "Deleting...",
+      "cancel": "Cancel"
+    },
+    "empty": {
+      "noUsers": "No users found",
+      "noMatchingUsers": "No users found matching your filters"
+    }
+  },
+  "EarningsPage": {
+    "title": "Earnings Report",
+    "description": "Track your financial performance and total completed sessions over time.",
+    "filter": {
+      "from": "From date",
+      "to": "To date"
+    },
+    "kpi": {
+      "currentPeriod": "Earnings This Period",
+      "currentPeriodDesc": "Total earnings in chosen period",
+      "completedSessions": "Completed Sessions",
+      "completedSessionsDesc": "Paid consultation sessions",
+      "averagePerSession": "Average / Session",
+      "averagePerSessionDesc": "Average income per session"
+    },
+    "charts": {
+      "dailyEarnings": "Daily Earnings Chart",
+      "desc": "Your earnings from {start} to {end}",
+      "earnings": "Earnings",
+      "income": "Income"
+    },
+    "empty": {
+      "noData": "No earnings data in this period."
+    },
+    "unauthorized": {
+      "title": "Access Denied",
+      "message": "Only verified experts can view earnings reports."
+    }
+  },
+  "GlobalSearch": {
+    "placeholder": "Search users, experts...",
+    "searching": "Searching...",
+    "noResults": "No results found for \"{query}\"",
+    "results": "Results"
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "subtitle": "View and manage your alerts and messages",
+    "new": "new",
+    "refresh": "Refresh",
+    "markAllRead": "Mark all read",
+    "allNotifications": "All Notifications",
+    "unread": "Unread",
+    "items": "items",
+    "failedToLoad": "Failed to load notifications",
+    "failedToLoadDesc": "There was a problem retrieving your notifications. Please try again.",
+    "tryAgain": "Try Again",
+    "allCaughtUp": "All caught up!",
+    "noUnread": "You don't have any unread notifications.",
+    "noNotifications": "You don't have any notifications yet.",
+    "markAsRead": "Mark as read",
+    "delete": "Delete notification",
+    "types": {
+      "appointment": "Appointment",
+      "message": "Message",
+      "alert": "Alert",
+      "warning": "Warning",
+      "info": "Info"
+    }
+  },
+  "Appointments": {
+    "title": "Appointments",
+    "subtitle": "Manage platform appointments",
+    "loadingPermissions": "Loading permissions...",
+    "accessDenied": "Access denied for appointments management.",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "searchPlaceholder": "Search by user or expert...",
+    "filters": {
+      "status": "Status",
+      "payment": "Payment",
+      "expert": "Expert",
+      "dateFrom": "Date From",
+      "dateTo": "Date To",
+      "allStatuses": "All Statuses",
+      "allPayments": "All Payments",
+      "allExperts": "All Experts"
+    },
+    "table": {
+      "participants": "Participants",
+      "dateTime": "Date & Time",
+      "callType": "Call Type",
+      "payment": "Payment",
+      "status": "Status",
+      "user": "User",
+      "expert": "Expert",
+      "minutes": "min"
+    },
+    "actions": {
+      "label": "Actions",
+      "viewDetails": "View Details",
+      "status": "Status",
+      "markConfirmed": "Mark Confirmed",
+      "markCompleted": "Mark Completed",
+      "payment": "Payment",
+      "setUnpaid": "Set Unpaid",
+      "setPaid": "Set Paid",
+      "setRefunded": "Set Refunded",
+      "reschedule": "Reschedule",
+      "cancel": "Cancel Appointment"
+    },
+    "dialogs": {
+      "cancelTitle": "Cancel Appointment",
+      "cancelDesc": "Provide a reason for cancellation. This action will update the appointment status to cancelled.",
+      "cancelReasonPlaceholder": "Reason for cancellation",
+      "back": "Back",
+      "confirmCancel": "Confirm Cancel",
+      "cancelling": "Cancelling...",
+      "rescheduleTitle": "Reschedule Appointment",
+      "rescheduleDesc": "Choose a new date/time and duration for this appointment.",
+      "newDateTime": "New Date & Time",
+      "duration": "Duration (minutes)",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes"
+    },
+    "toasts": {
+      "paymentRequired": "Payment must be paid before marking appointment as completed",
+      "cancelReasonRequired": "Cancellation reason is required",
+      "selectDateTime": "Please select a new date and time",
+      "positiveDuration": "Duration must be greater than 0 minutes"
+    },
+    "empty": {
+      "noResults": "No appointments found matching your filters",
+      "noAppointments": "No appointments found"
+    },
+    "footer": {
+      "showing": "Showing {count} appointment",
+      "showingPlural": "Showing {count} appointments"
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "paymentStatus": {
+      "paid": "Paid",
+      "refunded": "Refunded",
+      "unpaid": "Unpaid"
+    },
+    "callType": {
+      "video": "Video",
+      "audio": "Audio",
+      "chat": "Chat"
+    }
+  },
+  "Settings": {
+    "title": "Settings",
+    "description": "Manage your account and preferences",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "preferences": "Preferences"
+    },
+    "profile": {
+      "title": "Personal Information",
+      "description": "Update your display name and account details",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Your full name",
+      "email": "Email Address",
+      "emailNotice": "Email cannot be changed here. Contact support if needed.",
+      "role": "Account Role",
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "success": "Profile updated successfully!",
+      "error": "Failed to update profile",
+      "tryAgain": "Please try again."
+    },
+    "security": {
+      "title": "Change Password",
+      "description": "Update your password to keep your account secure",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "At least 8 characters",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Re-enter new password",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "passwordTooShort": "New password must be at least 8 characters.",
+      "changing": "Changing...",
+      "changePassword": "Change Password",
+      "success": "Password changed successfully!",
+      "error": "Failed to change password",
+      "strength": {
+        "weak": "Weak",
+        "fair": "Fair",
+        "good": "Good",
+        "strong": "Strong"
+      }
+    },
+    "preferences": {
+      "title": "Appearance",
+      "description": "Customize how the admin panel looks for you",
+      "themes": {
+        "light": "Light",
+        "lightDesc": "Clean white interface",
+        "dark": "Dark",
+        "darkDesc": "Easy on the eyes at night",
+        "system": "System",
+        "systemDesc": "Follows your OS setting"
+      },
+      "localSaveNotice": "Theme preference is saved locally in your browser."
+    }
+  },
+  "Availability": {
+    "title": "Availability Management",
+    "subtitle": "Generate recurring schedules or define specific time slots for client appointments.",
+    "accessDenied": "Access Denied",
+    "onlyExperts": "Only verified experts can manage their availability.",
+    "generator": {
+      "title": "Generate Recurring Schedule",
+      "description": "Instantly create multiple availability blocks over the next few weeks.",
+      "labelDays": "1. Select Days of the Week",
+      "labelStart": "Start Times",
+      "labelEnd": "End Times",
+      "labelStarting": "Starting From",
+      "labelApply": "Apply For",
+      "selectAtLeastOne": "Select at least one day to generate slots.",
+      "weeksPlaceholder": "Weeks",
+      "options": {
+        "1": "1 Week",
+        "2": "2 Weeks",
+        "4": "1 Month (4 Weeks)",
+        "8": "2 Months (8 Weeks)",
+        "12": "3 Months (12 Weeks)"
+      },
+      "button": "Generate Blocks",
+      "buttonLoading": "Generating Blocks...",
+      "errorTimeOrder": "End time must be precisely after start time."
+    },
+    "list": {
+      "title": "Upcoming Schedule",
+      "description": "Your future scheduled availability.",
+      "noSlots": "No upcoming schedules.",
+      "noSlotsHelper": "Use the generator on the left to add your shifts.",
+      "deleteTitle": "Delete slot"
+    },
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    }
   }
 }
-

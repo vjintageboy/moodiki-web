@@ -22,7 +22,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link as IntlLink } from '@/i18n/routing';
 import { useRouter as useIntlRouter } from '@/i18n/routing';
 
@@ -33,6 +33,7 @@ interface ExpertDashboardProps {
 export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
   const t = useTranslations('DashboardHome')
   const tHeader = useTranslations('Header')
+  const locale = useLocale()
   const router = useIntlRouter()
   const { data: stats, isLoading: statsLoading } = useExpertStats(expertId);
   const { data: appointments, isLoading: appointmentsLoading } =
@@ -121,7 +122,12 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
         />
         <StatsCard
           title={t('totalEarningsTitle')}
-          value={`$${stats?.totalEarnings ? (stats.totalEarnings / 100).toFixed(2) : '0.00'}`}
+          value={stats?.totalEarnings 
+            ? new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+                style: 'currency',
+                currency: locale === 'vi' ? 'VND' : 'USD',
+              }).format(locale === 'vi' ? stats.totalEarnings * 1000 : stats.totalEarnings / 100)
+            : locale === 'vi' ? '0 ₫' : '$0.00'}
           icon={DollarSign}
           description={t('paidAppointmentsShort')}
           trend={stats && stats.totalEarnings > 0 ? 'up' : ('neutral' as const)}
@@ -233,11 +239,11 @@ export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
                   <p className="text-sm text-gray-600">
                     {t('sessionWithOn', {
                       name: apt.user?.full_name || t('aUser'),
-                      date: format(new Date(apt.appointment_date), 'MMM d, yyyy'),
+                      date: format(new Date(apt.appointment_date), locale === 'vi' ? 'dd/MM/yyyy' : 'MMM d, yyyy'),
                     })}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {format(new Date(apt.updated_at || apt.created_at || apt.appointment_date), 'MMM d, HH:mm')}
+                    {format(new Date(apt.updated_at || apt.created_at || apt.appointment_date), locale === 'vi' ? 'dd/MM, HH:mm' : 'MMM d, HH:mm')}
                   </p>
                 </div>
               </div>

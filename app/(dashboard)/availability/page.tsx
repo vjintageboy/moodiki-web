@@ -16,18 +16,23 @@ import {
 } from '@/components/ui/select';
 import { Loader2, Calendar, Clock, Trash2, AlertCircle, Layers } from 'lucide-react';
 import { format, parseISO, isBefore, startOfToday, addDays, getDay } from 'date-fns';
+import { vi, enUS } from 'date-fns/locale';
+import { useTranslations, useLocale } from 'next-intl';
 
 const DAYS_OF_WEEK = [
-  { id: 1, label: 'Mon' },
-  { id: 2, label: 'Tue' },
-  { id: 3, label: 'Wed' },
-  { id: 4, label: 'Thu' },
-  { id: 5, label: 'Fri' },
-  { id: 6, label: 'Sat' },
-  { id: 0, label: 'Sun' },
+  { id: 1, key: 'mon' },
+  { id: 2, key: 'tue' },
+  { id: 3, key: 'wed' },
+  { id: 4, key: 'thu' },
+  { id: 5, key: 'fri' },
+  { id: 6, key: 'sat' },
+  { id: 0, key: 'sun' },
 ];
 
 export default function AvailabilityPage() {
+  const t = useTranslations('Availability');
+  const locale = useLocale();
+  const dateLocale = locale === 'vi' ? vi : enUS;
   const { user, isExpert, loading: authLoading } = useAuth();
   
   // Bulk Generator Form State
@@ -53,8 +58,8 @@ export default function AvailabilityPage() {
     return (
       <div className="p-8 text-center text-muted-foreground">
         <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-20" />
-        <h2 className="text-xl font-semibold text-foreground mb-2">Access Denied</h2>
-        <p>Only verified experts can manage their availability.</p>
+        <h2 className="text-xl font-semibold text-foreground mb-2">{t('accessDenied')}</h2>
+        <p>{t('onlyExperts')}</p>
       </div>
     );
   }
@@ -70,18 +75,15 @@ export default function AvailabilityPage() {
     if (selectedDays.length === 0 || !startDate || !startTime || !endTime) return;
 
     const payloadSlots: { start_time: string; end_time: string }[] = [];
-    // Important: parsing local yyyy-MM-dd properly without UTC shift requires appending T00:00:00
-    // But parseISO works if standard.
     const baseDate = new Date(`${startDate}T00:00:00`);
     const totalDaysToScan = parseInt(weeks, 10) * 7;
 
     for (let i = 0; i < totalDaysToScan; i++) {
       const currentDate = addDays(baseDate, i);
-      const currentDayOfWeek = getDay(currentDate); // 0=Sun, 1=Mon, etc.
+      const currentDayOfWeek = getDay(currentDate);
 
       if (selectedDays.includes(currentDayOfWeek)) {
         const dateStr = format(currentDate, 'yyyy-MM-dd');
-        // Construct native Date objects to shift naturally to ISO UTC standard
         const startObj = new Date(`${dateStr}T${startTime}:00`);
         const endObj = new Date(`${dateStr}T${endTime}:00`);
         
@@ -104,7 +106,6 @@ export default function AvailabilityPage() {
   const upcomingSlots = (slots || []).filter(slot => {
     if (!slot?.start_time || !slot?.end_time) return false;
     try {
-      // Handle legacy TIME rows vs new TIMESTAMPTZ rows gracefully
       const parsedStart = parseISO(slot.start_time);
       if (isNaN(parsedStart.getTime())) return false;
       return !isBefore(parsedStart, startOfToday());
@@ -116,9 +117,9 @@ export default function AvailabilityPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Availability Management</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
         <p className="text-muted-foreground mt-1">
-          Generate recurring schedules or define specific time slots for client appointments.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -129,17 +130,17 @@ export default function AvailabilityPage() {
           <CardHeader className="bg-primary/5 rounded-t-lg">
             <CardTitle className="text-xl flex items-center gap-2">
               <Layers className="w-5 h-5 text-primary" />
-              Generate Recurring Schedule
+              {t('generator.title')}
             </CardTitle>
             <CardDescription>
-              Instantly create multiple availability blocks over the next few weeks.
+              {t('generator.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={handleBulkSubmit} className="space-y-5">
               
               <div className="space-y-3">
-                <label className="text-sm font-semibold">1. Select Days of the Week</label>
+                <label className="text-sm font-semibold">{t('generator.labelDays')}</label>
                 <div className="flex flex-wrap gap-3">
                   {DAYS_OF_WEEK.map(day => (
                     <div key={day.id} className="flex items-center space-x-2 bg-muted/50 p-2 rounded-md border">
@@ -152,19 +153,19 @@ export default function AvailabilityPage() {
                         htmlFor={`day-${day.id}`}
                         className="text-sm font-medium leading-none cursor-pointer"
                       >
-                        {day.label}
+                        {t(`days.${day.key}`)}
                       </label>
                     </div>
                   ))}
                 </div>
                 {selectedDays.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Select at least one day to generate slots.</p>
+                  <p className="text-xs text-muted-foreground">{t('generator.selectAtLeastOne')}</p>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Start Times</label>
+                  <label className="text-sm font-semibold">{t('generator.labelStart')}</label>
                   <Input 
                     type="time" 
                     value={startTime} 
@@ -173,7 +174,7 @@ export default function AvailabilityPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">End Times</label>
+                  <label className="text-sm font-semibold">{t('generator.labelEnd')}</label>
                   <Input 
                     type="time" 
                     value={endTime} 
@@ -185,7 +186,7 @@ export default function AvailabilityPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Starting From</label>
+                  <label className="text-sm font-semibold">{t('generator.labelStarting')}</label>
                   <Input 
                     type="date" 
                     value={startDate} 
@@ -195,17 +196,17 @@ export default function AvailabilityPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Apply For</label>
+                  <label className="text-sm font-semibold">{t('generator.labelApply')}</label>
                   <Select value={weeks} onValueChange={(v) => { if (v) setWeeks(v); }} required>
                     <SelectTrigger>
-                      <SelectValue placeholder="Weeks" />
+                      <SelectValue placeholder={t('generator.weeksPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">1 Week</SelectItem>
-                      <SelectItem value="2">2 Weeks</SelectItem>
-                      <SelectItem value="4">1 Month (4 Weeks)</SelectItem>
-                      <SelectItem value="8">2 Months (8 Weeks)</SelectItem>
-                      <SelectItem value="12">3 Months (12 Weeks)</SelectItem>
+                      <SelectItem value="1">{t('generator.options.1')}</SelectItem>
+                      <SelectItem value="2">{t('generator.options.2')}</SelectItem>
+                      <SelectItem value="4">{t('generator.options.4')}</SelectItem>
+                      <SelectItem value="8">{t('generator.options.8')}</SelectItem>
+                      <SelectItem value="12">{t('generator.options.12')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -218,15 +219,15 @@ export default function AvailabilityPage() {
                   disabled={bulkCreateMutation.isPending || selectedDays.length === 0 || endTime <= startTime}
                 >
                   {bulkCreateMutation.isPending ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating Blocks...</>
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t('generator.buttonLoading')}</>
                   ) : (
-                    'Generate Blocks'
+                    t('generator.button')
                   )}
                 </Button>
               </div>
               
               {endTime <= startTime && startTime !== '' && endTime !== '' && (
-                <p className="text-sm text-destructive mt-2">End time must be precisely after start time.</p>
+                <p className="text-sm text-destructive mt-2">{t('generator.errorTimeOrder')}</p>
               )}
             </form>
           </CardContent>
@@ -237,10 +238,10 @@ export default function AvailabilityPage() {
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
               <Clock className="w-5 h-5 text-blue-500" />
-              Upcoming Schedule
+              {t('list.title')}
             </CardTitle>
             <CardDescription>
-              Your future scheduled availability.
+              {t('list.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto pr-2">
@@ -251,8 +252,8 @@ export default function AvailabilityPage() {
             ) : upcomingSlots.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground bg-accent/30 rounded-lg border border-dashed">
                 <Calendar className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                <p>No upcoming schedules.</p>
-                <p className="text-sm mt-1">Use the generator on the left to add your shifts.</p>
+                <p>{t('list.noSlots')}</p>
+                <p className="text-sm mt-1">{t('list.noSlotsHelper')}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -269,11 +270,11 @@ export default function AvailabilityPage() {
                     >
                       <div>
                         <p className="font-semibold text-foreground">
-                          {format(start, 'EEEE - MMMM d, yyyy')}
+                          {format(start, 'EEEE - MMMM d, yyyy', { locale: dateLocale })}
                         </p>
                         <p className="text-sm text-primary font-medium flex items-center gap-1.5 mt-1 bg-primary/10 w-fit px-2 py-0.5 rounded-full">
                           <Clock className="w-3.5 h-3.5" />
-                          {format(start, 'h:mm a')} – {format(end, 'h:mm a')}
+                          {format(start, 'HH:mm', { locale: dateLocale })} – {format(end, 'HH:mm', { locale: dateLocale })}
                         </p>
                       </div>
                       <Button
@@ -282,7 +283,7 @@ export default function AvailabilityPage() {
                         className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                         onClick={() => deleteMutation.mutate({ id: slot.id, expert_id: slot.expert_id })}
                         disabled={deleteMutation.isPending}
-                        title="Delete slot"
+                        title={t('list.deleteTitle')}
                       >
                         {deleteMutation.isPending && deleteMutation.variables?.id === slot.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -302,3 +303,4 @@ export default function AvailabilityPage() {
     </div>
   );
 }
+

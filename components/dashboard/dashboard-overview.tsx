@@ -27,7 +27,7 @@ import { ExpertsBySpecializationChart } from '@/components/dashboard/experts-by-
 import { MoodTrendChart } from '@/components/dashboard/mood-trend-chart'
 import { Link } from '@/i18n/routing'
 import type { DashboardStats } from '@/lib/queries/dashboard'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 interface DashboardOverviewProps {
   stats?: DashboardStats
@@ -41,6 +41,7 @@ interface DashboardOverviewProps {
  */
 export function DashboardOverview({ stats }: DashboardOverviewProps) {
   const t = useTranslations('DashboardHome')
+  const locale = useLocale()
   const isLoading = !stats
 
   return (
@@ -177,7 +178,11 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
             title={t('totalRevenueTitle')}
             value={
               stats?.totalRevenue
-                ? `$${(stats.totalRevenue / 100).toFixed(2)}`
+                ? new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+                    style: 'currency',
+                    currency: locale === 'vi' ? 'VND' : 'USD',
+                    maximumFractionDigits: 0,
+                  }).format(stats.totalRevenue / (locale === 'vi' ? 1 : 100))
                 : '---'
             }
             icon={DollarSign}

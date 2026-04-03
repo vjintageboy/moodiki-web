@@ -5,8 +5,9 @@ import { useTheme } from 'next-themes';
 import { useAuth } from '@/hooks/use-auth';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import {
-  User, Lock, Palette, Save, Eye, EyeOff,
+  User as UserIcon, Lock, Palette, Save, Eye, EyeOff,
   Loader2, Shield, Moon, Sun, Monitor,
 } from 'lucide-react';
 import {
@@ -20,6 +21,8 @@ import { cn } from '@/lib/utils';
 
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
 function ProfileTab() {
+  const t = useTranslations('Settings.profile');
+  const commonT = useTranslations('Sidebar'); // For role translations if needed
   const { user } = useAuth();
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [email] = useState(user?.email || '');
@@ -36,10 +39,10 @@ function ProfileTab() {
         .eq('id', user.id);
 
       if (error) throw error;
-      toast.success('Profile updated successfully!');
+      toast.success(t('success'));
     } catch (err) {
-      toast.error('Failed to update profile', {
-        description: err instanceof Error ? err.message : 'Please try again.',
+      toast.error(t('error'), {
+        description: err instanceof Error ? err.message : t('tryAgain'),
       });
     } finally {
       setIsSaving(false);
@@ -60,7 +63,7 @@ function ProfileTab() {
               <p className="text-sm text-muted-foreground">{user?.email}</p>
               <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
                 <Shield className="w-3 h-3" />
-                {user?.role?.toUpperCase()}
+                {user?.role ? commonT(user.role as any).toUpperCase() : 'USER'}
               </span>
             </div>
           </div>
@@ -70,21 +73,21 @@ function ProfileTab() {
       {/* Edit form */}
       <Card>
         <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Update your display name and account details</CardDescription>
+          <CardTitle>{t('title')}</CardTitle>
+          <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">{t('fullName')}</Label>
             <Input
               id="fullName"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Your full name"
+              placeholder={t('fullNamePlaceholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="email">{t('email')}</Label>
             <Input
               id="email"
               value={email}
@@ -92,16 +95,20 @@ function ProfileTab() {
               className="bg-muted cursor-not-allowed"
             />
             <p className="text-xs text-muted-foreground">
-              Email cannot be changed here. Contact support if needed.
+              {t('emailNotice')}
             </p>
           </div>
           <div className="space-y-2">
-            <Label>Account Role</Label>
-            <Input value={user?.role || '—'} disabled className="bg-muted cursor-not-allowed capitalize" />
+            <Label>{t('role')}</Label>
+            <Input 
+              value={user?.role ? commonT(user.role as any) : '—'} 
+              disabled 
+              className="bg-muted cursor-not-allowed capitalize" 
+            />
           </div>
           <Button onClick={handleSaveProfile} disabled={isSaving} className="gap-2">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Changes
+            {isSaving ? t('saving') : t('saveChanges')}
           </Button>
         </CardContent>
       </Card>
@@ -111,6 +118,7 @@ function ProfileTab() {
 
 // ─── Security Tab ─────────────────────────────────────────────────────────────
 function SecurityTab() {
+  const t = useTranslations('Settings.security');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -120,11 +128,11 @@ function SecurityTab() {
 
   const handleChangePassword = async () => {
     if (newPassword.length < 8) {
-      toast.error('New password must be at least 8 characters.');
+      toast.error(t('passwordTooShort'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match.');
+      toast.error(t('passwordsDoNotMatch'));
       return;
     }
 
@@ -133,12 +141,12 @@ function SecurityTab() {
       const supabase = createClient();
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      toast.success('Password changed successfully!');
+      toast.success(t('success'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      toast.error('Failed to change password', {
+      toast.error(t('error'), {
         description: err instanceof Error ? err.message : 'Please try again.',
       });
     } finally {
@@ -178,33 +186,33 @@ function SecurityTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Change Password</CardTitle>
-        <CardDescription>Update your password to keep your account secure</CardDescription>
+        <CardTitle>{t('title')}</CardTitle>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <PasswordInput
-          id="currentPassword" label="Current Password"
+          id="currentPassword" label={t('currentPassword')}
           value={currentPassword} onChange={setCurrentPassword}
           show={showCurrent} setShow={setShowCurrent}
         />
         <PasswordInput
-          id="newPassword" label="New Password"
+          id="newPassword" label={t('newPassword')}
           value={newPassword} onChange={setNewPassword}
           show={showNew} setShow={setShowNew}
-          placeholder="At least 8 characters"
+          placeholder={t('newPasswordPlaceholder')}
         />
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+          <Label htmlFor="confirmPassword">{t('confirmPassword')}</Label>
           <Input
             id="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Re-enter new password"
+            placeholder={t('confirmPasswordPlaceholder')}
             className={cn(confirmPassword && newPassword !== confirmPassword && 'border-red-500')}
           />
           {confirmPassword && newPassword !== confirmPassword && (
-            <p className="text-xs text-red-500">Passwords do not match</p>
+            <p className="text-xs text-red-500">{t('passwordsDoNotMatch')}</p>
           )}
         </div>
 
@@ -228,7 +236,7 @@ function SecurityTab() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              {newPassword.length < 6 ? 'Weak' : newPassword.length < 9 ? 'Fair' : newPassword.length < 12 ? 'Good' : 'Strong'}
+              {newPassword.length < 6 ? t('strength.weak') : newPassword.length < 9 ? t('strength.fair') : newPassword.length < 12 ? t('strength.good') : t('strength.strong')}
             </p>
           </div>
         )}
@@ -239,7 +247,7 @@ function SecurityTab() {
           className="gap-2"
         >
           {isChanging ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-          Change Password
+          {isChanging ? t('changing') : t('changePassword')}
         </Button>
       </CardContent>
     </Card>
@@ -248,20 +256,21 @@ function SecurityTab() {
 
 // ─── Preferences Tab ──────────────────────────────────────────────────────────
 function PreferencesTab() {
+  const t = useTranslations('Settings.preferences');
   const { theme, setTheme } = useTheme();
 
   const themes = [
-    { value: 'light', label: 'Light', icon: Sun, description: 'Clean white interface' },
-    { value: 'dark', label: 'Dark', icon: Moon, description: 'Easy on the eyes at night' },
-    { value: 'system', label: 'System', icon: Monitor, description: 'Follows your OS setting' },
+    { value: 'light', label: t('themes.light'), icon: Sun, description: t('themes.lightDesc') },
+    { value: 'dark', label: t('themes.dark'), icon: Moon, description: t('themes.darkDesc') },
+    { value: 'system', label: t('themes.system'), icon: Monitor, description: t('themes.systemDesc') },
   ];
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Customize how the admin panel looks for you</CardDescription>
+          <CardTitle>{t('title')}</CardTitle>
+          <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -295,7 +304,7 @@ function PreferencesTab() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground mt-4">
-            Theme preference is saved locally in your browser.
+            {t('localSaveNotice')}
           </p>
         </CardContent>
       </Card>
@@ -305,26 +314,28 @@ function PreferencesTab() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
+  const t = useTranslations('Settings');
+  
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your account and preferences</p>
+        <h1 className="text-3xl font-bold">{t('title')}</h1>
+        <p className="text-muted-foreground mt-1">{t('description')}</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 max-w-md">
           <TabsTrigger value="profile" className="gap-2">
-            <User className="w-4 h-4" />
-            Profile
+            <UserIcon className="w-4 h-4" />
+            {t('tabs.profile')}
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Lock className="w-4 h-4" />
-            Security
+            {t('tabs.security')}
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
             <Palette className="w-4 h-4" />
-            Preferences
+            {t('tabs.preferences')}
           </TabsTrigger>
         </TabsList>
 

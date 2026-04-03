@@ -33,10 +33,12 @@ export function BookingForm({ expertId, userId, expertName }: BookingFormProps) 
 
   const dateParam = selectedDate ? new Date(selectedDate) : undefined;
   
-  const { data: slots = [], isLoading: isLoadingSlots } = useAvailableSlots(
+  const { data: slotsResponse, isLoading: isLoadingSlots } = useAvailableSlots(
     expertId,
     dateParam
   );
+
+  const availableSlotsList = slotsResponse?.slots || [];
 
   const bookAppointment = useBookAppointment();
 
@@ -95,9 +97,9 @@ export function BookingForm({ expertId, userId, expertName }: BookingFormProps) 
               <div className="text-sm text-muted-foreground animate-pulse">
                 Loading available slots...
               </div>
-            ) : slots.length > 0 ? (
+            ) : availableSlotsList.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {slots.map((slot) => {
+                {availableSlotsList.map((slot) => {
                   const startTimeStr = new Date(slot.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                   const isSelected = selectedSlot === slot.start_time;
                   return (

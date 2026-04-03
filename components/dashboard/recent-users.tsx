@@ -5,7 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CardSkeleton } from './skeleton-loaders';
 import { Link } from '@/i18n/routing';
 import { Users } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 function getInitials(name: string): string {
   return name
@@ -18,6 +18,7 @@ function getInitials(name: string): string {
 
 export function RecentUsers() {
   const t = useTranslations('DashboardHome')
+  const locale = useLocale()
   const { data: users, isLoading, error } = useRecentUsers();
 
   if (isLoading) return <CardSkeleton />;
@@ -62,7 +63,7 @@ export function RecentUsers() {
 
             {/* Registration Date */}
             <div className="text-xs text-muted-foreground text-right shrink-0">
-              {getRelativeTime(user.created_at)}
+              {getRelativeTime(user.created_at, locale)}
             </div>
           </div>
         </Link>

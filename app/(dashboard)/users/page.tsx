@@ -33,7 +33,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MoreHorizontal, Trash2, Edit, Shield } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 import { formatDistanceToNow } from 'date-fns';
+import { vi, enUS } from 'date-fns/locale';
 import type { User } from '@/lib/types';
 import { toast } from 'sonner';
 import { AddUserDialog } from '@/components/users/add-user-dialog';
@@ -72,9 +74,9 @@ function getRoleVariant(role?: string): 'default' | 'secondary' | 'destructive' 
 /**
  * Format date in readable format
  */
-function formatDate(date: string): string {
+function formatDate(date: string, locale: string): string {
   try {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -87,11 +89,12 @@ function formatDate(date: string): string {
 /**
  * Get relative time (e.g., "2 days ago")
  */
-function getRelativeTime(date: string): string {
+function getRelativeTime(date: string, locale: string): string {
   try {
-    return formatDistanceToNow(new Date(date), { addSuffix: true });
+    const dateLocale = locale === 'vi' ? vi : enUS;
+    return formatDistanceToNow(new Date(date), { addSuffix: true, locale: dateLocale });
   } catch {
-    return 'Unknown';
+    return locale === 'vi' ? 'Không rõ' : 'Unknown';
   }
 }
 
@@ -138,6 +141,7 @@ function ChangeRoleDialog({
   onConfirm: (role: string) => void;
   isLoading: boolean;
 }) {
+  const t = useTranslations('UsersPage');
   const [selectedRole, setSelectedRole] = useState<string>(user?.role || 'user');
 
   React.useEffect(() => {
@@ -150,15 +154,15 @@ function ChangeRoleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change User Role</DialogTitle>
+          <DialogTitle>{t('dialogs.changeRoleTitle')}</DialogTitle>
           <DialogDescription>
-            Update the role for {user?.full_name || user?.email}
+            {t('dialogs.changeRoleDesc', { name: user?.full_name || user?.email || t('user') })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">New Role</label>
+            <label className="text-sm font-medium">{t('dialogs.newRole')}</label>
             <Select value={selectedRole || 'user'} onValueChange={(value) => {
               if (value) setSelectedRole(value as string);
             }}>
@@ -166,9 +170,9 @@ function ChangeRoleDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="expert">Expert</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="user">{t('user')}</SelectItem>
+                <SelectItem value="expert">{t('expert')}</SelectItem>
+                <SelectItem value="admin">{t('admin')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -176,10 +180,10 @@ function ChangeRoleDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Cancel
+            {t('dialogs.cancel')}
           </Button>
           <Button onClick={() => onConfirm(selectedRole)} disabled={isLoading}>
-            {isLoading ? 'Updating...' : 'Update Role'}
+            {isLoading ? t('dialogs.updating') : t('dialogs.updateRole')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -203,22 +207,23 @@ function DeleteConfirmDialog({
   onConfirm: () => void;
   isLoading: boolean;
 }) {
+  const t = useTranslations('UsersPage');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete User</DialogTitle>
+          <DialogTitle>{t('dialogs.deleteTitle')}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete {user?.full_name || user?.email}? This action cannot be undone.
+            {t('dialogs.deleteDesc', { name: user?.full_name || user?.email || t('user') })}
           </DialogDescription>
         </DialogHeader>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Cancel
+            {t('dialogs.cancel')}
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? 'Deleting...' : 'Delete User'}
+            {isLoading ? t('dialogs.deleting') : t('actions.deleteUser')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -230,6 +235,7 @@ function DeleteConfirmDialog({
  * User Actions Menu
  */
 function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
+  const t = useTranslations('UsersPage');
   const router = useRouter();
   const [changeRoleOpen, setChangeRoleOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -274,14 +280,14 @@ function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('actions.label')}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           
           <DropdownMenuItem
             onClick={() => router.push(`/users/${user.id}`)}
             className="cursor-pointer"
           >
-            View Details
+            {t('actions.viewDetails')}
           </DropdownMenuItem>
 
           {isAdmin && (
@@ -291,7 +297,7 @@ function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
                 className="cursor-pointer"
               >
                 <Shield className="h-4 w-4 mr-2" />
-                Change Role
+                {t('actions.changeRole')}
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
@@ -301,7 +307,7 @@ function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
                 className="cursor-pointer text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete User
+                {t('actions.deleteUser')}
               </DropdownMenuItem>
             </>
           )}
@@ -331,6 +337,8 @@ function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
  * Users Management Page
  */
 export default function UsersPage() {
+  const t = useTranslations('UsersPage');
+  const locale = useLocale();
   const { user: currentUser, isAdmin } = useAuth();
   const router = useRouter();
   const [search, setSearch] = useState('');
@@ -352,7 +360,7 @@ export default function UsersPage() {
       <div className="space-y-6">
         <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
           <p className="text-sm font-medium text-destructive">
-            Access Denied: Only administrators can access this page.
+            {t('failedToLoad')}: {locale === 'vi' ? 'Quyền truy cập bị từ chối' : 'Access Denied'}
           </p>
         </div>
       </div>
@@ -363,13 +371,13 @@ export default function UsersPage() {
   const columns: Column<User>[] = [
     {
       key: 'avatar',
-      header: 'Avatar',
+      header: t('table.avatar'),
       render: (user) => <UserAvatar user={user} />,
       width: '60px',
     },
     {
       key: 'full_name',
-      header: 'Full Name',
+      header: t('table.fullName'),
       sortable: true,
       render: (user) => (
         <button
@@ -390,43 +398,43 @@ export default function UsersPage() {
     },
     {
       key: 'role',
-      header: 'Role',
+      header: t('table.role'),
       sortable: true,
       render: (user) => (
         <Badge variant={getRoleVariant(user.role)}>
-          {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
+          {user.role ? (t(user.role as any)) : t('user')}
         </Badge>
       ),
     },
     {
       key: 'streak_count',
-      header: 'Streak',
+      header: t('table.streak'),
       sortable: true,
       render: (user) => (
         <div className="text-center">
           <span className="font-medium">{user.streak_count || 0}</span>
           <p className="text-xs text-muted-foreground">
-            Max: {user.longest_streak || 0}
+            {t('table.max')}: {user.longest_streak || 0}
           </p>
         </div>
       ),
     },
     {
       key: 'last_login',
-      header: 'Last Login',
+      header: t('table.lastLogin'),
       sortable: true,
       render: (user) => (
         <span className="text-sm text-muted-foreground">
-          {user.last_login ? getRelativeTime(user.last_login) : 'Never'}
+          {user.last_login ? getRelativeTime(user.last_login, locale) : t('table.never')}
         </span>
       ),
     },
     {
       key: 'created_at',
-      header: 'Created At',
+      header: t('table.createdAt'),
       sortable: true,
       render: (user) => (
-        <span className="text-sm">{formatDate(user.created_at)}</span>
+        <span className="text-sm">{formatDate(user.created_at, locale)}</span>
       ),
     },
   ];
@@ -436,19 +444,19 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Users</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
           <p className="text-muted-foreground">
-            Manage platform users, roles, and access
+            {t('description')}
           </p>
         </div>
-        <Button onClick={() => setAddUserOpen(true)}>Add User</Button>
+        <Button onClick={() => setAddUserOpen(true)}>{t('addUser')}</Button>
       </div>
 
       {/* Filters */}
       <div className="flex gap-4 flex-col sm:flex-row">
         <div className="flex-1">
           <Input
-            placeholder="Search by name or email..."
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full"
@@ -458,13 +466,13 @@ export default function UsersPage() {
           if (value) setRoleFilter(value);
         }}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filter by role" />
+            <SelectValue placeholder={t('filterRole')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="expert">Expert</SelectItem>
-            <SelectItem value="user">User</SelectItem>
+            <SelectItem value="all">{t('allRoles')}</SelectItem>
+            <SelectItem value="admin">{t('admin')}</SelectItem>
+            <SelectItem value="expert">{t('expert')}</SelectItem>
+            <SelectItem value="user">{t('user')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -473,14 +481,14 @@ export default function UsersPage() {
       {error && (
         <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
           <p className="text-sm font-medium text-destructive mb-2">
-            Failed to load users
+            {t('failedToLoad')}
           </p>
           <Button
             variant="outline"
             size="sm"
             onClick={() => refetch()}
           >
-            Retry
+            {t('retry')}
           </Button>
         </div>
       )}
@@ -492,8 +500,8 @@ export default function UsersPage() {
         isLoading={isLoading}
         emptyMessage={
           search || roleFilter !== 'all'
-            ? 'No users found matching your filters'
-            : 'No users found'
+            ? t('empty.noMatchingUsers')
+            : t('empty.noUsers')
         }
         actions={(user) => <UserActionsMenu user={user} isAdmin={true} />}
         initialPageSize={20}
@@ -502,7 +510,7 @@ export default function UsersPage() {
       {/* Stats */}
       {data && !isLoading && (
         <div className="text-sm text-muted-foreground">
-          Showing {data.users.length} of {data.total} users
+          {t('showingCount', { count: data.users.length, total: data.total })}
         </div>
       )}
 

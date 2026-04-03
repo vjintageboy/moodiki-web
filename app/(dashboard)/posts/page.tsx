@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Search, Filter, MessageSquare, Heart, Eye, EyeOff, Trash2, User, Calendar, ShieldAlert, AlertTriangle, Loader2 } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -54,6 +55,8 @@ import { format } from 'date-fns';
 const categories = ['community', 'tips', 'success-story', 'question', 'discussion'];
 
 export default function PostsPage() {
+  const t = useTranslations('Posts');
+  const locale = useLocale();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [visibilityFilter, setVisibilityFilter] = useState<'all' | 'visible' | 'hidden'>('all');
@@ -124,14 +127,14 @@ export default function PostsPage() {
     try {
       await deleteCommentMutation.mutateAsync(deleteCommentId);
       toast({
-        title: 'Success',
-        description: 'Comment deleted successfully',
+        title: t('toasts.success'),
+        description: t('toasts.commentDeleted'),
       });
       setDeleteCommentId(null);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete comment',
+        title: t('toasts.error'),
+        description: error.message || t('toasts.commentDeletedFailed'),
         variant: 'destructive',
       });
     }
@@ -142,15 +145,15 @@ export default function PostsPage() {
     try {
       await toggleVisibility.mutateAsync({ id, is_hidden: !currentlyHidden });
       toast({
-        title: currentlyHidden ? 'Post Unhidden' : 'Post Hidden',
+        title: currentlyHidden ? t('toasts.postUnhidden') : t('toasts.postHidden'),
         description: currentlyHidden
-          ? 'The post is now visible to users.'
-          : 'The post is now hidden from users.',
+          ? t('toasts.unhiddenDesc')
+          : t('toasts.hiddenDesc'),
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update post visibility',
+        title: t('toasts.error'),
+        description: error.message || t('toasts.error'),
         variant: 'destructive',
       });
     } finally {
@@ -163,12 +166,12 @@ export default function PostsPage() {
     try {
       const res = await moderatePost.mutateAsync({ postId: post.id, content: post.content });
       if (res.result.isToxic) {
-        toast({ title: 'AI Flagged', description: `Sytem flagged this post: ${res.result.reason}`, variant: 'destructive' });
+        toast({ title: t('toasts.aiFlagged'), description: `${t('toasts.aiFlagged')}: ${res.result.reason}`, variant: 'destructive' });
       } else {
-        toast({ title: 'AI Passed', description: 'This post seems safe according to AI.' });
+        toast({ title: t('toasts.aiPassed'), description: t('toasts.aiPassed') });
       }
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Moderation failed', variant: 'destructive' });
+      toast({ title: t('toasts.error'), description: error.message || t('toasts.error'), variant: 'destructive' });
     } finally {
       setModeratingId(null);
     }
@@ -177,9 +180,9 @@ export default function PostsPage() {
   const handleClearFlag = async (postId: string) => {
     try {
       await updatePost.mutateAsync({ id: postId, updates: { flagged: false } });
-      toast({ title: 'Flag Cleared', description: 'The post has been marked as safe.' });
+      toast({ title: t('toasts.flagCleared'), description: t('toasts.flagClearedDesc') });
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      toast({ title: t('toasts.error'), description: error.message, variant: 'destructive' });
     }
   };
 
@@ -202,9 +205,9 @@ export default function PostsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Community Posts</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
         <p className="text-muted-foreground">
-          Manage and moderate community posts and discussions
+          {t('subtitle')}
         </p>
       </div>
 
@@ -214,7 +217,7 @@ export default function PostsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Posts
+                {t('totalPosts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -224,7 +227,7 @@ export default function PostsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Likes
+                {t('totalLikes')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -234,7 +237,7 @@ export default function PostsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Comments
+                {t('totalComments')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -244,7 +247,7 @@ export default function PostsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Avg. Engagement
+                {t('avgEngagement')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -265,7 +268,7 @@ export default function PostsPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search posts..."
+                placeholder={t('searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -274,13 +277,13 @@ export default function PostsPage() {
             <Select value={categoryFilter} onValueChange={(value) => value && setCategoryFilter(value)}>
               <SelectTrigger className="w-full md:w-[200px]">
                 <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t('category')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">{t('allCategories')}</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
-                    {cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    {t(`categories.${cat.replace('-', '_')}` as any) || cat}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -291,12 +294,12 @@ export default function PostsPage() {
             >
               <SelectTrigger className="w-full md:w-[160px]">
                 <Eye className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Visibility" />
+                <SelectValue placeholder={t('visibility')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Visibility</SelectItem>
-                <SelectItem value="visible">Visible Only</SelectItem>
-                <SelectItem value="hidden">Hidden Only</SelectItem>
+                <SelectItem value="all">{t('allVisibility')}</SelectItem>
+                <SelectItem value="visible">{t('visibleOnly')}</SelectItem>
+                <SelectItem value="hidden">{t('hiddenOnly')}</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -305,12 +308,12 @@ export default function PostsPage() {
             >
               <SelectTrigger className="w-full md:w-[160px]">
                 <ShieldAlert className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Moderation" />
+                <SelectValue placeholder={t('moderation')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Posts</SelectItem>
-                <SelectItem value="reported">Reported</SelectItem>
-                <SelectItem value="flagged">AI Flagged</SelectItem>
+                <SelectItem value="all">{t('allPosts')}</SelectItem>
+                <SelectItem value="reported">{t('reported')}</SelectItem>
+                <SelectItem value="flagged">{t('aiFlagged')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -336,10 +339,10 @@ export default function PostsPage() {
             <MessageSquare className="mx-auto h-12 w-12 mb-4 opacity-50" />
             <p>
               {visibilityFilter === 'hidden'
-                ? 'No hidden posts.'
+                ? t('empty.noHidden')
                 : visibilityFilter === 'visible'
-                ? 'No visible posts found.'
-                : 'No posts found. Users can create posts in the mobile app.'}
+                ? t('empty.noVisible')
+                : t('empty.noPosts')}
             </p>
           </CardContent>
         </Card>
@@ -364,11 +367,11 @@ export default function PostsPage() {
                         <div>
                           <p className="font-medium">
                             {post.is_anonymous
-                              ? 'Anonymous User'
-                              : post.author?.full_name || 'Unknown User'}
+                              ? t('post.anonymous')
+                              : post.author?.full_name || t('post.unknownUser')}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {format(new Date(post.created_at), 'MMM d, yyyy • HH:mm')}
+                            {format(new Date(post.created_at), locale === 'vi' ? 'dd/MM/yyyy • HH:mm' : 'MMM d, yyyy • HH:mm')}
                           </p>
                         </div>
                       </div>
@@ -394,34 +397,34 @@ export default function PostsPage() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                     {post.category && (
                       <Badge className={getCategoryColor(post.category)}>
-                        {post.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                        {t(`categories.${post.category.replace('-', '_')}` as any) || post.category}
                       </Badge>
                     )}
                     {post.is_hidden && (
                       <Badge variant="outline" className="border-orange-400 text-orange-500 bg-orange-50 dark:bg-orange-950/30">
                         <EyeOff className="h-3 w-3 mr-1" />
-                        Hidden
+                        {t('post.hidden')}
                       </Badge>
                     )}
                     {post.flagged && (
                       <Badge variant="destructive" className="bg-red-500 hover:bg-red-600">
                         <AlertTriangle className="h-3 w-3 mr-1" />
-                        ⚠ Flagged
+                        ⚠ {t('post.flagged')}
                       </Badge>
                     )}
                     {reportedPosts.some(rp => rp.id === post.id) && (
                       <Badge variant="outline" className="border-red-400 text-red-500 bg-red-50 dark:bg-red-950/30">
                         <ShieldAlert className="h-3 w-3 mr-1" />
-                        Reported
+                        {t('post.reported')}
                       </Badge>
                     )}
                     <div className="flex items-center gap-1">
                       <Heart className="h-4 w-4" />
-                      <span>{post.likes_count || 0}</span>
+                      <span>{t('post.likesCount', { count: post.likes_count || 0 })}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <MessageSquare className="h-4 w-4" />
-                      <span>{post.comment_count || 0}</span>
+                      <span>{t('post.commentsCount', { count: post.comment_count || 0 })}</span>
                     </div>
                   </div>
 
@@ -433,7 +436,7 @@ export default function PostsPage() {
                       onClick={() => setViewPostId(post.id)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      View Details
+                      {t('actions.viewDetails')}
                     </Button>
                     <Button
                       size="sm"
@@ -446,7 +449,7 @@ export default function PostsPage() {
                       ) : (
                         <ShieldAlert className="h-4 w-4 mr-2" />
                       )}
-                      Re-analyze
+                      {t('actions.reAnalyze')}
                     </Button>
                     {post.flagged && (
                       <Button
@@ -456,7 +459,7 @@ export default function PostsPage() {
                         onClick={() => handleClearFlag(post.id)}
                         disabled={updatePost.isPending}
                       >
-                        Approve Flag
+                        {t('actions.approveFlag')}
                       </Button>
                     )}
                     <Button
@@ -476,7 +479,7 @@ export default function PostsPage() {
                       ) : (
                         <EyeOff className="h-4 w-4 mr-2" />
                       )}
-                      {togglingId === post.id ? '...' : post.is_hidden ? 'Unhide' : 'Hide'}
+                      {togglingId === post.id ? '...' : post.is_hidden ? t('actions.unhide') : t('actions.hide')}
                     </Button>
                     <Button
                       size="sm"
@@ -485,7 +488,7 @@ export default function PostsPage() {
                       onClick={() => setDeleteId(post.id)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      {t('actions.delete')}
                     </Button>
                   </div>
                 </div>
@@ -499,7 +502,7 @@ export default function PostsPage() {
       <Dialog open={!!viewPostId} onOpenChange={() => setViewPostId(null)}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Post Details</DialogTitle>
+            <DialogTitle>{t('dialogs.postDetails')}</DialogTitle>
           </DialogHeader>
           {selectedPost && (
             <div className="space-y-6">
@@ -510,20 +513,20 @@ export default function PostsPage() {
                     <AvatarImage src={selectedPost.author?.avatar_url || undefined} />
                     <AvatarFallback>
                       {selectedPost.is_anonymous
-                        ? 'AN'
+                        ? t('post.anonymousShort')
                         : selectedPost.author?.full_name?.[0] || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">
                       {selectedPost.is_anonymous
-                        ? 'Anonymous User'
-                        : selectedPost.author?.full_name || 'Unknown User'}
+                        ? t('post.anonymous')
+                        : selectedPost.author?.full_name || t('post.unknownUser')}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {selectedPost.author?.email && !selectedPost.is_anonymous
                         ? selectedPost.author.email
-                        : 'Hidden'}
+                        : t('post.hidden')}
                     </p>
                   </div>
                 </div>
@@ -543,15 +546,15 @@ export default function PostsPage() {
 
                 <div className="flex items-center gap-4 text-sm">
                   <Badge className={getCategoryColor(selectedPost.category || 'community')}>
-                    {(selectedPost.category || 'community').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    {t(`categories.${(selectedPost.category || 'community').replace('-', '_')}` as any)}
                   </Badge>
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Heart className="h-4 w-4" />
-                    <span>{selectedPost.likes_count || 0} likes</span>
+                    <span>{t('post.likesCount', { count: selectedPost.likes_count || 0 })}</span>
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <MessageSquare className="h-4 w-4" />
-                    <span>{selectedPost.comment_count || 0} comments</span>
+                    <span>{t('post.commentsCount', { count: selectedPost.comment_count || 0 })}</span>
                   </div>
                 </div>
               </div>
@@ -559,11 +562,11 @@ export default function PostsPage() {
               {/* Comments Section */}
               <div className="border-t pt-4">
                 <h4 className="font-semibold mb-4">
-                  Comments ({comments.length})
+                  {t('dialogs.comments', { count: comments.length })}
                 </h4>
                 {comments.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No comments yet
+                    {t('dialogs.noComments')}
                   </p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -582,8 +585,8 @@ export default function PostsPage() {
                           <div className="flex items-center justify-between mb-1">
                             <p className="text-sm font-medium">
                               {comment.is_anonymous
-                                ? 'Anonymous'
-                                : comment.user?.full_name || 'Unknown'}
+                                ? t('post.anonymous')
+                                : comment.user?.full_name || t('post.unknownUser')}
                             </p>
                             <Button
                               size="sm"
@@ -598,7 +601,7 @@ export default function PostsPage() {
                             {comment.content}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {format(new Date(comment.created_at), 'MMM d, yyyy • HH:mm')}
+                            {format(new Date(comment.created_at), locale === 'vi' ? 'dd/MM/yyyy • HH:mm' : 'MMM d, yyyy • HH:mm')}
                           </p>
                         </div>
                       </div>
@@ -615,19 +618,18 @@ export default function PostsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Post</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deletePostTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this post? This action cannot be undone.
-              All comments and likes will also be removed.
+              {t('dialogs.deletePostDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-500 hover:bg-red-600"
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? t('dialogs.deleting') : t('dialogs.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -637,18 +639,18 @@ export default function PostsPage() {
       <AlertDialog open={!!deleteCommentId} onOpenChange={() => setDeleteCommentId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.deleteCommentTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this comment? This action cannot be undone.
+              {t('dialogs.deleteCommentDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('dialogs.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteComment}
               className="bg-red-500 hover:bg-red-600"
             >
-              {deleteCommentMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteCommentMutation.isPending ? t('dialogs.deleting') : t('dialogs.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

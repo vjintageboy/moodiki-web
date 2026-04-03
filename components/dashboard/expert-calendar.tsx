@@ -8,7 +8,7 @@ import { Calendar, Clock, User, Phone, Video, MessageSquare } from 'lucide-react
 import { ExpertAppointmentWithUser } from '@/hooks/use-expert-dashboard';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface ExpertCalendarProps {
   appointments: ExpertAppointmentWithUser[];
@@ -50,6 +50,7 @@ export function ExpertCalendar({
   onAppointmentClick,
 }: ExpertCalendarProps) {
   const t = useTranslations('DashboardHome')
+  const locale = useLocale()
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -86,7 +87,7 @@ export function ExpertCalendar({
             <div className="flex-shrink-0">
               <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
                 <Calendar className="w-4 h-4 text-gray-500" />
-                {format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}
+                {format(new Date(appointment.appointment_date), locale === 'vi' ? 'dd/MM/yyyy' : 'MMM dd, yyyy')}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
                 <Clock className="w-4 h-4 text-gray-500" />
@@ -133,8 +134,7 @@ export function ExpertCalendar({
             {/* Right: Status & Notes */}
             <div className="flex-shrink-0 text-right">
               <Badge className={cn('mb-2', getStatusColor(appointment.status))}>
-                {appointment.status.charAt(0).toUpperCase() +
-                  appointment.status.slice(1)}
+                {t(`status.${appointment.status.toLowerCase()}` as any) || appointment.status}
               </Badge>
 
               {appointment.payment_status && (
@@ -149,7 +149,10 @@ export function ExpertCalendar({
 
               {appointment.expert_base_price && (
                 <div className="text-sm font-medium text-gray-900 mt-2">
-                  ${appointment.expert_base_price / 100}
+                  {new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+                    style: 'currency',
+                    currency: locale === 'vi' ? 'VND' : 'USD',
+                  }).format(locale === 'vi' ? appointment.expert_base_price * 1000 : appointment.expert_base_price / 100)}
                 </div>
               )}
             </div>

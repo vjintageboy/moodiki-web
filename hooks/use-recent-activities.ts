@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { vi, enUS } from 'date-fns/locale';
 
 /**
  * Recent Appointment data structure
@@ -427,10 +428,13 @@ export function useDeleteExpertPermanently() {
 /**
  * Get relative time string (e.g., "2 hours ago")
  */
-export function getRelativeTime(date: string): string {
+export function getRelativeTime(date: string, locale?: string): string {
   try {
-    return formatDistanceToNow(new Date(date), { addSuffix: true });
+    return formatDistanceToNow(new Date(date), { 
+      addSuffix: true,
+      locale: locale === 'vi' ? vi : enUS
+    });
   } catch {
-    return 'Unknown';
+    return locale === 'vi' ? 'Không rõ' : 'Unknown';
   }
 }

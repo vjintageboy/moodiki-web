@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Loader2, TrendingUp, Activity, CalendarDays, AlertCircle } from 'lucide-react';
 import { format, subDays } from 'date-fns';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   BarChart,
   Bar,
@@ -17,16 +18,18 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// Format số tiền sang định dạng VNĐ
-function formatVND(amount: number): string {
-  return new Intl.NumberFormat('vi-VN', {
+// Format currency based on locale
+function formatCurrency(amount: number, locale: string): string {
+  return new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
     style: 'currency',
-    currency: 'VND',
+    currency: locale === 'vi' ? 'VND' : 'USD',
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
 export default function EarningsPage() {
+  const t = useTranslations('EarningsPage');
+  const locale = useLocale();
   const { user, isExpert, loading: authLoading } = useAuth();
   
   // Default to the last 30 days
@@ -55,8 +58,8 @@ export default function EarningsPage() {
     return (
       <div className="p-8 text-center text-muted-foreground">
         <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-20" />
-        <h2 className="text-xl font-semibold text-foreground mb-2">Không có quyền truy cập</h2>
-        <p>Chỉ các chuyên gia đã xác minh mới có thể xem báo cáo thu nhập.</p>
+        <h2 className="text-xl font-semibold text-foreground mb-2">{t('unauthorized.title')}</h2>
+        <p>{t('unauthorized.message')}</p>
       </div>
     );
   }
@@ -76,15 +79,15 @@ export default function EarningsPage() {
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Báo Cáo Thu Nhập</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
           <p className="text-muted-foreground mt-1">
-            Theo dõi hiệu suất tài chính và tổng số buổi hẹn đã hoàn thành theo thời gian.
+            {t('description')}
           </p>
         </div>
 
         <div className="flex items-center gap-3 bg-card p-2 rounded-lg border shadow-sm">
           <div className="flex flex-col">
-            <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 pl-1">Từ ngày</label>
+            <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 pl-1">{t('filter.from')}</label>
             <Input 
               type="date" 
               value={startDate} 
@@ -94,7 +97,7 @@ export default function EarningsPage() {
           </div>
           <span className="text-muted-foreground mt-4">-</span>
           <div className="flex flex-col">
-            <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 pl-1">Đến ngày</label>
+            <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 pl-1">{t('filter.to')}</label>
             <Input 
               type="date" 
               value={endDate} 
@@ -109,17 +112,17 @@ export default function EarningsPage() {
         {/* Tổng thu nhập */}
         <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200 dark:border-emerald-900/50 border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Thu Nhập Kỳ Này</CardTitle>
+            <CardTitle className="text-sm font-medium text-emerald-800 dark:text-emerald-300">{t('kpi.currentPeriod')}</CardTitle>
             <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
               <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-              {formatVND(totalEarnings)}
+              {formatCurrency(totalEarnings, locale)}
             </div>
             <p className="text-xs text-emerald-600/70 dark:text-emerald-500/70 mt-1">
-              Tổng thu nhập trong kỳ đã chọn
+              {t('kpi.currentPeriodDesc')}
             </p>
           </CardContent>
         </Card>
@@ -127,39 +130,42 @@ export default function EarningsPage() {
         {/* Số buổi */}
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-900/50 border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800 dark:text-blue-300">Buổi Đã Hoàn Thành</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-800 dark:text-blue-300">{t('kpi.completedSessions')}</CardTitle>
             <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center">
               <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{totalSessions}</div>
-            <p className="text-xs text-blue-600/70 dark:text-blue-500/70 mt-1">Buổi tư vấn đã thanh toán</p>
+            <p className="text-xs text-blue-600/70 dark:text-blue-500/70 mt-1">{t('kpi.completedSessionsDesc')}</p>
           </CardContent>
         </Card>
 
         {/* Trung bình mỗi buổi */}
         <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border-violet-200 dark:border-violet-900/50 border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-violet-800 dark:text-violet-300">Trung Bình / Buổi</CardTitle>
+            <CardTitle className="text-sm font-medium text-violet-800 dark:text-violet-300">{t('kpi.averagePerSession')}</CardTitle>
             <div className="h-8 w-8 rounded-full bg-violet-500/20 flex items-center justify-center">
               <CalendarDays className="h-4 w-4 text-violet-600 dark:text-violet-400" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-violet-700 dark:text-violet-400">
-              {formatVND(totalSessions > 0 ? totalEarnings / totalSessions : 0)}
+              {formatCurrency(totalSessions > 0 ? totalEarnings / totalSessions : 0, locale)}
             </div>
-            <p className="text-xs text-violet-600/70 dark:text-violet-500/70 mt-1">Thu nhập trung bình mỗi buổi</p>
+            <p className="text-xs text-violet-600/70 dark:text-violet-500/70 mt-1">{t('kpi.averagePerSessionDesc')}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="shadow-sm border">
         <CardHeader>
-          <CardTitle>Biểu Đồ Doanh Thu Theo Ngày</CardTitle>
+          <CardTitle>{t('charts.dailyEarnings')}</CardTitle>
           <CardDescription>
-            Thu nhập của bạn từ {format(new Date(startDate), 'dd/MM/yyyy')} đến {format(new Date(endDate), 'dd/MM/yyyy')}
+            {t('charts.desc', { 
+              start: format(new Date(startDate), locale === 'vi' ? 'dd/MM/yyyy' : 'MM/dd/yyyy'), 
+              end: format(new Date(endDate), locale === 'vi' ? 'dd/MM/yyyy' : 'MM/dd/yyyy') 
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -171,7 +177,7 @@ export default function EarningsPage() {
             ) : chartData.length === 0 ? (
               <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground bg-accent/20 rounded-lg border border-dashed">
                 <TrendingUp className="h-12 w-12 opacity-20 mb-2" />
-                <p>Không có dữ liệu thu nhập trong kỳ này.</p>
+                <p>{t('empty.noData')}</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -188,14 +194,14 @@ export default function EarningsPage() {
                     axisLine={false} 
                     tickLine={false} 
                     tick={{ fontSize: 11, fill: '#888' }}
-                    tickFormatter={(value) => new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value) + '₫'}
+                    tickFormatter={(value) => new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', { notation: 'compact' }).format(value) + (locale === 'vi' ? '₫' : '$')}
                     width={72}
                   />
                   <Tooltip 
                     cursor={{ fill: 'rgba(16, 185, 129, 0.05)' }}
                     contentStyle={{ borderRadius: '10px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 8px 16px -4px rgb(0 0 0 / 0.12)' }}
                     formatter={(value: any, name: any) => {
-                      if (name === 'Earnings' && typeof value === 'number') return [formatVND(value), 'Thu nhập'];
+                      if (name === 'Earnings' && typeof value === 'number') return [formatCurrency(value, locale), t('charts.earnings')];
                       return [value, name];
                     }}
                     labelStyle={{ fontWeight: 600, marginBottom: 4 }}

@@ -310,7 +310,11 @@ export function RejectedExpertsTab({
                       {t('years', { count: expert.years_experience })}
                     </TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US').format(expert.hourly_rate)} {t('perHour')}
+                      {new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+                        style: 'currency',
+                        currency: locale === 'vi' ? 'VND' : 'USD',
+                        maximumFractionDigits: 0,
+                      }).format(expert.hourly_rate)}
                     </TableCell>
                     <TableCell className="text-right">
                       {expert.rating > 0 ? (

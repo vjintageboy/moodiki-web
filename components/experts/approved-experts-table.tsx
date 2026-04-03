@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import { useSuspendExpert } from '@/hooks/use-recent-activities';
 import Link from 'next/link';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface ApprovedExpert {
   id: string;
@@ -83,26 +84,26 @@ function SuspendConfirmDialog({
   onCancel,
   isLoading,
 }: ConfirmDialogProps) {
+  const t = useTranslations('ApprovedExperts');
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Suspend Expert</DialogTitle>
+          <DialogTitle>{t('suspendTitle')}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to suspend <strong>{expertName}</strong>? They
-            will not be able to accept new appointments.
+            {t('suspendDescription', { expertName })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant="destructive"
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? '...' : 'Suspend'}
+            {isLoading ? '...' : t('suspend')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -117,6 +118,8 @@ export function ApprovedExpertsTable({
   experts: ApprovedExpert[] | undefined;
   isLoading: boolean;
 }) {
+  const t = useTranslations('ApprovedExperts');
+  const locale = useLocale();
   const [searchTerm, setSearchTerm] = useState('');
   const [specializationFilter, setSpecializationFilter] = useState<
     string | null
@@ -185,7 +188,7 @@ export function ApprovedExpertsTable({
   if (isLoading) {
     return (
       <div className="rounded-md border bg-card text-card-foreground p-8 text-center text-muted-foreground">
-        Loading experts...
+        {t('loading')}
       </div>
     );
   }
@@ -197,7 +200,7 @@ export function ApprovedExpertsTable({
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <Input
-              placeholder="Search by name or specialization..."
+              placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="h-10"
@@ -205,10 +208,10 @@ export function ApprovedExpertsTable({
           </div>
           <Select value={specializationFilter || ''} onValueChange={(v) => setSpecializationFilter(v || null)}>
             <SelectTrigger>
-              <SelectValue placeholder="Filter by specialization" />
+              <SelectValue placeholder={t('filterBySpecialization')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Specializations</SelectItem>
+              <SelectItem value="">{t('allSpecializations')}</SelectItem>
               {specializations.map((spec) => (
                 <SelectItem key={spec} value={spec}>
                   {spec}
@@ -223,15 +226,15 @@ export function ApprovedExpertsTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[240px]">Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Specialization</TableHead>
-                <TableHead className="text-right">Experience</TableHead>
-                <TableHead className="text-right">Hourly Rate</TableHead>
-                <TableHead className="text-right">Rating</TableHead>
-                <TableHead className="text-right">Reviews</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[240px]">{t('name')}</TableHead>
+                <TableHead>{t('email')}</TableHead>
+                <TableHead>{t('specialization')}</TableHead>
+                <TableHead className="text-right">{t('experience')}</TableHead>
+                <TableHead className="text-right">{t('hourlyRate')}</TableHead>
+                <TableHead className="text-right">{t('rating')}</TableHead>
+                <TableHead className="text-right">{t('reviews')}</TableHead>
+                <TableHead className="text-center">{t('status')}</TableHead>
+                <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -242,8 +245,8 @@ export function ApprovedExpertsTable({
                     className="text-center py-8 text-muted-foreground"
                   >
                     {experts && experts.length === 0
-                      ? 'No approved experts yet.'
-                      : 'No experts match your search.'}
+                      ? t('noApprovedExperts')
+                      : t('noMatch')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -274,12 +277,16 @@ export function ApprovedExpertsTable({
                     <TableCell className="text-sm">
                       {expert.users.email}
                     </TableCell>
-                    <TableCell>{expert.specialization || 'N/A'}</TableCell>
+                    <TableCell>{expert.specialization || t('notAvailable')}</TableCell>
                     <TableCell className="text-right">
-                      {expert.years_experience} years
+                      {t('years', { count: expert.years_experience })}
                     </TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat('vi-VN').format(expert.hourly_rate)}₫/giờ
+                      {new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+                        style: 'currency',
+                        currency: locale === 'vi' ? 'VND' : 'USD',
+                        maximumFractionDigits: 0,
+                      }).format(expert.hourly_rate)}
                     </TableCell>
                     <TableCell className="text-right">
                       {expert.rating > 0 ? (
@@ -287,7 +294,7 @@ export function ApprovedExpertsTable({
                           ⭐ {expert.rating.toFixed(1)}/5
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">No rating</span>
+                        <span className="text-muted-foreground">{t('noRating')}</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -295,14 +302,14 @@ export function ApprovedExpertsTable({
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge variant="default" className="bg-green-600">
-                        Active
+                        {t('active')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">
                         <Link href={`/experts/${expert.id}`}>
                           <Button size="sm" variant="ghost">
-                            Details
+                            {t('details')}
                           </Button>
                         </Link>
                         <Button
@@ -316,7 +323,7 @@ export function ApprovedExpertsTable({
                           }
                           disabled={suspendingId !== null}
                         >
-                          {suspendingId === expert.id ? '...' : 'Suspend'}
+                          {suspendingId === expert.id ? '...' : t('suspend')}
                         </Button>
                       </div>
                     </TableCell>

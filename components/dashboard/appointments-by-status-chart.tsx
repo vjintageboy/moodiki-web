@@ -137,7 +137,9 @@ export function AppointmentsByStatusChart() {
                 style={{ backgroundColor: STATUS_COLORS[item.status] || '#6b7280' }}
               />
               <div className="text-sm">
-                <p className="font-medium">{item.status}</p>
+                <p className="font-medium">
+                  {t(`status.${item.status.toLowerCase()}` as any) || item.status}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {item.count} ({item.percentage}%)
                 </p>

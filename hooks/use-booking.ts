@@ -18,8 +18,8 @@ export function useAvailableSlots(expertId: string, date: Date | undefined) {
 
   return useQuery({
     queryKey: ['available-slots', expertId, date?.toISOString().split('T')[0]],
-    queryFn: async () => {
-      if (!expertId || !date) return [];
+    queryFn: async (): Promise<AvailableSlotResponse> => {
+      if (!expertId || !date) return { slots: [], nextAvailableDate: null };
 
       const targetDate = date.toISOString().split('T')[0];
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Ho_Chi_Minh';

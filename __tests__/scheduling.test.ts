@@ -43,9 +43,9 @@ describe('Expert Scheduling System - Tests', () => {
       });
 
       expect(supabase.rpc).toHaveBeenCalledWith('get_split_available_slots', expect.any(Object));
-      expect(result.data.slots).toHaveLength(2);
-      expect(result.data.slots[0].end_time).toBe('2026-04-03T09:00:00.000Z');
-      expect(result.data.slots[1].start_time).toBe('2026-04-03T10:00:00.000Z');
+      expect((result as any).data?.slots).toHaveLength(2);
+      expect((result as any).data?.slots[0].end_time).toBe('2026-04-03T09:00:00.000Z');
+      expect((result as any).data?.slots[1].start_time).toBe('2026-04-03T10:00:00.000Z');
     });
 
     it('should handle boundary edge cases cleanly', async () => {
@@ -68,8 +68,8 @@ describe('Expert Scheduling System - Tests', () => {
         p_timezone: 'UTC'
       });
 
-      expect(result.data.slots).toHaveLength(1);
-      expect(result.data.slots[0].end_time).toBe('2026-04-03T11:00:00.000Z');
+      expect((result as any).data?.slots).toHaveLength(1);
+      expect((result as any).data?.slots[0].end_time).toBe('2026-04-03T11:00:00.000Z');
     });
   });
 
@@ -90,8 +90,8 @@ describe('Expert Scheduling System - Tests', () => {
         p_date: '2026-04-03',
       });
 
-      expect(result.data.slots).toHaveLength(0);
-      expect(result.data.nextAvailableDate).toBe('2026-04-05');
+      expect((result as any).data?.slots).toHaveLength(0);
+      expect((result as any).data?.nextAvailableDate).toBe('2026-04-05');
     });
   });
 
