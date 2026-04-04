@@ -28,6 +28,7 @@ import { MoodTrendChart } from '@/components/dashboard/mood-trend-chart'
 import { Link } from '@/i18n/routing'
 import type { DashboardStats } from '@/lib/queries/dashboard'
 import { useTranslations, useLocale } from 'next-intl'
+import { formatCurrency } from '@/lib/utils/currency'
 
 interface DashboardOverviewProps {
   stats?: DashboardStats
@@ -178,11 +179,7 @@ export function DashboardOverview({ stats }: DashboardOverviewProps) {
             title={t('totalRevenueTitle')}
             value={
               stats?.totalRevenue
-                ? new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
-                    style: 'currency',
-                    currency: locale === 'vi' ? 'VND' : 'USD',
-                    maximumFractionDigits: 0,
-                  }).format(stats.totalRevenue / (locale === 'vi' ? 1 : 100))
+                ? formatCurrency(stats.totalRevenue, locale)
                 : '---'
             }
             icon={DollarSign}

@@ -3,9 +3,13 @@
 import * as React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useExpertEarnings } from '@/hooks/use-earnings';
+import { useExpertAppointments } from '@/hooks/use-appointments';
+import { ExportTransactionsDialog } from '@/components/dashboard/export-transactions-dialog';
+import { formatCurrency } from '@/lib/utils/currency';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Loader2, TrendingUp, Activity, CalendarDays, AlertCircle } from 'lucide-react';
+import { Loader2, TrendingUp, Activity, CalendarDays, AlertCircle, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { format, subDays } from 'date-fns';
 import { useTranslations, useLocale } from 'next-intl';
 import {
@@ -18,14 +22,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// Format currency based on locale
-function formatCurrency(amount: number, locale: string): string {
-  return new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
-    style: 'currency',
-    currency: locale === 'vi' ? 'VND' : 'USD',
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 export default function EarningsPage() {
   const t = useTranslations('EarningsPage');
@@ -44,6 +40,18 @@ export default function EarningsPage() {
     isExpert ? user?.id : undefined,
     startDate,
     endDate
+  );
+
+  // For Export functionality
+  const [isExportDialogOpen, setIsExportDialogOpen] = React.useState(false);
+  const { appointments: exportData, isLoading: isExportLoading } = useExpertAppointments(
+    isExpert ? user?.id : undefined,
+    {
+      dateFrom: startDate,
+      dateTo: endDate,
+      paymentStatus: 'paid',
+      pageSize: 1000,
+    }
   );
 
   if (authLoading) {
@@ -85,26 +93,40 @@ export default function EarningsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 bg-card p-2 rounded-lg border shadow-sm">
-          <div className="flex flex-col">
-            <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 pl-1">{t('filter.from')}</label>
-            <Input 
-              type="date" 
-              value={startDate} 
-              onChange={(e) => setStartDate(e.target.value)}
-              className="h-8 text-sm border-none bg-accent/50"
-            />
+        <div className="flex flex-col sm:flex-row items-center gap-3 bg-card p-2 rounded-xl border shadow-sm">
+          <div className="flex items-center gap-3 px-2">
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase font-black text-muted-foreground mb-1 pl-1">{t('filter.from')}</label>
+              <Input 
+                type="date" 
+                value={startDate} 
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-9 w-32 text-xs border-none bg-accent/50 rounded-lg font-bold"
+              />
+            </div>
+            <span className="text-muted-foreground mt-4 font-bold">-</span>
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase font-black text-muted-foreground mb-1 pl-1">{t('filter.to')}</label>
+              <Input 
+                type="date" 
+                value={endDate} 
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-9 w-32 text-xs border-none bg-accent/50 rounded-lg font-bold"
+              />
+            </div>
           </div>
-          <span className="text-muted-foreground mt-4">-</span>
-          <div className="flex flex-col">
-            <label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 pl-1">{t('filter.to')}</label>
-            <Input 
-              type="date" 
-              value={endDate} 
-              onChange={(e) => setEndDate(e.target.value)}
-              className="h-8 text-sm border-none bg-accent/50"
-            />
-          </div>
+          
+          <div className="w-px h-8 bg-border hidden sm:block mx-1" />
+
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsExportDialogOpen(true)}
+            className="h-10 rounded-xl gap-2 font-bold border-emerald-500/20 hover:bg-emerald-50 hover:text-emerald-600 transition-all active:scale-95"
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden lg:inline">{t('export.button') || 'Xuất dữ liệu'}</span>
+          </Button>
         </div>
       </div>
 
@@ -194,7 +216,11 @@ export default function EarningsPage() {
                     axisLine={false} 
                     tickLine={false} 
                     tick={{ fontSize: 11, fill: '#888' }}
-                    tickFormatter={(value) => new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', { notation: 'compact' }).format(value) + (locale === 'vi' ? '₫' : '$')}
+                    tickFormatter={(value) => {
+                      const isVND = locale === 'vi';
+                      const scaledValue = isVND ? value : value / 100;
+                      return new Intl.NumberFormat(isVND ? 'vi-VN' : 'en-US', { notation: 'compact' }).format(scaledValue) + (isVND ? '₫' : '$')
+                    }}
                     width={72}
                   />
                   <Tooltip 
@@ -226,6 +252,13 @@ export default function EarningsPage() {
         </CardContent>
       </Card>
       
+      <ExportTransactionsDialog 
+        isOpen={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        data={exportData}
+        overrideTitle={t('export.title') || 'Xuất báo cáo thu nhập'}
+        overrideDescription={t('export.description') || 'Tải xuống lịch sử giao dịch và doanh thu cá nhân của bạn.'}
+      />
     </div>
   );
 }

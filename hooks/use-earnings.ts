@@ -26,11 +26,10 @@ export function useExpertEarnings(expertId: string | undefined, startDate: strin
         throw error;
       }
 
-      // Convert daily_earnings from cents to dollars if necessary, based on your DB storage.
-      // Assuming it's in cents integer:
+      // Return raw values from DB. UI layer will handle scaling based on locale via formatCurrency.
       return (data || []).map((row: any) => ({
         ...row,
-        daily_earnings: row.daily_earnings / 100, // convert back to standard currency format
+        daily_earnings: row.daily_earnings, 
       })) as EarningSummary[];
     },
     enabled: !!expertId && !!startDate && !!endDate,

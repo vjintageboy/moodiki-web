@@ -31,6 +31,7 @@ import {
 import { useSuspendExpert } from '@/hooks/use-recent-activities';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
+import { formatCurrency } from '@/lib/utils/currency';
 
 interface ApprovedExpert {
   id: string;
@@ -282,11 +283,7 @@ export function ApprovedExpertsTable({
                       {t('years', { count: expert.years_experience })}
                     </TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
-                        style: 'currency',
-                        currency: locale === 'vi' ? 'VND' : 'USD',
-                        maximumFractionDigits: 0,
-                      }).format(expert.hourly_rate)}
+                      {formatCurrency(expert.hourly_rate, locale)}
                     </TableCell>
                     <TableCell className="text-right">
                       {expert.rating > 0 ? (

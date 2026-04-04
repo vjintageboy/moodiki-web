@@ -61,6 +61,7 @@
     "settings": "Settings",
     "analytics": "Analytics",
     "chatMonitor": "Chat Monitor",
+    "transactions": "Transactions",
     "notifications": "Notifications",
     "expand": "Expand",
     "collapse": "Collapse",
@@ -617,6 +618,43 @@
     "unauthorized": {
       "title": "Access Denied",
       "message": "Only verified experts can view earnings reports."
+    },
+    "export": {
+      "button": "Export Report",
+      "title": "Export Earnings Report",
+      "description": "Download your transaction history and personal earnings for record-keeping or tax purposes."
+    }
+  },
+  "TransactionsPage": {
+    "title": "Transaction History",
+    "description": "View details of all payments from users to experts.",
+    "table": {
+      "id": "Transaction ID",
+      "date": "Date",
+      "customer": "Customer",
+      "expert": "Expert",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "status": {
+      "paid": "Paid",
+      "refunded": "Refunded"
+    },
+    "noTransactions": "No transactions found.",
+    "searchPlaceholder": "Search by transaction ID or name...",
+    "export": {
+      "button": "Export Data",
+      "title": "Export Transaction History",
+      "description": "Below is the list of transactions to be exported based on your current filters.",
+      "download": "Download CSV",
+      "preview": "Preview",
+      "noData": "No data to export.",
+      "cancel": "Cancel",
+      "format": "Format",
+      "selectColumns": "Select Export Columns",
+      "totalAmount": "Total Revenue",
+      "exporting": "Processing...",
+      "allColumns": "All Columns"
     }
   },
   "GlobalSearch": {
@@ -734,6 +772,11 @@
       "video": "Video",
       "audio": "Audio",
       "chat": "Chat"
+    },
+    "export": {
+      "button": "Export Report",
+      "title": "Export Appointment List",
+      "description": "Download your current list of appointments based on the applied filters."
     }
   },
   "Settings": {

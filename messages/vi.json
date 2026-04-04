@@ -61,6 +61,7 @@
     "settings": "Cài đặt",
     "analytics": "Phân tích",
     "chatMonitor": "Giám sát chat",
+    "transactions": "Giao dịch",
     "notifications": "Thông báo",
     "expand": "Mở rộng",
     "collapse": "Thu gọn",
@@ -617,6 +618,43 @@
     "unauthorized": {
       "title": "Truy cập bị từ chối",
       "message": "Chỉ các chuyên gia đã xác minh mới có thể xem báo cáo thu nhập."
+    },
+    "export": {
+      "button": "Xuất báo cáo",
+      "title": "Xuất báo cáo thu nhập",
+      "description": "Tải xuống lịch sử giao dịch và doanh thu cá nhân của bạn để lưu trữ hoặc kê khai thuế."
+    }
+  },
+  "TransactionsPage": {
+    "title": "Lịch sử giao dịch",
+    "description": "Xem chi tiết tất cả các thanh toán từ người dùng cho chuyên gia.",
+    "table": {
+      "id": "Mã giao dịch",
+      "date": "Ngày",
+      "customer": "Khách hàng",
+      "expert": "Chuyên gia",
+      "amount": "Số tiền",
+      "status": "Trạng thái"
+    },
+    "status": {
+      "paid": "Đã thanh toán",
+      "refunded": "Đã hoàn tiền"
+    },
+    "noTransactions": "Không tìm thấy giao dịch nào.",
+    "searchPlaceholder": "Tìm theo mã giao dịch hoặc tên...",
+    "export": {
+      "button": "Xuất dữ liệu",
+      "title": "Xuất lịch sử giao dịch",
+      "description": "Dưới đây là danh sách các giao dịch sẽ được xuất bản dựa trên bộ lọc hiện tại của bạn.",
+      "download": "Tải xuống CSV",
+      "preview": "Xem trước",
+      "noData": "Không có dữ liệu để xuất bản.",
+      "cancel": "Hủy",
+      "format": "Định dạng",
+      "selectColumns": "Chọn cột xuất bản",
+      "totalAmount": "Tổng doanh thu",
+      "exporting": "Đang xử lý...",
+      "allColumns": "Tất cả các cột"
     }
   },
   "GlobalSearch": {
@@ -734,6 +772,11 @@
       "video": "Video",
       "audio": "Âm thanh",
       "chat": "Chat"
+    },
+    "export": {
+      "button": "Xuất báo cáo",
+      "title": "Xuất danh sách cuộc hẹn",
+      "description": "Tải xuống danh sách các cuộc hẹn hiện tại dựa trên bộ lọc của bạn."
     }
   },
   "Settings": {

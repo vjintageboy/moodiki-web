@@ -21,7 +21,8 @@ import {
   MessageSquare,
   Bell,
   Clock,
-  DollarSign
+  DollarSign,
+  Receipt
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
@@ -65,6 +66,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
     { label: t('posts'), icon: FileText, href: '/posts', roles: ['admin'] },
     { label: t('analytics'), icon: BarChart3, href: '/analytics', roles: ['admin'] },
     { label: t('chatMonitor'), icon: MessageSquare, href: '/chats', roles: ['admin'] },
+    { label: t('transactions'), icon: Receipt, href: '/admin/transactions', roles: ['admin'] },
     { label: t('notifications'), icon: Bell, href: '/notifications', roles: ['admin'] },
 
     // --- EXPERT ROUTES ---

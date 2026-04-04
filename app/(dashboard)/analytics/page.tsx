@@ -8,6 +8,7 @@ import {
   DollarSign, Heart, BarChart3, RefreshCw,
   ArrowUpRight, ArrowDownRight, Minus,
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils/currency';
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from '@/components/ui/card';
@@ -32,15 +33,8 @@ const PIE_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'];
 
 function useFormatters() {
   const locale = useLocale();
-
-  const currency = useMemo(() => new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: locale === 'vi' ? 'VND' : 'USD',
-  }), [locale]);
-
   const number = useMemo(() => new Intl.NumberFormat(locale), [locale]);
-
-  return { currency, number };
+  return { number };
 }
 
 /* ================= COMPONENTS ================= */
@@ -103,7 +97,8 @@ export default function AnalyticsPage() {
   const t = useTranslations('Analytics');
   const [mounted, setMounted] = useState(false);
   const { theme } = useTheme();
-  const { currency, number } = useFormatters();
+  const { number } = useFormatters();
+  const locale = useLocale();
 
   const { stats, isLoading: statsLoading, refetch } = useDashboardStats();
   const { data: userGrowth, isLoading: growthLoading } = useUserGrowthData();
@@ -173,7 +168,7 @@ export default function AnalyticsPage() {
         <KpiCard
           title={t('kpi.totalRevenue')}
           value={stats?.totalRevenue
-            ? currency.format(stats.totalRevenue / 100)
+            ? formatCurrency(stats.totalRevenue, locale)
             : t('common.zeroCurrency')}
           subtext={t('kpi.revenueSubtext')}
           icon={DollarSign}

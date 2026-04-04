@@ -14,6 +14,7 @@ import {
   Search,
   Video,
   XCircle,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import {
@@ -25,6 +26,8 @@ import {
   useUpdateAppointmentStatus,
   type AppointmentWithRelations,
 } from '@/hooks/use-appointments';
+import { ExportTransactionsDialog } from '@/components/dashboard/export-transactions-dialog';
+import { formatCurrency } from '@/lib/utils/currency';
 import { useExperts } from '@/hooks/use-experts';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -126,13 +129,6 @@ function formatDateTime(value: string, locale: any): string {
   }
 }
 
-function formatPrice(price: number | null, locale: string): string {
-  if (price === null) return 'N/A';
-  if (locale === 'vi') {
-    return `${price.toLocaleString('vi-VN')} ₫`;
-  }
-  return `$${price.toLocaleString('en-US')}`;
-}
 
 function getInitials(name: string | null | undefined, fallback = 'U'): string {
   if (!name) return fallback;
@@ -416,6 +412,7 @@ export default function AppointmentsPage() {
   const [expertFilter, setExpertFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [exportOpen, setExportOpen] = useState(false);
 
   const debouncedSearch = useDebounce(search);
 
@@ -451,7 +448,7 @@ export default function AppointmentsPage() {
     const keyword = debouncedSearch.trim().toLowerCase();
     if (!keyword) return appointments;
 
-    return appointments.filter((appointment) => {
+    return appointments.filter((appointment: AppointmentWithRelations) => {
       const userName = appointment.user?.full_name?.toLowerCase() || '';
       const userEmail = appointment.user?.email?.toLowerCase() || '';
       const expertName = appointment.expertUser?.full_name?.toLowerCase() || '';
@@ -543,7 +540,7 @@ export default function AppointmentsPage() {
           <Badge variant={getPaymentVariant(appointment.payment_status)}>
             {t(`paymentStatus.${appointment.payment_status.toLowerCase()}` as any)}
           </Badge>
-          <p className="text-xs text-muted-foreground">{formatPrice(appointment.expert_base_price, locale)}</p>
+          <p className="text-xs text-muted-foreground">{formatCurrency(appointment.expert_base_price || 0, locale)}</p>
         </div>
       ),
     },
@@ -590,9 +587,20 @@ export default function AppointmentsPage() {
           <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
           <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          {isFetching ? t('refreshing') : t('refresh')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setExportOpen(true)}
+            disabled={filteredAppointments.length === 0}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {t('export.button')}
+          </Button>
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            {isFetching ? t('refreshing') : t('refresh')}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
@@ -705,6 +713,14 @@ export default function AppointmentsPage() {
           })}
         </p>
       )}
+
+      <ExportTransactionsDialog 
+        isOpen={exportOpen}
+        onOpenChange={setExportOpen}
+        data={filteredAppointments}
+        overrideTitle={t('export.title')}
+        overrideDescription={t('export.description')}
+      />
     </div>
   );
 }

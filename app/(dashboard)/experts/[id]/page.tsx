@@ -25,6 +25,8 @@ import {
   Clock,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale } from 'next-intl';
+import { formatCurrency } from '@/lib/utils/currency';
 
 function getInitials(name: string): string {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -68,6 +70,7 @@ function DetailSkeleton() {
 export default function ExpertDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const locale = useLocale();
   const expertId = params.id as string;
 
   const { data: expert, isLoading, error } = useExpert(expertId);
@@ -193,7 +196,7 @@ export default function ExpertDetailPage() {
         <StatCard
           icon={DollarSign}
           label="Earnings"
-          value={new Intl.NumberFormat('vi-VN').format(expert.stats.totalEarnings) + '₫'}
+          value={formatCurrency(expert.stats.totalEarnings, locale)}
         />
         <StatCard
           icon={Star}
@@ -224,7 +227,7 @@ export default function ExpertDetailPage() {
                 <p className="text-xs text-muted-foreground font-medium mb-1">Hourly Rate</p>
                 <p className="text-sm">
                   {expert.hourly_rate
-                    ? new Intl.NumberFormat('vi-VN').format(expert.hourly_rate) + '₫'
+                    ? formatCurrency(expert.hourly_rate, locale)
                     : '—'}
                 </p>
               </div>
