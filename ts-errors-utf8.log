@@ -1,0 +1,5 @@
+﻿__tests__/scheduling.test.ts(39,70): error TS2345: Argument of type '{ p_expert_id: string; p_date: string; p_timezone: string; }' is not assignable to parameter of type 'undefined'.
+__tests__/scheduling.test.ts(65,70): error TS2345: Argument of type '{ p_expert_id: string; p_date: string; p_timezone: string; }' is not assignable to parameter of type 'undefined'.
+__tests__/scheduling.test.ts(88,70): error TS2345: Argument of type '{ p_expert_id: string; p_date: string; }' is not assignable to parameter of type 'undefined'.
+__tests__/scheduling.test.ts(106,68): error TS2345: Argument of type '{ p_start_time: string; p_end_time: string; }' is not assignable to parameter of type 'undefined'.
+__tests__/scheduling.test.ts(122,68): error TS2345: Argument of type '{ p_start_time: string; p_end_time: string; }' is not assignable to parameter of type 'undefined'.

@@ -399,10 +399,10 @@ export function DataTable<T extends Record<string, any>>({
 
   // Paginate data
   const totalPages = Math.ceil(filteredData.length / pageSize);
-  const paginatedData = useMemo(() => {
+  const paginatedData = (() => {
     const start = (currentPage - 1) * pageSize;
     return filteredData.slice(start, start + pageSize);
-  }, [filteredData, currentPage, pageSize]);
+  })();
 
   // Update selected rows when data changes
   const selectedData = useMemo(() => {

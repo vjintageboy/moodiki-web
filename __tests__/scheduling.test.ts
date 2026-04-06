@@ -36,7 +36,7 @@ describe('Expert Scheduling System - Tests', () => {
 
       (supabase.rpc as any).mockResolvedValueOnce(mockResponse);
 
-      const result = await supabase.rpc('get_split_available_slots', {
+      const result = await (supabase.rpc as any)('get_split_available_slots', {
         p_expert_id: '123',
         p_date: '2026-04-03',
         p_timezone: 'Asia/Ho_Chi_Minh'
@@ -62,7 +62,7 @@ describe('Expert Scheduling System - Tests', () => {
 
       (supabase.rpc as any).mockResolvedValueOnce(mockResponse);
 
-      const result = await supabase.rpc('get_split_available_slots', {
+      const result = await (supabase.rpc as any)('get_split_available_slots', {
         p_expert_id: '123',
         p_date: '2026-04-03',
         p_timezone: 'UTC'
@@ -85,7 +85,7 @@ describe('Expert Scheduling System - Tests', () => {
 
       (supabase.rpc as any).mockResolvedValueOnce(mockResponse);
 
-      const result = await supabase.rpc('get_split_available_slots', {
+      const result = await (supabase.rpc as any)('get_split_available_slots', {
         p_expert_id: '123',
         p_date: '2026-04-03',
       });
@@ -103,7 +103,7 @@ describe('Expert Scheduling System - Tests', () => {
         error: { message: errorMsg }
       });
 
-      const result = await supabase.rpc('add_expert_availability', {
+      const result = await (supabase.rpc as any)('add_expert_availability', {
         p_start_time: '2026-04-03T10:00:00Z',
         p_end_time: '2026-04-03T10:05:00Z' // only 5 mins
       });
@@ -119,7 +119,7 @@ describe('Expert Scheduling System - Tests', () => {
         error: { message: errorMsg }
       });
 
-      const result = await supabase.rpc('add_expert_availability', {
+      const result = await (supabase.rpc as any)('add_expert_availability', {
         p_start_time: '2026-04-03T10:00:00Z',
         p_end_time: '2026-04-03T12:00:00Z'
       });

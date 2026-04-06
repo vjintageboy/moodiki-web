@@ -15,6 +15,8 @@ import {
   Video,
   XCircle,
   Download,
+  CalendarDays,
+  List,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import {
@@ -27,9 +29,11 @@ import {
   type AppointmentWithRelations,
 } from '@/hooks/use-appointments';
 import { ExportTransactionsDialog } from '@/components/dashboard/export-transactions-dialog';
+import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/currency';
 import { useExperts } from '@/hooks/use-experts';
 import { DataTable, type Column } from '@/components/ui/data-table';
+import { WeeklyCalendar } from '@/components/dashboard/weekly-calendar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -413,6 +417,7 @@ export default function AppointmentsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [exportOpen, setExportOpen] = useState(false);
+  const [preferredView, setPreferredView] = useState<'calendar' | 'list' | null>(null);
 
   const debouncedSearch = useDebounce(search);
 
@@ -587,7 +592,33 @@ export default function AppointmentsPage() {
           <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
           <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center bg-muted p-1 rounded-md border text-sm mr-2 shadow-sm">
+            <button
+              onClick={() => setPreferredView('calendar')}
+              className={cn(
+                "px-3 py-1.5 flex items-center gap-2 rounded-sm font-medium transition-colors",
+                (preferredView || (isAdmin ? 'list' : 'calendar')) === 'calendar' 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <CalendarDays className="h-4 w-4" />
+              Calendar
+            </button>
+            <button
+              onClick={() => setPreferredView('list')}
+              className={cn(
+                "px-3 py-1.5 flex items-center gap-2 rounded-sm font-medium transition-colors",
+                (preferredView || (isAdmin ? 'list' : 'calendar')) === 'list' 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <List className="h-4 w-4" />
+              List
+            </button>
+          </div>
           <Button 
             variant="outline" 
             onClick={() => setExportOpen(true)}
@@ -687,24 +718,37 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      <DataTable
-        data={filteredAppointments}
-        columns={columns}
-        isLoading={isLoading}
-        emptyMessage={
-          search || statusFilter !== 'all' || paymentFilter !== 'all' || expertFilter !== 'all' || dateFrom || dateTo
-            ? t('empty.noResults')
-            : t('empty.noAppointments')
-        }
-        actions={(appointment) => (
-          <AppointmentActionsMenu
-            appointment={appointment}
-            currentUserId={currentUser.id}
-            currentUserRole={isAdmin ? 'admin' : 'expert'}
-          />
-        )}
-        initialPageSize={20}
-      />
+      {(preferredView || (isAdmin ? 'list' : 'calendar')) === 'list' ? (
+        <DataTable
+          data={filteredAppointments}
+          columns={columns}
+          isLoading={isLoading}
+          emptyMessage={
+            search || statusFilter !== 'all' || paymentFilter !== 'all' || expertFilter !== 'all' || dateFrom || dateTo
+              ? t('empty.noResults')
+              : t('empty.noAppointments')
+          }
+          actions={(appointment) => (
+            <AppointmentActionsMenu
+              appointment={appointment}
+              currentUserId={currentUser.id}
+              currentUserRole="admin"
+            />
+          )}
+          initialPageSize={20}
+        />
+      ) : (
+        <WeeklyCalendar
+          data={filteredAppointments}
+          actions={(appointment) => (
+            <AppointmentActionsMenu
+              appointment={appointment}
+              currentUserId={currentUser.id}
+              currentUserRole="expert"
+            />
+          )}
+        />
+      )}
 
       {!isLoading && (
         <p className="text-sm text-muted-foreground">

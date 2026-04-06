@@ -79,7 +79,7 @@ const RichTextEditor = React.forwardRef<HTMLTextAreaElement, RichTextEditorProps
     const handleLink = () => insertMarkdown("[", "](url)")
 
     const parseMarkdown = (markdown: string): string => {
-      let html = markdown
+      const html = markdown
         // Escape HTML
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")

@@ -37,7 +37,7 @@ function extractPageTitle(
   segmentLabelMap: Record<string, string>,
 ): string {
   // Remove leading/trailing slashes
-  let path = pathname.replace(/^\/+|\/+$/g, '')
+  const path = pathname.replace(/^\/+|\/+$/g, '')
   
   if (!path || path === 'dashboard') {
     return dashboardLabel
