@@ -72,13 +72,30 @@ export function useNotifications() {
     },
   });
 
-  // Admin: Send notification
+  // Admin: Send notification (with broadcast support)
   const sendNotification = useMutation({
     mutationFn: async ({
-      userIds, title, message, type = 'system'
+      userIds, title, message, type = 'system', target = 'all'
     }: {
-      userIds: string[], title: string, message: string, type?: string
+      userIds: string[], title: string, message: string, type?: string, target?: string
     }) => {
+      // If targeting all, call the broadcast API
+      if (userIds[0] === '__ALL__') {
+        const response = await fetch('/api/notifications/broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, message, type, target }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to send broadcast');
+        }
+
+        return await response.json();
+      }
+
+      // Otherwise send to specific users
       const notifications = userIds.map(userId => ({
         user_id: userId,
         title,
@@ -86,11 +103,11 @@ export function useNotifications() {
         type,
         metadata: { sender: user?.id }
       }));
-      
+
       const { error } = await supabase
         .from('notifications')
         .insert(notifications);
-        
+
       if (error) throw error;
     },
   });

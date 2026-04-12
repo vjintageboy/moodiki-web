@@ -132,6 +132,30 @@ export function useDeleteMeditation() {
   });
 }
 
+// Reorder meditations (update display_order)
+export function useReorderMeditations() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      const updates = orderedIds.map((id, index) => ({
+        id,
+        display_order: index,
+      }));
+
+      const { error } = await supabase
+        .from('meditations')
+        .upsert(updates);
+
+      if (error) throw error;
+      return orderedIds;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meditations'] });
+    },
+  });
+}
+
 // Upload audio file to Supabase storage
 export async function uploadMeditationAudio(
   file: File,

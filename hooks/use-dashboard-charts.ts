@@ -163,7 +163,7 @@ export function useMoodTrendData() {
     queryKey: ['mood-trend'],
     queryFn: async () => {
       const supabase = createClient();
-      
+
       // Get last 30 days
       const endDate = new Date();
       const startDate = subDays(endDate, 29);
@@ -205,5 +205,196 @@ export function useMoodTrendData() {
       }));
     },
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+/**
+ * Fetch daily revenue for the last 30 days
+ */
+export function useRevenueData() {
+  return useQuery({
+    queryKey: ['daily-revenue'],
+    queryFn: async () => {
+      const supabase = createClient();
+
+      const endDate = new Date();
+      const startDate = subDays(endDate, 29);
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('amount, created_at')
+        .eq('status', 'completed')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      // Group by date
+      const dailyRevenue = new Map<string, number>();
+
+      eachDayOfInterval({ start: startDate, end: endDate }).forEach((date) => {
+        const dateKey = format(date, 'MMM d');
+        dailyRevenue.set(dateKey, 0);
+      });
+
+      if (data) {
+        data.forEach((tx) => {
+          const date = new Date(tx.created_at);
+          const dateKey = format(date, 'MMM d');
+          const current = dailyRevenue.get(dateKey) || 0;
+          dailyRevenue.set(dateKey, current + (tx.amount || 0));
+        });
+      }
+
+      return Array.from(dailyRevenue.entries()).map(([date, amount]) => ({
+        date,
+        amount: Math.round(amount),
+      }));
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+/**
+ * Fetch user retention data (cohort-style: new vs returning users by week)
+ */
+export function useUserRetention() {
+  return useQuery({
+    queryKey: ['user-retention'],
+    queryFn: async () => {
+      const supabase = createClient();
+
+      // Get last 8 weeks of user activity
+      const endDate = new Date();
+      const startDate = subDays(endDate, 56);
+
+      const { data, error } = await supabase
+        .from('mood_entries')
+        .select('user_id, created_at')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      // Group by week
+      const weeklyData = new Map<string, { newUsers: number; returningUsers: number }>();
+
+      // Get user signup dates to determine new vs returning
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, created_at')
+        .gte('created_at', startDate.toISOString());
+
+      const newUserIds = new Set(usersData?.map(u => u.id) || []);
+
+      // Initialize weeks
+      for (let i = 7; i >= 0; i--) {
+        const weekStart = subDays(endDate, i * 7);
+        const weekKey = format(weekStart, 'MMM d');
+        weeklyData.set(weekKey, { newUsers: 0, returningUsers: 0 });
+      }
+
+      // Count unique active users per week
+      const userFirstSeen = new Map<string, string>();
+
+      if (data) {
+        data.forEach((entry) => {
+          const date = new Date(entry.created_at);
+          const daysAgo = Math.floor((endDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+          const weekIndex = Math.floor(daysAgo / 7);
+          const weekStart = subDays(endDate, weekIndex * 7);
+          const weekKey = format(weekStart, 'MMM d');
+
+          const current = weeklyData.get(weekKey) || { newUsers: 0, returningUsers: 0 };
+
+          if (!userFirstSeen.has(entry.user_id)) {
+            userFirstSeen.set(entry.user_id, weekKey);
+            if (newUserIds.has(entry.user_id)) {
+              current.newUsers++;
+            } else {
+              current.returningUsers++;
+            }
+          } else {
+            current.returningUsers++;
+          }
+
+          weeklyData.set(weekKey, current);
+        });
+      }
+
+      return Array.from(weeklyData.entries())
+        .map(([week, counts]) => ({
+          week,
+          ...counts,
+        }))
+        .reverse();
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+/**
+ * Fetch expert performance data (top experts by appointments and revenue)
+ */
+export function useExpertPerformance() {
+  return useQuery({
+    queryKey: ['expert-performance'],
+    queryFn: async () => {
+      const supabase = createClient();
+
+      const { data: expertsData, error: expertsError } = await supabase
+        .from('experts')
+        .select(`
+          id,
+          user:users!experts_user_id_fkey(id, full_name, email),
+          specialization
+        `)
+        .eq('is_approved', true);
+
+      if (expertsError) throw expertsError;
+
+      if (!expertsData || expertsData.length === 0) return [];
+
+      const expertIds = expertsData.map(e => e.id);
+
+      // Get appointment counts per expert
+      const { data: appointmentsData } = await supabase
+        .from('appointments')
+        .select('expert_id, amount, status')
+        .in('expert_id', expertIds);
+
+      // Get ratings per expert
+      const { data: ratingsData } = await supabase
+        .from('appointments')
+        .select('expert_id, rating')
+        .in('expert_id', expertIds)
+        .not('rating', 'is', null);
+
+      const expertStats = expertsData.map(expert => {
+        const expertAppts = appointmentsData?.filter(a => a.expert_id === expert.id) || [];
+        const expertRatings = ratingsData?.filter(r => r.expert_id === expert.id) || [];
+        const completedAppts = expertAppts.filter(a => a.status === 'completed');
+        const totalRevenue = completedAppts.reduce((sum, a) => sum + (a.amount || 0), 0);
+        const avgRating = expertRatings.length > 0
+          ? expertRatings.reduce((sum, r) => sum + (r.rating || 0), 0) / expertRatings.length
+          : 0;
+
+        return {
+          id: expert.id,
+          name: (expert.user as any)?.full_name || (expert.user as any)?.email || 'Unknown',
+          specialization: expert.specialization || 'General',
+          totalAppointments: expertAppts.length,
+          completedAppointments: completedAppts.length,
+          revenue: totalRevenue,
+          avgRating: Math.round(avgRating * 10) / 10,
+          ratingCount: expertRatings.length,
+        };
+      });
+
+      return expertStats.sort((a, b) => b.revenue - a.revenue);
+    },
+    staleTime: 1000 * 60 * 10,
   });
 }

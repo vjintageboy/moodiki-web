@@ -359,6 +359,11 @@
     "noDescription": "No description",
     "minutesShort": "min",
     "edit": "Edit",
+    "reorder": "Reorder",
+    "cancelReorder": "Cancel",
+    "saveOrder": "Save Order",
+    "saving": "Saving...",
+    "reorderSaved": "Order saved successfully",
     "createDescription": "Add a new meditation audio with details",
     "fieldTitle": "Title",
     "fieldDescription": "Description",
@@ -427,12 +432,14 @@
       "tips": "Tips",
       "success_story": "Success Story",
       "question": "Question",
-      "discussion": "Discussion"
+      "discussion": "Discussion",
+      "meditation": "Meditation"
     },
     "actions": {
       "viewDetails": "View Details",
       "reAnalyze": "Re-analyze",
       "approveFlag": "Approve Flag",
+      "dismissReports": "Dismiss Reports",
       "unhide": "Unhide",
       "hide": "Hide",
       "delete": "Delete"
@@ -441,6 +448,7 @@
       "postDetails": "Post Details",
       "comments": "Comments ({count})",
       "noComments": "No comments yet",
+      "replyingTo": "Replying to {name}",
       "deletePostTitle": "Delete Post",
       "deletePostDesc": "Are you sure you want to delete this post? This action cannot be undone. All comments and likes will also be removed.",
       "deleteCommentTitle": "Delete Comment",
@@ -461,7 +469,8 @@
       "aiFlagged": "AI Flagged",
       "aiPassed": "AI Passed",
       "flagCleared": "Flag Cleared",
-      "flagClearedDesc": "The post has been marked as safe."
+      "flagClearedDesc": "The post has been marked as safe.",
+      "reportsDismissed": "Reports dismissed successfully"
     }
   },
   "Analytics": {
@@ -493,7 +502,29 @@
         "desc": "New user registrations over time"
       },
       "usersCount": "{value} users",
-      "newUsers": "New Users"
+      "newUsers": "New Users",
+      "revenue": {
+        "title": "Revenue Trend",
+        "desc": "Daily revenue from completed transactions over the last 30 days",
+        "amount": "Revenue"
+      },
+      "retention": {
+        "title": "User Retention",
+        "desc": "New vs returning active users over the last 8 weeks",
+        "newUsers": "New Users",
+        "returningUsers": "Returning Users"
+      },
+      "expertPerf": {
+        "title": "Expert Performance",
+        "desc": "Top experts by revenue and appointment completion",
+        "name": "Expert",
+        "specialization": "Specialization",
+        "appointments": "Appointments",
+        "completed": "Completed",
+        "revenue": "Revenue",
+        "rating": "Rating",
+        "noData": "No expert performance data available"
+      }
     },
     "empty": {
       "noSpecialization": "No specialization data available"
@@ -563,17 +594,24 @@
       "fullName": "Full Name",
       "email": "Email",
       "role": "Role",
+      "status": "Status",
       "streak": "Streak",
       "max": "Max",
       "lastLogin": "Last Login",
       "createdAt": "Created At",
       "never": "Never"
     },
+    "status": {
+      "active": "Active",
+      "locked": "Locked"
+    },
     "actions": {
       "label": "Actions",
       "viewDetails": "View Details",
       "changeRole": "Change Role",
-      "deleteUser": "Delete User"
+      "deleteUser": "Delete User",
+      "lockUser": "Lock User",
+      "unlockUser": "Unlock User"
     },
     "dialogs": {
       "changeRoleTitle": "Change User Role",
@@ -584,6 +622,12 @@
       "deleteTitle": "Delete User",
       "deleteDesc": "Are you sure you want to delete {name}? This action cannot be undone.",
       "deleting": "Deleting...",
+      "lockTitle": "Lock User",
+      "lockDesc": "Are you sure you want to lock {name}? They will no longer be able to log in.",
+      "locking": "Locking...",
+      "unlockTitle": "Unlock User",
+      "unlockDesc": "Unlock {name}? They will be able to log in again.",
+      "unlocking": "Unlocking...",
       "cancel": "Cancel"
     },
     "empty": {
@@ -634,11 +678,22 @@
       "customer": "Customer",
       "expert": "Expert",
       "amount": "Amount",
-      "status": "Status"
+      "status": "Status",
+      "actions": "Actions"
     },
     "status": {
       "paid": "Paid",
       "refunded": "Refunded"
+    },
+    "actions": {
+      "refund": "Refund"
+    },
+    "refund": {
+      "confirmTitle": "Process Refund",
+      "confirmDesc": "Are you sure you want to refund this transaction? This action will process the refund through the payment provider and update the record.",
+      "cancel": "Cancel",
+      "confirm": "Confirm Refund",
+      "processing": "Processing..."
     },
     "noTransactions": "No transactions found.",
     "searchPlaceholder": "Search by transaction ID or name...",
@@ -686,6 +741,28 @@
       "alert": "Alert",
       "warning": "Warning",
       "info": "Info"
+    },
+    "broadcast": {
+      "button": "Broadcast",
+      "title": "Send Broadcast Notification",
+      "desc": "Send a notification to all or a specific group of users.",
+      "target": "Target Audience",
+      "allUsers": "All Users",
+      "onlyUsers": "Users Only",
+      "onlyExperts": "Experts Only",
+      "type": "Notification Type",
+      "types": {
+        "system": "System",
+        "alert": "Alert",
+        "info": "Info"
+      },
+      "titleLabel": "Title",
+      "titlePlaceholder": "Enter notification title",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Enter notification message",
+      "cancel": "Cancel",
+      "send": "Send Broadcast",
+      "sending": "Sending..."
     }
   },
   "Appointments": {

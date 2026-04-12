@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { format } from 'date-fns';
 import { Download, FileDown, X, Search, Receipt, Info, Loader2, Check, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import {
   Dialog,
   DialogContent,
@@ -111,26 +110,43 @@ export function ExportTransactionsDialog({
       const headers = activeColumns.map(col => col.label);
       const rows = data.map(tx => activeColumns.map(col => col.accessor(tx)));
 
-      if (formatType === 'csv') {
-        const csvContent = [
-          headers.join(','),
-          ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-        ].join('\n');
+      const filename = `moodiki_transactions_${format(new Date(), 'yyyyMMdd_HHmm')}`;
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.body.appendChild(document.createElement('a'));
+      if (formatType === 'csv') {
+        // Escape cell: wrap in quotes, escape internal double-quotes
+        const escapeCell = (val: unknown) => {
+          const str = String(val ?? '');
+          return `"${str.replace(/"/g, '""')}"`;
+        };
+
+        const csvRows = [
+          headers.map(escapeCell).join(','),
+          ...rows.map(row => row.map(escapeCell).join(','))
+        ].join('\r\n');
+
+        // Add UTF-8 BOM so Excel opens it correctly
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvRows], { type: 'text/csv;charset=utf-8;' });
+
         const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = `moodiki_transactions_${format(new Date(), 'yyyyMMdd_HHmm')}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-        document.body.removeChild(link);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${filename}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 300);
       } else {
+        // Lazy load xlsx only when needed
+        const XLSX = await import('xlsx');
         const worksheetData = [headers, ...rows];
         const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
-        XLSX.writeFile(workbook, `moodiki_transactions_${format(new Date(), 'yyyyMMdd_HHmm')}.xlsx`);
+        XLSX.writeFile(workbook, `${filename}.xlsx`);
       }
 
       onOpenChange(false);

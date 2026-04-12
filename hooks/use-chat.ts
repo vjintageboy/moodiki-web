@@ -22,6 +22,35 @@ export interface MessageWithSender extends Message {
   sender: Pick<User, 'id' | 'full_name' | 'email' | 'avatar_url' | 'role'>;
 }
 
+/**
+ * Fetch messages for a specific chat room (Admin view).
+ * Standalone hook to avoid Rules of Hooks violations.
+ */
+export function useChatAdminMessages(roomId: string | null) {
+  const { isAdmin } = useAuth();
+  const supabase = createClient();
+
+  return useQuery({
+    queryKey: ['chat-messages', roomId],
+    queryFn: async () => {
+      if (!roomId) return [];
+
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:users(id, full_name, email, avatar_url, role)
+        `)
+        .eq('room_id', roomId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data as unknown as MessageWithSender[];
+    },
+    enabled: !!roomId && !!isAdmin,
+  });
+}
+
 export function useChatAdmin() {
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
@@ -45,31 +74,8 @@ export function useChatAdmin() {
       if (error) throw error;
       return data as unknown as ChatRoomWithDetails[];
     },
-    enabled: !!isAdmin, // Only admins can fetch all rooms
+    enabled: !!isAdmin,
   });
-
-  // 2. Fetch messages for a specific room
-  const useMessages = (roomId: string | null) => {
-    return useQuery({
-      queryKey: ['chat-messages', roomId],
-      queryFn: async () => {
-        if (!roomId) return [];
-        
-        const { data, error } = await supabase
-          .from('messages')
-          .select(`
-            *,
-            sender:users(id, full_name, email, avatar_url, role)
-          `)
-          .eq('room_id', roomId)
-          .order('created_at', { ascending: true });
-
-        if (error) throw error;
-        return data as unknown as MessageWithSender[];
-      },
-      enabled: !!roomId && !!isAdmin,
-    });
-  };
 
   // 3. Update room status (archive/close/active)
   const updateRoomStatus = useMutation({
@@ -90,7 +96,6 @@ export function useChatAdmin() {
     isLoadingRooms: chatRoomsQuery.isLoading,
     errorRooms: chatRoomsQuery.error,
     refetchRooms: chatRoomsQuery.refetch,
-    useMessages,
     updateRoomStatus,
   };
 }

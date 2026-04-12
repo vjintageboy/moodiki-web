@@ -359,6 +359,11 @@
     "noDescription": "Không có mô tả",
     "minutesShort": "phút",
     "edit": "Sửa",
+    "reorder": "Sắp xếp",
+    "cancelReorder": "Hủy",
+    "saveOrder": "Lưu thứ tự",
+    "saving": "Đang lưu...",
+    "reorderSaved": "Đã lưu thứ tự thành công",
     "createDescription": "Thêm bài thiền mới với đầy đủ chi tiết",
     "fieldTitle": "Tiêu đề",
     "fieldDescription": "Mô tả",
@@ -427,12 +432,14 @@
       "tips": "Mẹo nhỏ",
       "success_story": "Câu chuyện thành công",
       "question": "Câu hỏi",
-      "discussion": "Thảo luận"
+      "discussion": "Thảo luận",
+      "meditation": "Thiền"
     },
     "actions": {
       "viewDetails": "Xem chi tiết",
       "reAnalyze": "Phân tích lại",
       "approveFlag": "Xác nhận cờ",
+      "dismissReports": "Bỏ báo cáo",
       "unhide": "Hiện bài",
       "hide": "Ẩn bài",
       "delete": "Xóa"
@@ -441,6 +448,7 @@
       "postDetails": "Chi tiết bài viết",
       "comments": "Bình luận ({count})",
       "noComments": "Chưa có bình luận nào",
+      "replyingTo": "Trả lời {name}",
       "deletePostTitle": "Xóa bài viết",
       "deletePostDesc": "Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác. Tất cả bình luận và lượt thích cũng sẽ bị xóa.",
       "deleteCommentTitle": "Xóa bình luận",
@@ -461,7 +469,8 @@
       "aiFlagged": "AI đã gắn cờ",
       "aiPassed": "AI đã duyệt",
       "flagCleared": "Đã gỡ cờ",
-      "flagClearedDesc": "Bài viết đã được đánh dấu là an toàn."
+      "flagClearedDesc": "Bài viết đã được đánh dấu là an toàn.",
+      "reportsDismissed": "Đã bỏ qua báo cáo thành công"
     }
   },
   "Analytics": {
@@ -493,7 +502,29 @@
         "desc": "Đăng ký mới theo thời gian"
       },
       "usersCount": "{value} người dùng",
-      "newUsers": "Người dùng mới"
+      "newUsers": "Người dùng mới",
+      "revenue": {
+        "title": "Doanh thu",
+        "desc": "Doanh thu hàng ngày từ giao dịch hoàn tất trong 30 ngày qua",
+        "amount": "Doanh thu"
+      },
+      "retention": {
+        "title": "Giữ chân người dùng",
+        "desc": "Người dùng mới và quay lại trong 8 tuần qua",
+        "newUsers": "Người dùng mới",
+        "returningUsers": "Người dùng quay lại"
+      },
+      "expertPerf": {
+        "title": "Hiệu suất chuyên gia",
+        "desc": "Chuyên gia hàng đầu theo doanh thu và cuộc hẹn hoàn thành",
+        "name": "Chuyên gia",
+        "specialization": "Chuyên môn",
+        "appointments": "Cuộc hẹn",
+        "completed": "Hoàn thành",
+        "revenue": "Doanh thu",
+        "rating": "Đánh giá",
+        "noData": "Không có dữ liệu hiệu suất chuyên gia"
+      }
     },
     "empty": {
       "noSpecialization": "Không có dữ liệu chuyên môn"
@@ -563,17 +594,24 @@
       "fullName": "Họ và tên",
       "email": "Email",
       "role": "Vai trò",
+      "status": "Trạng thái",
       "streak": "Chuỗi",
       "max": "Tối đa",
       "lastLogin": "Lần cuối đăng nhập",
       "createdAt": "Ngày tạo",
       "never": "Chưa bao giờ"
     },
+    "status": {
+      "active": "Hoạt động",
+      "locked": "Đã khóa"
+    },
     "actions": {
       "label": "Hành động",
       "viewDetails": "Xem chi tiết",
       "changeRole": "Đổi vai trò",
-      "deleteUser": "Xóa người dùng"
+      "deleteUser": "Xóa người dùng",
+      "lockUser": "Khóa người dùng",
+      "unlockUser": "Mở khóa người dùng"
     },
     "dialogs": {
       "changeRoleTitle": "Đổi vai trò người dùng",
@@ -584,6 +622,12 @@
       "deleteTitle": "Xóa người dùng",
       "deleteDesc": "Bạn có chắc chắn muốn xóa {name}? Hành động này không thể hoàn tác.",
       "deleting": "Đang xóa...",
+      "lockTitle": "Khóa người dùng",
+      "lockDesc": "Bạn có chắc chắn muốn khóa {name}? Họ sẽ không thể đăng nhập nữa.",
+      "locking": "Đang khóa...",
+      "unlockTitle": "Mở khóa người dùng",
+      "unlockDesc": "Mở khóa {name}? Họ sẽ có thể đăng nhập lại.",
+      "unlocking": "Đang mở khóa...",
       "cancel": "Hủy"
     },
     "empty": {
@@ -634,11 +678,22 @@
       "customer": "Khách hàng",
       "expert": "Chuyên gia",
       "amount": "Số tiền",
-      "status": "Trạng thái"
+      "status": "Trạng thái",
+      "actions": "Hành động"
     },
     "status": {
       "paid": "Đã thanh toán",
       "refunded": "Đã hoàn tiền"
+    },
+    "actions": {
+      "refund": "Hoàn tiền"
+    },
+    "refund": {
+      "confirmTitle": "Xác nhận hoàn tiền",
+      "confirmDesc": "Bạn có chắc chắn muốn hoàn tiền giao dịch này? Hành động sẽ xử lý hoàn tiền qua nhà cung cấp thanh toán và cập nhật bản ghi.",
+      "cancel": "Hủy",
+      "confirm": "Xác nhận hoàn tiền",
+      "processing": "Đang xử lý..."
     },
     "noTransactions": "Không tìm thấy giao dịch nào.",
     "searchPlaceholder": "Tìm theo mã giao dịch hoặc tên...",
@@ -686,6 +741,28 @@
       "alert": "Cảnh báo",
       "warning": "Cảnh báo",
       "info": "Thông tin"
+    },
+    "broadcast": {
+      "button": "Thông báo",
+      "title": "Gửi thông báo hàng loạt",
+      "desc": "Gửi thông báo đến tất cả hoặc một nhóm người dùng cụ thể.",
+      "target": "Nhóm mục tiêu",
+      "allUsers": "Tất cả người dùng",
+      "onlyUsers": "Chỉ người dùng",
+      "onlyExperts": "Chỉ chuyên gia",
+      "type": "Loại thông báo",
+      "types": {
+        "system": "Hệ thống",
+        "alert": "Cảnh báo",
+        "info": "Thông tin"
+      },
+      "titleLabel": "Tiêu đề",
+      "titlePlaceholder": "Nhập tiêu đề thông báo",
+      "messageLabel": "Nội dung",
+      "messagePlaceholder": "Nhập nội dung thông báo",
+      "cancel": "Hủy",
+      "send": "Gửi thông báo",
+      "sending": "Đang gửi..."
     }
   },
   "Appointments": {

@@ -77,27 +77,43 @@ export function usePostReportCount(postId: string | null) {
 }
 
 /**
- * Fetch all posts that have been reported
+ * Fetch all posts that have been reported with report details
  */
 export function useReportedPosts() {
   return useQuery({
     queryKey: ['reported-posts'],
     queryFn: async () => {
       const supabase = createClient();
-      
-      // Get all reports, returning the associated posts
+
+      // Get all reports with reasons
       const { data: reportsData, error: reportsError } = await supabase
         .from('reports')
-        .select('post_id');
+        .select(`
+          post_id,
+          reason,
+          created_at,
+          user_id
+        `)
+        .order('created_at', { ascending: false });
 
       if (reportsError) {
         throw new Error(reportsError.message);
       }
-      
+
       if (!reportsData || reportsData.length === 0) return [];
-      
-      const reportedPostIds = [...new Set(reportsData.map(r => r.post_id))];
-      
+
+      // Group reports by post_id
+      const reportsByPost: Record<string, { count: number; reasons: string[] }> = {};
+      reportsData.forEach(r => {
+        if (!reportsByPost[r.post_id]) {
+          reportsByPost[r.post_id] = { count: 0, reasons: [] };
+        }
+        reportsByPost[r.post_id].count++;
+        if (r.reason) reportsByPost[r.post_id].reasons.push(r.reason);
+      });
+
+      const reportedPostIds = Object.keys(reportsByPost);
+
       const { data: posts, error: postsError } = await supabase
         .from('posts')
         .select(`
@@ -111,11 +127,40 @@ export function useReportedPosts() {
         `)
         .in('id', reportedPostIds)
         .order('created_at', { ascending: false });
-        
+
       if (postsError) throw postsError;
-      
-      return posts as any[];
+
+      // Attach report counts to posts
+      return (posts as any[]).map(post => ({
+        ...post,
+        reportCount: reportsByPost[post.id]?.count || 0,
+        reportReasons: reportsByPost[post.id]?.reasons || [],
+      }));
     },
     staleTime: 1000 * 60 * 2,
+  });
+}
+
+/**
+ * Dismiss reports for a post (marks as reviewed)
+ */
+export function useDismissReports() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('reports')
+        .delete()
+        .eq('post_id', postId);
+
+      if (error) throw new Error(error.message || 'Failed to dismiss reports');
+      return postId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reported-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
   });
 }
