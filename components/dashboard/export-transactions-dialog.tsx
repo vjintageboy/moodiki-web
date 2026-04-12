@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { format } from 'date-fns';
 import { Download, FileDown, X, Search, Receipt, Info, Loader2, Check, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -108,15 +109,22 @@ export function ExportTransactionsDialog({
     try {
       const activeColumns = allColumns.filter(col => selectedColumns.has(col.id));
       const headers = activeColumns.map(col => col.label);
-      const rows = data.map(tx => activeColumns.map(col => col.accessor(tx)));
+      const rows = data.map(tx => activeColumns.map(col => {
+        const val = col.accessor(tx);
+        // Ensure all values are strings or numbers (no objects)
+        return typeof val === 'object' ? String(val) : val;
+      }));
 
       const filename = `moodiki_transactions_${format(new Date(), 'yyyyMMdd_HHmm')}`;
 
       if (formatType === 'csv') {
-        // Escape cell: wrap in quotes, escape internal double-quotes
+        // Escape cell: wrap in quotes when necessary
         const escapeCell = (val: unknown) => {
           const str = String(val ?? '');
-          return `"${str.replace(/"/g, '""')}"`;
+          if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
         };
 
         const csvRows = [
@@ -124,24 +132,23 @@ export function ExportTransactionsDialog({
           ...rows.map(row => row.map(escapeCell).join(','))
         ].join('\r\n');
 
-        // Add UTF-8 BOM so Excel opens it correctly
+        // UTF-8 BOM so Excel opens correctly
         const BOM = '\uFEFF';
-        const blob = new Blob([BOM + csvRows], { type: 'text/csv;charset=utf-8;' });
+        const csvContent = BOM + csvRows;
 
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `${filename}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        }, 300);
+        // data URI is more reliable than blob URL — filename always respected
+        const dataUri = `data:text/csv;charset=utf-8,${encodeURIComponent(csvContent)}`;
+        const link = document.createElement('a');
+        link.href = dataUri;
+        link.setAttribute('download', `${filename}.csv`);
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       } else {
         // Lazy load xlsx only when needed
-        const XLSX = await import('xlsx');
+        const XLSXModule = await import('xlsx');
+        const XLSX = XLSXModule.default || XLSXModule;
         const worksheetData = [headers, ...rows];
         const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
         const workbook = XLSX.utils.book_new();
@@ -149,9 +156,11 @@ export function ExportTransactionsDialog({
         XLSX.writeFile(workbook, `${filename}.xlsx`);
       }
 
+      toast.success(t('export.downloadSuccess') || 'File downloaded successfully');
       onOpenChange(false);
     } catch (error) {
       console.error('Export failed:', error);
+      toast.error(t('export.downloadError') || 'Failed to download file. Please try again.');
     } finally {
       setIsExporting(false);
     }
