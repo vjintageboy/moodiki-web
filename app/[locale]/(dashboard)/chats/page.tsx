@@ -5,7 +5,7 @@ import { format, isToday, isYesterday } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
 import { useChatAdmin, useChatAdminMessages, useChatExpert, useChatRoom } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';

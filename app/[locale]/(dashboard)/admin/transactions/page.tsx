@@ -16,6 +16,7 @@ import {
   ArrowLeftCircle
 } from 'lucide-react'
 import { useAppointments } from '@/hooks/use-appointments'
+import { PaymentStatusType } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { 
@@ -51,6 +52,13 @@ function getInitials(name: string | null | undefined, fallback = 'U'): string {
     .slice(0, 2);
 }
 
+function maskEmail(email?: string | null): string {
+  if (!email) return '—';
+  const [local, domain] = email.split('@');
+  if (!domain) return email;
+  return `${local[0]}***@${domain}`;
+}
+
 export default function TransactionsPage() {
   const t = useTranslations('TransactionsPage')
   const locale = useLocale()
@@ -63,6 +71,7 @@ export default function TransactionsPage() {
   const [endDate, setEndDate] = React.useState<string>(
     format(new Date(), 'yyyy-MM-dd')
   )
+  const [statusFilter, setStatusFilter] = React.useState<'all' | PaymentStatusType>('paid')
   const [isExportOpen, setIsExportOpen] = React.useState(false)
   const [refundConfirmId, setRefundConfirmId] = React.useState<string | null>(null)
   const [isRefunding, setIsRefunding] = React.useState(false)
@@ -70,10 +79,10 @@ export default function TransactionsPage() {
   // Fetch paid appointments (transactions)
   // We use the same useAppointments hook but filtered for 'paid'
   const { appointments, isLoading, error, refetch, isFetching } = useAppointments({
-    paymentStatus: 'paid',
+    paymentStatus: statusFilter !== 'all' ? statusFilter as PaymentStatusType : undefined,
     dateFrom: startDate ? new Date(startDate).toISOString() : undefined,
     dateTo: endDate ? new Date(endDate).toISOString() : undefined,
-    pageSize: 1000, // Fetch all for local filtering/sorting in DataTable
+    pageSize: 1000,
   })
 
   const handleRefund = async (appointmentId: string) => {
@@ -144,7 +153,7 @@ export default function TransactionsPage() {
               {tx.user?.full_name || 'Anonymous'}
             </span>
             <span className="text-[10px] text-muted-foreground truncate">
-              {tx.user?.email}
+              {maskEmail(tx.user?.email)}
             </span>
           </div>
         </div>
@@ -319,25 +328,38 @@ export default function TransactionsPage() {
                 className="bg-transparent border-none outline-none text-sm font-medium w-[120px]"
               />
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => refetch()} 
-                disabled={isLoading || isFetching}
-                className="h-11 px-4 gap-2 border-muted-foreground/20"
-              >
-                {isLoading || isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                {locale === 'vi' ? 'Làm mới' : 'Refresh'}
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-11 px-4 gap-2 border-muted-foreground/20 hidden sm:flex"
-                onClick={() => setIsExportOpen(true)}
-              >
-                <Download className="h-4 w-4" /> Export
-              </Button>
-            </div>
+
+          {/* Status Filter + Actions */}
+          <div className="flex items-center gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as 'all' | PaymentStatusType)}
+              className="h-11 rounded-md border border-muted-foreground/20 bg-background px-3 text-sm shadow-sm focus:ring-2 focus:ring-primary focus:outline-none"
+            >
+              <option value="all">{locale === 'vi' ? 'Tất cả' : 'All'}</option>
+              <option value="paid">{t('status.paid')}</option>
+              <option value="refunded">{t('status.refunded')}</option>
+              <option value="pending">{t('status.pending')}</option>
+            </select>
+
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              disabled={isLoading || isFetching}
+              className="h-11 px-4 gap-2 border-muted-foreground/20"
+            >
+              {isLoading || isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              {locale === 'vi' ? 'Làm mới' : 'Refresh'}
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 px-4 gap-2 border-muted-foreground/20"
+              onClick={() => setIsExportOpen(true)}
+            >
+              <Download className="h-4 w-4" />
+              {t('export.button')}
+            </Button>
+          </div>
           </div>
         </CardContent>
       </Card>
@@ -353,10 +375,10 @@ export default function TransactionsPage() {
       />
       
       <div className="flex items-center justify-between text-[11px] text-muted-foreground/60 px-4 py-2 bg-muted/30 rounded-lg">
-        <p>SECURE TRANSACTION MONITORING SYSTEM • {new Date().getFullYear()}</p>
+        <p>{locale === 'vi' ? 'HỆ THỐNG GIÁM SÁT GIAO DỊCH BẢO MẬT' : 'SECURE TRANSACTION MONITORING SYSTEM'} • {new Date().getFullYear()}</p>
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1"><CreditCard className="h-3 w-3" /> Encrypted</span>
-          <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Verified</span>
+          <span className="flex items-center gap-1"><CreditCard className="h-3 w-3" /> {locale === 'vi' ? 'Mã hóa' : 'Encrypted'}</span>
+          <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> {locale === 'vi' ? 'Xác minh' : 'Verified'}</span>
         </div>
       </div>
 

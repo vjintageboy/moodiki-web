@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Filter, MessageSquare, Heart, Eye, EyeOff, Trash2, User, Calendar, ShieldAlert, AlertTriangle, Loader2, CornerDownRight } from 'lucide-react';
+import { Search, Filter, MessageSquare, Heart, Eye, EyeOff, Trash2, Calendar, ShieldAlert, AlertTriangle, Loader2, CornerDownRight } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

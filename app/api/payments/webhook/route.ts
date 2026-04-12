@@ -1,76 +1,148 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+const MOMO_SECRET_KEY = process.env.MOMO_SECRET_KEY || '';
+
+/**
+ * Verify MoMo IPN signature
+ * MoMo signs: accessKey + amount + extraData + message + orderId + orderInfo
+ *             + orderType + partnerCode + payType + requestId + responseTime
+ *             + resultCode + transId
+ */
+function verifyMomoSignature(body: Record<string, any>): boolean {
+  if (!MOMO_SECRET_KEY) {
+    // Dev mode: skip verification if no key configured
+    console.warn('[Webhook] MOMO_SECRET_KEY not set — skipping signature verification');
+    return true;
+  }
+
+  const {
+    accessKey, amount, extraData, message, orderId, orderInfo,
+    orderType, partnerCode, payType, requestId, responseTime,
+    resultCode, transId, signature,
+  } = body;
+
+  const rawHash = [
+    `accessKey=${accessKey}`,
+    `amount=${amount}`,
+    `extraData=${extraData}`,
+    `message=${message}`,
+    `orderId=${orderId}`,
+    `orderInfo=${orderInfo}`,
+    `orderType=${orderType}`,
+    `partnerCode=${partnerCode}`,
+    `payType=${payType}`,
+    `requestId=${requestId}`,
+    `responseTime=${responseTime}`,
+    `resultCode=${resultCode}`,
+    `transId=${transId}`,
+  ].join('&');
+
+  const expectedSignature = crypto
+    .createHmac('sha256', MOMO_SECRET_KEY)
+    .update(rawHash)
+    .digest('hex');
+
+  return expectedSignature === signature;
+}
 
 export async function POST(request: Request) {
   try {
-    // 1. Parse webhook payload
     const body = await request.json();
-    
-    // 2. In a real app, verify webhook signature here (e.g. Stripe signature)
-    // const sig = request.headers.get('stripe-signature');
-    // const event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
-    
-    // Mock extract event data
-    const eventType = body.type; // e.g. 'payment_intent.succeeded'
-    const eventData = body.data; 
+    console.log('[MoMo Webhook] Received:', JSON.stringify(body));
 
-    if (eventType !== 'payment_intent.succeeded') {
-      return NextResponse.json({ received: true });
+    // ── Verify signature ──────────────────────────────────────────────────
+    if (!verifyMomoSignature(body)) {
+      console.error('[MoMo Webhook] Invalid signature');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    const paymentId = eventData.paymentId; 
-    const transactionId = eventData.transactionId || `tx_${Math.random().toString(36).substring(2, 10)}`;
+    const { resultCode, orderId, transId, amount } = body;
 
-    if (!paymentId) {
-      return NextResponse.json({ error: 'Missing paymentId in webhook' }, { status: 400 });
+    // ── Only process successful payments (resultCode === 0) ───────────────
+    if (resultCode !== 0) {
+      console.log(`[MoMo Webhook] Payment failed for orderId=${orderId}, resultCode=${resultCode}`);
+      // Update appointment to reflect failed payment if needed
+      return NextResponse.json({ received: true, note: 'Payment not successful' });
     }
 
-    // 3. Update the appointment safely using the admin client (bypasses RLS logic from frontend)
-    const { data: updatedAppointment, error } = await supabaseAdmin
+    if (!orderId) {
+      return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
+    }
+
+    // ── Update appointment payment status ─────────────────────────────────
+    // orderId maps to appointments.payment_id (set during payment creation in mobile app)
+    const { data: updatedAppointment, error: updateError } = await supabaseAdmin
       .from('appointments')
-      .update({ 
+      .update({
         payment_status: 'paid',
-        payment_trans_id: transactionId,
-        updated_at: new Date().toISOString()
+        payment_trans_id: String(transId),
+        updated_at: new Date().toISOString(),
       })
-      .eq('payment_id', paymentId)
-      .eq('payment_status', 'unpaid') // Ensure idempotency! Only update if unpaid
-      .select()
+      .eq('payment_id', orderId)
+      .eq('payment_status', 'unpaid') // Idempotency: only update if still unpaid
+      .select('id, user_id, expert_id, appointment_date')
       .single();
 
-    if (error) {
-      console.error('Webhook DB Update Error:', error);
+    if (updateError) {
+      // Could be "already paid" — check
+      const { data: existing } = await supabaseAdmin
+        .from('appointments')
+        .select('payment_status')
+        .eq('payment_id', orderId)
+        .single();
+
+      if (existing?.payment_status === 'paid') {
+        console.log('[MoMo Webhook] Already processed, idempotent response');
+        return NextResponse.json({ received: true, note: 'Already processed' });
+      }
+
+      console.error('[MoMo Webhook] DB Update Error:', updateError);
       return NextResponse.json({ error: 'Failed to update database' }, { status: 500 });
     }
 
     if (!updatedAppointment) {
-      // It was either already paid or doesn't exist. Since we ensure idempotency, it's fine.
-      return NextResponse.json({ received: true, note: 'Already processed or not found' });
+      console.warn('[MoMo Webhook] No appointment found for orderId:', orderId);
+      return NextResponse.json({ received: true, note: 'Appointment not found' });
     }
 
-    // 4. (Optional) Create a notification for the expert and user
+    console.log('[MoMo Webhook] Payment confirmed for appointment:', updatedAppointment.id);
+
+    // ── Send notifications to user and expert ─────────────────────────────
+    const appointmentDate = updatedAppointment.appointment_date
+      ? new Date(updatedAppointment.appointment_date).toLocaleDateString('vi-VN', {
+          day: '2-digit', month: '2-digit', year: 'numeric'
+        })
+      : '';
+
     await supabaseAdmin.from('notifications').insert([
       {
         user_id: updatedAppointment.user_id,
-        title: 'Payment Successful',
-        message: 'Your appointment payment was successful.',
-        type: 'payment'
+        title: 'Thanh toán thành công',
+        message: `Lịch hẹn ngày ${appointmentDate} đã được thanh toán thành công. Chuyên gia sẽ liên hệ xác nhận sớm.`,
+        type: 'payment',
+        is_read: false,
+        metadata: { appointment_id: updatedAppointment.id, amount, trans_id: transId },
       },
       {
         user_id: updatedAppointment.expert_id,
-        title: 'New Appointment Paid',
-        message: 'A user has paid for an upcoming appointment.',
-        type: 'payment'
-      }
+        title: 'Lịch hẹn mới đã thanh toán',
+        message: `Một người dùng vừa thanh toán lịch hẹn ngày ${appointmentDate}. Vui lòng xác nhận lịch hẹn.`,
+        type: 'appointment',
+        is_read: false,
+        metadata: { appointment_id: updatedAppointment.id, amount, trans_id: transId },
+      },
     ]);
 
     return NextResponse.json({ success: true });
+
   } catch (err) {
-    console.error('Webhook error:', err);
+    console.error('[MoMo Webhook] Error:', err);
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }

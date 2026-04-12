@@ -5,7 +5,6 @@ import {
   ChevronUp,
   ChevronDown,
   Search,
-  Loader2,
   Package,
   ChevronLeft,
   ChevronRight,
@@ -21,7 +20,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 
@@ -283,7 +281,7 @@ export function DataTable<T extends Record<string, any>>({
   actions,
   emptyMessage,
   initialPageSize = 10,
-  onDataChange,
+  onDataChange: _onDataChange,
   className,
 }: DataTableProps<T>) {
   const t = useTranslations('Common');

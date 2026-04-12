@@ -16,6 +16,14 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+function maskEmail(email?: string | null): string {
+  if (!email) return '—';
+  const [local, domain] = email.split('@');
+  if (!domain) return email;
+  const masked = local.length > 1 ? `${local[0]}***` : `${local[0]}*`;
+  return `${masked}@${domain}`;
+}
+
 export function RecentUsers() {
   const t = useTranslations('DashboardHome')
   const locale = useLocale()
@@ -58,7 +66,7 @@ export function RecentUsers() {
             {/* User Info */}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user.full_name}</p>
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              <p className="text-xs text-muted-foreground truncate">{maskEmail(user.email)}</p>
             </div>
 
             {/* Registration Date */}

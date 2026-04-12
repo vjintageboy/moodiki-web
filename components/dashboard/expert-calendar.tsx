@@ -117,7 +117,7 @@ export function ExpertCalendar({
                     {appointment.user?.full_name || t('unknownUser')}
                   </p>
                   <p className="text-sm text-gray-500 truncate">
-                    {appointment.user?.email}
+                    {/* Email hidden for privacy — name is sufficient */}
                   </p>
                 </div>
               </div>

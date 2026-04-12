@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { requireAuth } from '@/lib/auth/server'
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard'
 import { ExpertDashboard } from '@/components/dashboard/expert-dashboard'

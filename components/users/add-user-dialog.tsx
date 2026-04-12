@@ -52,7 +52,7 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
         full_name: '',
         role: 'user',
       });
-    } catch (error) {
+    } catch {
       // Error handled by hook
     }
   };

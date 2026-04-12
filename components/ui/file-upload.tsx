@@ -3,7 +3,7 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Upload, FileIcon, Image as ImageIcon, Loader2, X } from "lucide-react"
+import { Upload, FileIcon, Loader2, X } from "lucide-react"
 
 interface FileUploadProps extends React.HTMLAttributes<HTMLDivElement> {
   accept?: string

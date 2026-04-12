@@ -99,6 +99,17 @@ function getRelativeTime(date: string, locale: string): string {
 }
 
 /**
+ * Mask email for privacy: a***@gmail.com
+ */
+function maskEmail(email?: string | null): string {
+  if (!email) return '—';
+  const [local, domain] = email.split('@');
+  if (!domain) return email;
+  const masked = local.length > 1 ? `${local[0]}***` : `${local[0]}*`;
+  return `${masked}@${domain}`;
+}
+
+/**
  * Get initials from name/email for avatar
  */
 function getInitials(user: User): string {
@@ -214,7 +225,10 @@ function DeleteConfirmDialog({
         <DialogHeader>
           <DialogTitle>{t('dialogs.deleteTitle')}</DialogTitle>
           <DialogDescription>
-            {t('dialogs.deleteDesc', { name: user?.full_name || user?.email || t('user') })}
+            {t('dialogs.deleteDesc', { 
+              name: user?.full_name || 
+                (user?.email ? `${user.email[0]}***@${user.email.split('@')[1]}` : t('user')) 
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -364,8 +378,8 @@ function UserActionsMenu({ user, isAdmin }: { user: User; isAdmin: boolean }) {
             </DialogTitle>
             <DialogDescription>
               {user.is_locked
-                ? t('dialogs.unlockDesc', { name: user.full_name || user.email || t('user') })
-                : t('dialogs.lockDesc', { name: user.full_name || user.email || t('user') })}
+                ? t('dialogs.unlockDesc', { name: user.full_name || `${user.email[0]}***@${user.email.split('@')[1]}` })
+                : t('dialogs.lockDesc', { name: user.full_name || `${user.email[0]}***@${user.email.split('@')[1]}` })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -435,6 +449,16 @@ export default function UsersPage() {
       width: '60px',
     },
     {
+      key: 'email',
+      header: t('table.email'),
+      render: (user) => (
+        <span className="text-sm font-mono text-muted-foreground truncate max-w-[150px] inline-block">
+          {user.email ? `${user.email[0]}***@${user.email.split('@')[1]}` : '—'}
+        </span>
+      ),
+      width: '180px',
+    },
+    {
       key: 'full_name',
       header: t('table.fullName'),
       sortable: true,
@@ -445,15 +469,11 @@ export default function UsersPage() {
           onClick={() => router.push(`/users/${user.id}`)}
         >
           <p className="font-medium">{user.full_name || 'N/A'}</p>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
+          <p className="text-sm text-muted-foreground">
+            {maskEmail(user.email)}
+          </p>
         </button>
       ),
-    },
-    {
-      key: 'email',
-      header: 'Email',
-      sortable: true,
-      render: (user) => <span className="text-sm">{user.email}</span>,
     },
     {
       key: 'role',

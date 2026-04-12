@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CardSkeleton } from './skeleton-loaders';
 import { Link } from '@/i18n/routing';
-import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 
 function getInitials(name?: string | null): string {

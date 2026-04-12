@@ -3,8 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import type { Report } from '@/lib/types';
-import type { PostWithAuthor } from './use-posts';
 
 /**
  * Report a post
@@ -65,14 +63,14 @@ export function usePostReportCount(postId: string | null) {
         .select('*', { count: 'exact', head: true })
         .eq('post_id', postId);
 
-      if (error) {
-        console.error('Error fetching report count:', error);
-        return 0;
-      }
+      // Return 0 gracefully if table doesn't exist or any error
+      if (error) return 0;
 
       return count || 0;
     },
     enabled: !!postId,
+    // Don't retry on error — table may not exist
+    retry: false,
   });
 }
 
@@ -96,8 +94,10 @@ export function useReportedPosts() {
         `)
         .order('created_at', { ascending: false });
 
+      // Return empty gracefully if table doesn't exist
       if (reportsError) {
-        throw new Error(reportsError.message);
+        console.warn('reports table may not exist:', reportsError.message);
+        return [];
       }
 
       if (!reportsData || reportsData.length === 0) return [];
@@ -138,6 +138,7 @@ export function useReportedPosts() {
       }));
     },
     staleTime: 1000 * 60 * 2,
+    retry: false,
   });
 }
 

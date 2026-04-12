@@ -104,7 +104,8 @@ const FormControl = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ ...props }, ref) => {
-  const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { error: _error, formItemId: _formItemId, formDescriptionId: _formDescriptionId, formMessageId: _formMessageId } = useFormField()
 
   return (
     <div

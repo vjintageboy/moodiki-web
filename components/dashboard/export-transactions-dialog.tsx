@@ -68,18 +68,24 @@ export function ExportTransactionsDialog({
   
   // Available columns
   const allColumns: ExportColumn[] = React.useMemo(() => [
-    { id: 'id', label: 'ID', accessor: (tx) => tx.id },
+    // Internal ID excluded from default — sensitive internal UUID
     { id: 'trans_id', label: t('table.id'), accessor: (tx) => tx.payment_trans_id || tx.payment_id || 'N/A' },
     { id: 'date', label: t('table.date'), accessor: (tx) => format(new Date(tx.appointment_date), 'yyyy-MM-dd HH:mm') },
     { id: 'customer_name', label: t('table.customer'), accessor: (tx) => tx.user?.full_name || 'Anonymous' },
-    { id: 'customer_email', label: 'Email', accessor: (tx) => tx.user?.email || '' },
+    // Email is masked for privacy compliance
+    { id: 'customer_email', label: 'Email', accessor: (tx) => {
+      const email = tx.user?.email || '';
+      if (!email) return '—';
+      const [local, domain] = email.split('@');
+      return domain ? `${local[0]}***@${domain}` : email;
+    }},
     { id: 'expert_name', label: t('table.expert'), accessor: (tx) => tx.expertUser?.full_name || 'N/A' },
     { id: 'amount', label: t('table.amount'), accessor: (tx) => {
       const amount = tx.expert_base_price || 0;
       return locale === 'vi' ? amount : amount / 100;
     }},
     { id: 'status', label: t('table.status'), accessor: (tx) => tx.payment_status || '' },
-  ], [t]);
+  ], [t, locale]);
 
   const [selectedColumns, setSelectedColumns] = React.useState<Set<string>>(
     new Set(allColumns.map(col => col.id))
@@ -153,6 +159,7 @@ export function ExportTransactionsDialog({
         const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
+        // writeFile handles download natively — most reliable method
         XLSX.writeFile(workbook, `${filename}.xlsx`);
       }
 

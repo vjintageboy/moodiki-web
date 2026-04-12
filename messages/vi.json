@@ -633,6 +633,29 @@
     "empty": {
       "noUsers": "Không tìm thấy người dùng nào",
       "noMatchingUsers": "Không tìm thấy người dùng khớp với bộ lọc"
+    },
+    "backToUsers": "Quay lại Người dùng",
+    "userNotFound": "Không tìm thấy người dùng này.",
+    "memberSince": "Thành viên từ",
+    "detail": {
+      "accountInfo": "Thông tin tài khoản",
+      "profileActivity": "Hồ sơ & Hoạt động",
+      "userId": "ID người dùng",
+      "email": "Email",
+      "fullName": "Họ và tên",
+      "joined": "Ngày tham gia",
+      "updated": "Cập nhật lần cuối",
+      "dob": "Ngày sinh",
+      "gender": "Giới tính",
+      "goals": "Mục tiêu",
+      "totalActivities": "Tổng hoạt động",
+      "moodEntries": "Nhật ký tâm trạng",
+      "appointments": "Lịch hẹn",
+      "posts": "Bài viết",
+      "currentStreak": "Chuỗi hiện tại",
+      "longestStreak": "Chuỗi dài nhất",
+      "best": "Tốt nhất",
+      "days": "ngày"
     }
   },
   "EarningsPage": {
@@ -669,49 +692,6 @@
       "description": "Tải xuống lịch sử giao dịch và doanh thu cá nhân của bạn để lưu trữ hoặc kê khai thuế."
     }
   },
-  "TransactionsPage": {
-    "title": "Lịch sử giao dịch",
-    "description": "Xem chi tiết tất cả các thanh toán từ người dùng cho chuyên gia.",
-    "table": {
-      "id": "Mã giao dịch",
-      "date": "Ngày",
-      "customer": "Khách hàng",
-      "expert": "Chuyên gia",
-      "amount": "Số tiền",
-      "status": "Trạng thái",
-      "actions": "Hành động"
-    },
-    "status": {
-      "paid": "Đã thanh toán",
-      "refunded": "Đã hoàn tiền"
-    },
-    "actions": {
-      "refund": "Hoàn tiền"
-    },
-    "refund": {
-      "confirmTitle": "Xác nhận hoàn tiền",
-      "confirmDesc": "Bạn có chắc chắn muốn hoàn tiền giao dịch này? Hành động sẽ xử lý hoàn tiền qua nhà cung cấp thanh toán và cập nhật bản ghi.",
-      "cancel": "Hủy",
-      "confirm": "Xác nhận hoàn tiền",
-      "processing": "Đang xử lý..."
-    },
-    "noTransactions": "Không tìm thấy giao dịch nào.",
-    "searchPlaceholder": "Tìm theo mã giao dịch hoặc tên...",
-    "export": {
-      "button": "Xuất dữ liệu",
-      "title": "Xuất lịch sử giao dịch",
-      "description": "Dưới đây là danh sách các giao dịch sẽ được xuất bản dựa trên bộ lọc hiện tại của bạn.",
-      "download": "Tải xuống CSV",
-      "preview": "Xem trước",
-      "noData": "Không có dữ liệu để xuất bản.",
-      "cancel": "Hủy",
-      "format": "Định dạng",
-      "selectColumns": "Chọn cột xuất bản",
-      "totalAmount": "Tổng doanh thu",
-      "exporting": "Đang xử lý...",
-      "allColumns": "Tất cả các cột"
-    }
-  },
   "GlobalSearch": {
     "placeholder": "Tìm người dùng, chuyên gia...",
     "searching": "Đang tìm kiếm...",
@@ -736,6 +716,7 @@
     "markAsRead": "Đánh dấu là đã đọc",
     "delete": "Xóa thông báo",
     "types": {
+      "system": "Hệ thống",
       "appointment": "Cuộc hẹn",
       "message": "Tin nhắn",
       "alert": "Cảnh báo",
@@ -762,7 +743,10 @@
       "messagePlaceholder": "Nhập nội dung thông báo",
       "cancel": "Hủy",
       "send": "Gửi thông báo",
-      "sending": "Đang gửi..."
+      "sending": "Đang gửi...",
+      "sentSuccess": "Gửi thông báo thành công!",
+      "sentError": "Gửi thất bại. Vui lòng thử lại.",
+      "recipients": "người nhận"
     }
   },
   "Appointments": {
@@ -954,6 +938,99 @@
       "fri": "Thứ 6",
       "sat": "Thứ 7",
       "sun": "Chủ Nhật"
+    }
+  },
+  "TransactionsPage": {
+    "title": "Giao dịch",
+    "description": "Quản lý và xem tất cả giao dịch thanh toán trên nền tảng.",
+    "searchPlaceholder": "Tìm kiếm theo mã GD, khách hàng, chuyên gia...",
+    "noTransactions": "Không có giao dịch nào",
+    "table": {
+      "id": "Mã GD",
+      "date": "Ngày",
+      "customer": "Khách hàng",
+      "expert": "Chuyên gia",
+      "amount": "Số tiền",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "status": {
+      "paid": "Đã thanh toán",
+      "refunded": "Đã hoàn tiền",
+      "pending": "Chờ thanh toán"
+    },
+    "actions": {
+      "refund": "Hoàn tiền"
+    },
+    "refund": {
+      "confirmTitle": "Xác nhận hoàn tiền",
+      "confirmDesc": "Hành động này sẽ hoàn lại số tiền cho khách hàng. Không thể hoàn tác.",
+      "cancel": "Hủy",
+      "confirm": "Xác nhận hoàn tiền",
+      "processing": "Đang xử lý..."
+    },
+    "export": {
+      "title": "Xuất báo cáo",
+      "description": "Tải xuống lịch sử giao dịch dưới dạng CSV hoặc Excel.",
+      "format": "Định dạng file",
+      "selectColumns": "Chọn cột xuất",
+      "preview": "Xem trước dữ liệu",
+      "totalAmount": "Tổng doanh thu",
+      "download": "Tải xuống",
+      "exporting": "Đang xuất...",
+      "downloadSuccess": "Tải file thành công!",
+      "downloadError": "Tải file thất bại. Vui lòng thử lại.",
+      "button": "Xuất dữ liệu",
+      "cancel": "Hủy"
+    }
+  },
+  "ExpertDetail": {
+    "back": "Quay lại",
+    "backToExperts": "Quay lại Chuyên gia",
+    "notFound": "Không tìm thấy chuyên gia",
+    "goBack": "Quay lại",
+    "unknown": "Chưa rõ",
+    "status": {
+      "active": "Hoạt động",
+      "pending": "Chờ duyệt"
+    },
+    "actions": {
+      "suspend": "Tạm khóa",
+      "suspending": "Đang khóa...",
+      "approve": "Duyệt",
+      "approving": "Đang duyệt...",
+      "reject": "Từ chối",
+      "rejecting": "Đang từ chối...",
+      "viewDoc": "Xem tài liệu"
+    },
+    "stats": {
+      "sessions": "Buổi tư vấn",
+      "completed": "Hoàn thành",
+      "earnings": "Thu nhập",
+      "rating": "Đánh giá"
+    },
+    "sections": {
+      "about": "Giới thiệu",
+      "education": "Học vấn",
+      "license": "Chứng chỉ & Bằng cấp"
+    },
+    "fields": {
+      "bio": "Tiểu sử",
+      "experience": "Kinh nghiệm",
+      "years": "năm",
+      "hourlyRate": "Giá / Giờ",
+      "degree": "Bằng cấp",
+      "university": "Trường học",
+      "graduationYear": "Năm tốt nghiệp",
+      "licenseNumber": "Số giấy phép",
+      "licenseDoc": "Tài liệu giấy phép",
+      "certificates": "Chứng chỉ",
+      "certificate": "Chứng chỉ"
+    },
+    "empty": {
+      "noBio": "Chưa có tiểu sử",
+      "notSpecified": "Chưa có thông tin",
+      "notProvided": "Chưa cấp"
     }
   }
 }

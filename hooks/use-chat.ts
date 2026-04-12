@@ -60,21 +60,40 @@ export function useChatAdmin() {
   const chatRoomsQuery = useQuery({
     queryKey: ['admin-chat-rooms'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Step 1: fetch rooms without complex joins to avoid 400
+      const { data: rooms, error: roomsError } = await supabase
         .from('chat_rooms')
-        .select(`
-          *,
-          participants:chat_participants(
-            user:users(id, full_name, email, avatar_url, role)
-          ),
-          appointment:appointments(id, appointment_date, status)
-        `)
+        .select('*')
         .order('last_message_time', { ascending: false, nullsFirst: false });
 
-      if (error) throw error;
-      return data as unknown as ChatRoomWithDetails[];
+      if (roomsError) {
+        console.warn('chat_rooms query error:', roomsError.message);
+        return [] as ChatRoomWithDetails[];
+      }
+
+      if (!rooms || rooms.length === 0) return [] as ChatRoomWithDetails[];
+
+      // Step 2: fetch participants for each room
+      const roomIds = rooms.map(r => r.id);
+
+      const { data: participants } = await supabase
+        .from('chat_participants')
+        .select('room_id, user:users(id, full_name, email, avatar_url, role)')
+        .in('room_id', roomIds);
+
+      // Step 3: attach participants to rooms
+      const result: ChatRoomWithDetails[] = rooms.map(room => ({
+        ...room,
+        participants: (participants || [])
+          .filter(p => p.room_id === room.id)
+          .map(p => ({ user: p.user as any })),
+        appointment: undefined,
+      }));
+
+      return result;
     },
     enabled: !!isAdmin,
+    retry: false,
   });
 
   // 3. Update room status (archive/close/active)

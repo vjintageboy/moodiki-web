@@ -1,12 +1,6 @@
 'use client';
 
 import { useRecentAppointments } from '@/hooks/use-recent-activities';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CardSkeleton } from './skeleton-loaders';
@@ -23,21 +17,6 @@ function getInitials(name: string): string {
     .join('')
     .toUpperCase()
     .slice(0, 2);
-}
-
-function getStatusBadgeVariant(
-  status: string
-): 'default' | 'secondary' | 'destructive' | 'outline' {
-  switch (status) {
-    case 'completed':
-      return 'default';
-    case 'confirmed':
-      return 'secondary';
-    case 'cancelled':
-      return 'destructive';
-    default:
-      return 'outline';
-  }
 }
 
 function getStatusColor(status: string): string {

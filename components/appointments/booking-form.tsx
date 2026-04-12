@@ -58,7 +58,7 @@ export function BookingForm({ expertId, userId, expertName }: BookingFormProps) 
         userNotes: notes,
       });
       router.push('/appointments');
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hook automatically showing toast
     }
   };

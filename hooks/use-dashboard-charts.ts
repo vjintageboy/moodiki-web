@@ -209,7 +209,7 @@ export function useMoodTrendData() {
 }
 
 /**
- * Fetch daily revenue for the last 30 days
+ * Fetch daily revenue for the last 30 days from appointments table
  */
 export function useRevenueData() {
   return useQuery({
@@ -220,13 +220,14 @@ export function useRevenueData() {
       const endDate = new Date();
       const startDate = subDays(endDate, 29);
 
+      // Use appointments table with payment_status=paid (no 'transactions' table)
       const { data, error } = await supabase
-        .from('transactions')
-        .select('amount, created_at')
-        .eq('status', 'completed')
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString())
-        .order('created_at', { ascending: true });
+        .from('appointments')
+        .select('expert_base_price, appointment_date')
+        .eq('payment_status', 'paid')
+        .gte('appointment_date', startDate.toISOString())
+        .lte('appointment_date', endDate.toISOString())
+        .order('appointment_date', { ascending: true });
 
       if (error) throw error;
 
@@ -240,10 +241,10 @@ export function useRevenueData() {
 
       if (data) {
         data.forEach((tx) => {
-          const date = new Date(tx.created_at);
+          const date = new Date(tx.appointment_date);
           const dateKey = format(date, 'MMM d');
           const current = dailyRevenue.get(dateKey) || 0;
-          dailyRevenue.set(dateKey, current + (tx.amount || 0));
+          dailyRevenue.set(dateKey, current + (tx.expert_base_price || 0));
         });
       }
 
@@ -344,52 +345,45 @@ export function useExpertPerformance() {
     queryFn: async () => {
       const supabase = createClient();
 
+      // Fetch approved experts with their user info (no fkey name needed)
       const { data: expertsData, error: expertsError } = await supabase
         .from('experts')
         .select(`
           id,
-          user:users!experts_user_id_fkey(id, full_name, email),
-          specialization
+          specialization,
+          rating,
+          total_reviews,
+          users(id, full_name, email)
         `)
         .eq('is_approved', true);
 
       if (expertsError) throw expertsError;
-
       if (!expertsData || expertsData.length === 0) return [];
 
       const expertIds = expertsData.map(e => e.id);
 
-      // Get appointment counts per expert
+      // Get appointment stats per expert (use expert_base_price not amount)
       const { data: appointmentsData } = await supabase
         .from('appointments')
-        .select('expert_id, amount, status')
+        .select('expert_id, expert_base_price, status')
         .in('expert_id', expertIds);
-
-      // Get ratings per expert
-      const { data: ratingsData } = await supabase
-        .from('appointments')
-        .select('expert_id, rating')
-        .in('expert_id', expertIds)
-        .not('rating', 'is', null);
 
       const expertStats = expertsData.map(expert => {
         const expertAppts = appointmentsData?.filter(a => a.expert_id === expert.id) || [];
-        const expertRatings = ratingsData?.filter(r => r.expert_id === expert.id) || [];
         const completedAppts = expertAppts.filter(a => a.status === 'completed');
-        const totalRevenue = completedAppts.reduce((sum, a) => sum + (a.amount || 0), 0);
-        const avgRating = expertRatings.length > 0
-          ? expertRatings.reduce((sum, r) => sum + (r.rating || 0), 0) / expertRatings.length
-          : 0;
+        const totalRevenue = completedAppts.reduce((sum, a) => sum + (a.expert_base_price || 0), 0);
+        const user = (expert.users as any);
 
         return {
           id: expert.id,
-          name: (expert.user as any)?.full_name || (expert.user as any)?.email || 'Unknown',
+          name: user?.full_name || user?.email || 'Unknown',
           specialization: expert.specialization || 'General',
           totalAppointments: expertAppts.length,
           completedAppointments: completedAppts.length,
           revenue: totalRevenue,
-          avgRating: Math.round(avgRating * 10) / 10,
-          ratingCount: expertRatings.length,
+          // Use rating from experts table directly (stored after reviews)
+          avgRating: expert.rating ? Math.round((expert.rating as number) * 10) / 10 : 0,
+          ratingCount: expert.total_reviews || 0,
         };
       });
 

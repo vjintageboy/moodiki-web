@@ -633,6 +633,29 @@
     "empty": {
       "noUsers": "No users found",
       "noMatchingUsers": "No users found matching your filters"
+    },
+    "backToUsers": "Back to Users",
+    "userNotFound": "User not found.",
+    "memberSince": "Member since",
+    "detail": {
+      "accountInfo": "Account Information",
+      "profileActivity": "Profile & Activity",
+      "userId": "User ID",
+      "email": "Email",
+      "fullName": "Full Name",
+      "joined": "Joined",
+      "updated": "Updated",
+      "dob": "Date of Birth",
+      "gender": "Gender",
+      "goals": "Goals",
+      "totalActivities": "Total Activities",
+      "moodEntries": "Mood Entries",
+      "appointments": "Appointments",
+      "posts": "Posts",
+      "currentStreak": "Current Streak",
+      "longestStreak": "Longest Streak",
+      "best": "Best",
+      "days": "days"
     }
   },
   "EarningsPage": {
@@ -669,50 +692,7 @@
       "description": "Download your transaction history and personal earnings for record-keeping or tax purposes."
     }
   },
-  "TransactionsPage": {
-    "title": "Transaction History",
-    "description": "View details of all payments from users to experts.",
-    "table": {
-      "id": "Transaction ID",
-      "date": "Date",
-      "customer": "Customer",
-      "expert": "Expert",
-      "amount": "Amount",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "status": {
-      "paid": "Paid",
-      "refunded": "Refunded"
-    },
-    "actions": {
-      "refund": "Refund"
-    },
-    "refund": {
-      "confirmTitle": "Process Refund",
-      "confirmDesc": "Are you sure you want to refund this transaction? This action will process the refund through the payment provider and update the record.",
-      "cancel": "Cancel",
-      "confirm": "Confirm Refund",
-      "processing": "Processing..."
-    },
-    "noTransactions": "No transactions found.",
-    "searchPlaceholder": "Search by transaction ID or name...",
-    "export": {
-      "button": "Export Data",
-      "title": "Export Transaction History",
-      "description": "Below is the list of transactions to be exported based on your current filters.",
-      "download": "Download CSV",
-      "preview": "Preview",
-      "noData": "No data to export.",
-      "cancel": "Cancel",
-      "format": "Format",
-      "selectColumns": "Select Export Columns",
-      "totalAmount": "Total Revenue",
-      "exporting": "Processing...",
-      "allColumns": "All Columns"
-    }
-  },
-  "GlobalSearch": {
+"GlobalSearch": {
     "placeholder": "Search users, experts...",
     "searching": "Searching...",
     "noResults": "No results found for \"{query}\"",
@@ -736,6 +716,7 @@
     "markAsRead": "Mark as read",
     "delete": "Delete notification",
     "types": {
+      "system": "System",
       "appointment": "Appointment",
       "message": "Message",
       "alert": "Alert",
@@ -762,7 +743,10 @@
       "messagePlaceholder": "Enter notification message",
       "cancel": "Cancel",
       "send": "Send Broadcast",
-      "sending": "Sending..."
+      "sending": "Sending...",
+      "sentSuccess": "Broadcast sent successfully!",
+      "sentError": "Failed to send. Please try again.",
+      "recipients": "recipients"
     }
   },
   "Appointments": {
@@ -955,5 +939,73 @@
       "sat": "Sat",
       "sun": "Sun"
     }
+  },
+  "TransactionsPage": {
+    "title": "Transactions",
+    "description": "Manage and view all payment transactions on the platform.",
+    "searchPlaceholder": "Search by trans ID, customer, expert...",
+    "noTransactions": "No transactions found",
+    "table": {
+      "id": "Trans ID",
+      "date": "Date",
+      "customer": "Customer",
+      "expert": "Expert",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "paid": "Paid",
+      "refunded": "Refunded",
+      "pending": "Pending"
+    },
+    "actions": {
+      "refund": "Refund"
+    },
+    "refund": {
+      "confirmTitle": "Confirm Refund",
+      "confirmDesc": "This will refund the amount to the customer. This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Confirm Refund",
+      "processing": "Processing..."
+    },
+    "export": {
+      "title": "Export Report",
+      "description": "Download transaction history as CSV or Excel.",
+      "format": "File Format",
+      "selectColumns": "Select Columns",
+      "preview": "Data Preview",
+      "totalAmount": "Total Revenue",
+      "download": "Download",
+      "exporting": "Exporting...",
+      "downloadSuccess": "File downloaded successfully!",
+      "downloadError": "Download failed. Please try again.",
+      "button": "Export Data",
+      "cancel": "Cancel"
+    }
+  }
+,
+  "ExpertDetail": {
+    "back": "Back",
+    "backToExperts": "Back to Experts",
+    "notFound": "Expert not found",
+    "goBack": "Go Back",
+    "unknown": "Unknown",
+    "status": { "active": "Active", "pending": "Pending" },
+    "actions": {
+      "suspend": "Suspend", "suspending": "Suspending...",
+      "approve": "Approve", "approving": "Approving...",
+      "reject": "Reject", "rejecting": "Rejecting...",
+      "viewDoc": "View Document"
+    },
+    "stats": { "sessions": "Sessions", "completed": "Completed", "earnings": "Earnings", "rating": "Rating" },
+    "sections": { "about": "About", "education": "Education", "license": "License & Credentials" },
+    "fields": {
+      "bio": "Bio", "experience": "Experience", "years": "years", "hourlyRate": "Hourly Rate",
+      "degree": "Degree", "university": "University", "graduationYear": "Graduation Year",
+      "licenseNumber": "License Number", "licenseDoc": "License Document",
+      "certificates": "Certificates", "certificate": "Certificate"
+    },
+    "empty": { "noBio": "No bio provided", "notSpecified": "Not specified", "notProvided": "Not provided" }
   }
 }

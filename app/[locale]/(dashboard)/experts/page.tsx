@@ -10,7 +10,7 @@ import { useTranslations } from 'next-intl';
 export default function ExpertsPage() {
   const t = useTranslations('ExpertsPage');
   const { data: approvedExperts, isLoading: approvedLoading } = useApprovedExperts();
-  const { data: pendingExperts, isLoading: pendingLoading } = usePendingExperts();
+  const { data: pendingExperts } = usePendingExperts();
   const rejectedExperts = approvedExperts?.filter(e => !e.is_approved) || [];
 
   const approvedCount = approvedExperts?.filter(e => e.is_approved).length || 0;

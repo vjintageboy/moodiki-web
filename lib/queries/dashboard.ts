@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { unstable_cache } from 'next/cache'
 
 export interface DashboardStats {
   totalUsers: number

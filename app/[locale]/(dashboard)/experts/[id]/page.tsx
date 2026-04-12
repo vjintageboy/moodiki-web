@@ -25,7 +25,7 @@ import {
   Clock,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { formatCurrency } from '@/lib/utils/currency';
 
 function getInitials(name: string): string {
@@ -71,6 +71,7 @@ export default function ExpertDetailPage() {
   const params = useParams();
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations('ExpertDetail');
   const expertId = params.id as string;
 
   const { data: expert, isLoading, error } = useExpert(expertId);
@@ -82,7 +83,7 @@ export default function ExpertDetailPage() {
     return (
       <div className="space-y-6">
         <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-2">
-          <ArrowLeft className="h-4 w-4" /> Back
+          <ArrowLeft className="h-4 w-4" /> {t('back')}
         </Button>
         <DetailSkeleton />
       </div>
@@ -93,14 +94,14 @@ export default function ExpertDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
         <XCircle className="h-12 w-12 text-destructive" />
-        <p className="font-semibold">Expert not found</p>
-        <Button variant="outline" onClick={() => router.back()}>Go Back</Button>
+        <p className="font-semibold">{t('notFound')}</p>
+        <Button variant="outline" onClick={() => router.back()}>{t('goBack')}</Button>
       </div>
     );
   }
 
   const user = expert.users as any;
-  const name = user?.full_name || 'Unknown';
+  const name = user?.full_name || t('unknown');
   const status = expert.is_approved ? 'approved' : 'pending';
 
   return (
@@ -110,7 +111,7 @@ export default function ExpertDetailPage() {
         href="/experts"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors -ml-2 px-2 py-1 rounded hover:bg-muted"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Experts
+        <ArrowLeft className="h-4 w-4" /> {t('backToExperts')}
       </Link>
 
       {/* Hero card */}
@@ -133,16 +134,19 @@ export default function ExpertDetailPage() {
                   className={status === 'approved' ? 'bg-green-600' : ''}
                 >
                   {status === 'approved' ? (
-                    <><CheckCircle2 className="h-3 w-3 mr-1" />Active</>
+                    <><CheckCircle2 className="h-3 w-3 mr-1" />{t('status.active')}</>
                   ) : (
-                    <><Clock className="h-3 w-3 mr-1" />Pending</>
+                    <><Clock className="h-3 w-3 mr-1" />{t('status.pending')}</>
                   )}
                 </Badge>
               </div>
 
+              {/* Email — masked for privacy */}
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Mail className="h-3.5 w-3.5" />
-                {user?.email || '—'}
+                {user?.email
+                  ? `${user.email[0]}***@${user.email.split('@')[1]}`
+                  : '—'}
               </div>
 
               {expert.specialization && (
@@ -162,7 +166,7 @@ export default function ExpertDetailPage() {
                   onClick={() => suspendExpert.mutate(expertId)}
                   disabled={suspendExpert.isPending}
                 >
-                  {suspendExpert.isPending ? 'Suspending...' : 'Suspend'}
+                  {suspendExpert.isPending ? t('actions.suspending') : t('actions.suspend')}
                 </Button>
               ) : (
                 <>
@@ -172,7 +176,7 @@ export default function ExpertDetailPage() {
                     onClick={() => approveExpert.mutate(expertId)}
                     disabled={approveExpert.isPending}
                   >
-                    {approveExpert.isPending ? 'Approving...' : 'Approve'}
+                    {approveExpert.isPending ? t('actions.approving') : t('actions.approve')}
                   </Button>
                   <Button
                     size="sm"
@@ -180,7 +184,7 @@ export default function ExpertDetailPage() {
                     onClick={() => rejectExpert.mutate({ expertId })}
                     disabled={rejectExpert.isPending}
                   >
-                    {rejectExpert.isPending ? 'Rejecting...' : 'Reject'}
+                    {rejectExpert.isPending ? t('actions.rejecting') : t('actions.reject')}
                   </Button>
                 </>
               )}
@@ -191,16 +195,16 @@ export default function ExpertDetailPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={Calendar} label="Sessions" value={expert.stats.appointmentCount} />
-        <StatCard icon={CheckCircle2} label="Completed" value={expert.stats.completedSessions} />
+        <StatCard icon={Calendar} label={t('stats.sessions')} value={expert.stats.appointmentCount} />
+        <StatCard icon={CheckCircle2} label={t('stats.completed')} value={expert.stats.completedSessions} />
         <StatCard
           icon={DollarSign}
-          label="Earnings"
+          label={t('stats.earnings')}
           value={formatCurrency(expert.stats.totalEarnings, locale)}
         />
         <StatCard
           icon={Star}
-          label="Rating"
+          label={t('stats.rating')}
           value={expert.stats.averageRating > 0 ? `${expert.stats.averageRating.toFixed(1)}/5` : '—'}
         />
       </div>
@@ -210,25 +214,23 @@ export default function ExpertDetailPage() {
         {/* About */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">About</CardTitle>
+            <CardTitle className="text-base">{t('sections.about')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1">Bio</p>
-              <p className="text-sm">{expert.bio || <span className="italic text-muted-foreground">No bio provided</span>}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.bio')}</p>
+              <p className="text-sm">{expert.bio || <span className="italic text-muted-foreground">{t('empty.noBio')}</span>}</p>
             </div>
             <Separator />
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-muted-foreground font-medium mb-1">Experience</p>
-                <p className="text-sm">{expert.years_experience || 0} years</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.experience')}</p>
+                <p className="text-sm">{expert.years_experience || 0} {t('fields.years')}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium mb-1">Hourly Rate</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.hourlyRate')}</p>
                 <p className="text-sm">
-                  {expert.hourly_rate
-                    ? formatCurrency(expert.hourly_rate, locale)
-                    : '—'}
+                  {expert.hourly_rate ? formatCurrency(expert.hourly_rate, locale) : '—'}
                 </p>
               </div>
             </div>
@@ -239,23 +241,23 @@ export default function ExpertDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <GraduationCap className="h-4 w-4" /> Education
+              <GraduationCap className="h-4 w-4" /> {t('sections.education')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-1">Degree</p>
-              <p className="text-sm">{expert.education || <span className="italic text-muted-foreground">Not specified</span>}</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.degree')}</p>
+              <p className="text-sm">{expert.education || <span className="italic text-muted-foreground">{t('empty.notSpecified')}</span>}</p>
             </div>
             {expert.university && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium mb-1">University</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.university')}</p>
                 <p className="text-sm">{expert.university}</p>
               </div>
             )}
             {expert.graduation_year && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium mb-1">Graduation Year</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.graduationYear')}</p>
                 <p className="text-sm">{expert.graduation_year}</p>
               </div>
             )}
@@ -266,21 +268,21 @@ export default function ExpertDetailPage() {
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Shield className="h-4 w-4" /> License & Credentials
+              <Shield className="h-4 w-4" /> {t('sections.license')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-muted-foreground font-medium mb-1">License Number</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.licenseNumber')}</p>
                 {expert.license_number ? (
                   <Badge variant="outline" className="font-mono text-sm">{expert.license_number}</Badge>
                 ) : (
-                  <p className="text-sm italic text-muted-foreground">Not provided</p>
+                  <p className="text-sm italic text-muted-foreground">{t('empty.notProvided')}</p>
                 )}
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium mb-1">License Document</p>
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.licenseDoc')}</p>
                 {expert.license_url ? (
                   <a
                     href={expert.license_url}
@@ -289,11 +291,11 @@ export default function ExpertDetailPage() {
                     className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
                   >
                     <FileText className="h-4 w-4" />
-                    View Document
+                    {t('actions.viewDoc')}
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 ) : (
-                  <p className="text-sm italic text-muted-foreground">Not provided</p>
+                  <p className="text-sm italic text-muted-foreground">{t('empty.notProvided')}</p>
                 )}
               </div>
             </div>
@@ -304,7 +306,7 @@ export default function ExpertDetailPage() {
                 <Separator />
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-2">
-                    Certificates ({expert.certificate_urls.length})
+                    {t('fields.certificates')} ({expert.certificate_urls.length})
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {expert.certificate_urls.map((url: string, i: number) => (
@@ -316,7 +318,7 @@ export default function ExpertDetailPage() {
                         className="inline-flex items-center gap-1.5 text-xs bg-muted hover:bg-muted/80 px-3 py-1.5 rounded-full transition-colors"
                       >
                         <FileText className="h-3 w-3" />
-                        Certificate {i + 1}
+                        {t('fields.certificate')} {i + 1}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     ))}

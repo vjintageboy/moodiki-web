@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
 import { useNotifications } from '@/hooks/use-notifications';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslations, useLocale } from 'next-intl';
 import {
   Bell, Check, Trash2, Calendar, MessageSquare,
-  AlertCircle, Info, RefreshCw, Send, Users, Megaphone
+  AlertCircle, Info, RefreshCw, Send, Megaphone
 } from 'lucide-react';
 import {
   Dialog,
@@ -32,7 +33,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
-import type { Notification } from '@/lib/types/database.types';
 
 // Map notification types to icons and colors
 const getNotificationMetadata = (type: string, isRead: boolean) => {
@@ -73,7 +73,7 @@ export default function NotificationsPage() {
     markAsRead, markAllAsRead, deleteNotification, sendNotification
   } = useNotifications();
 
-  const { user: currentUser, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
 
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [broadcastOpen, setBroadcastOpen] = useState(false);
@@ -101,10 +101,8 @@ export default function NotificationsPage() {
     if (!broadcastTitle.trim() || !broadcastMessage.trim()) return;
 
     try {
-      // For 'all' target, we'd fetch all user IDs from the server
-      // For now, send via the mutation which handles the insert
-      await sendNotification.mutateAsync({
-        userIds: broadcastTarget === 'all' ? ['__ALL__'] : [broadcastTarget],
+      const result = await sendNotification.mutateAsync({
+        userIds: ['__ALL__'],
         title: broadcastTitle,
         message: broadcastMessage,
         type: broadcastType,
@@ -113,9 +111,11 @@ export default function NotificationsPage() {
       setBroadcastOpen(false);
       setBroadcastTitle('');
       setBroadcastMessage('');
+      toast.success(`${t('broadcast.sentSuccess')} (${result?.sentTo ?? 0} ${t('broadcast.recipients')})`);
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send broadcast:', error);
+      toast.error(error?.message || t('broadcast.sentError'));
     }
   };
 
@@ -271,7 +271,11 @@ export default function NotificationsPage() {
                           <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
                             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: dateLocale })}
                             <span className="mx-1">•</span>
-                            <span className="capitalize">{t(`types.${notification.type.toLowerCase()}` as any)}</span>
+                            <span className="capitalize">
+                              {['system','appointment','message','alert','warning','info'].includes(notification.type?.toLowerCase())
+                                ? t(`types.${notification.type.toLowerCase()}` as any)
+                                : notification.type}
+                            </span>
                           </p>
                         </div>
 

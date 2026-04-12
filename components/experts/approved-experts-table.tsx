@@ -275,8 +275,8 @@ export function ApprovedExpertsTable({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      {expert.users.email}
+                    <TableCell className="text-sm italic text-muted-foreground">
+                      {expert.users?.email ? `${expert.users.email[0]}***@${expert.users.email.split('@')[1]}` : '—'}
                     </TableCell>
                     <TableCell>{expert.specialization || t('notAvailable')}</TableCell>
                     <TableCell className="text-right">
@@ -315,7 +315,7 @@ export function ApprovedExpertsTable({
                           onClick={() =>
                             handleSuspend(
                               expert.id,
-                              expert.users.full_name
+                              expert.users.full_name || (expert.users.email ? `${expert.users.email[0]}***@${expert.users.email.split('@')[1]}` : t('user'))
                             )
                           }
                           disabled={suspendingId !== null}

@@ -3,8 +3,7 @@
 import { useRouter, usePathname } from '@/i18n/routing'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { LogOut, User, Shield, Bell, Search, Menu, ChevronRight } from 'lucide-react'
+import { LogOut, User, Shield, Bell, Search, Menu } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { GlobalSearch } from '@/components/dashboard/global-search'
 import { useAuth } from '@/hooks/use-auth'
@@ -107,10 +106,9 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const router = useRouter()
   const pathname = usePathname()
-  const { user, logout, isAdmin, isExpert, loading } = useAuth()
+  const { user, logout, isAdmin, isExpert } = useAuth()
   const { notifications, unreadCount, markAsRead } = useNotifications()
   const [searchOpen, setSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   const segmentLabelMap = {
@@ -125,10 +123,11 @@ export function Header({ onMenuClick }: HeaderProps) {
     chats: tSidebar('chats'),
     availability: tSidebar('availability'),
     earnings: tSidebar('earnings'),
+    transactions: tSidebar('transactions'),
+    admin: tSidebar('dashboard'), // /admin/* prefix — skip in title
   }
 
   const pageTitle = extractPageTitle(pathname, tSidebar('dashboard'), segmentLabelMap)
-  const breadcrumbs = generateBreadcrumbs(pathname, tSidebar('dashboard'), segmentLabelMap)
 
   const switchLocale = (nextLocale: 'en' | 'vi') => {
     if (nextLocale === locale) {
@@ -331,7 +330,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 {user?.full_name || tHeader('user')}
               </div>
               <div className="text-xs text-muted-foreground">
-                {user?.email}
+                {user?.email ? `${user.email[0]}***@${user.email.split('@')[1]}` : ''}
               </div>
               <div className="flex items-center gap-1 mt-1">
                 <Shield className="h-3 w-3" />
