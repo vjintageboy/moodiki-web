@@ -23,6 +23,15 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  AlertTriangle,
+  User,
+  CalendarDays,
+  Target,
+  Settings2,
+  Flame,
+  Trophy,
+  Lock,
+  Activity,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
@@ -30,6 +39,17 @@ import { formatCurrency } from '@/lib/utils/currency';
 
 function getInitials(name: string): string {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function formatDate(dateString: string | null | undefined, locale: string): string {
+  if (!dateString) return '—';
+  return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(dateString));
 }
 
 function StatCard({ icon: Icon, label, value }: { icon: any; label: string; value: string | number }) {
@@ -102,7 +122,24 @@ export default function ExpertDetailPage() {
 
   const user = expert.users as any;
   const name = user?.full_name || t('unknown');
-  const status = expert.is_approved ? 'approved' : 'pending';
+
+  // Determine status more precisely
+  let status: 'approved' | 'pending' | 'rejected' | 'suspended' = 'pending';
+  if (expert.is_approved) {
+    status = 'approved';
+  } else if (expert.rejection_reason) {
+    status = 'rejected';
+  } else {
+    // is_approved = false but no rejection_reason — could be suspended or pending
+    // Check if the expert was previously approved by looking at updated_at vs created_at
+    const created = new Date(expert.created_at);
+    const updated = new Date(expert.updated_at);
+    if (updated > created && expert.total_reviews > 0) {
+      status = 'suspended';
+    } else {
+      status = 'pending';
+    }
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -130,11 +167,14 @@ export default function ExpertDetailPage() {
                   {expert.title && <p className="text-muted-foreground text-sm">{expert.title}</p>}
                 </div>
                 <Badge
-                  variant={status === 'approved' ? 'default' : 'secondary'}
-                  className={status === 'approved' ? 'bg-green-600' : ''}
+                  variant={status === 'approved' ? 'default' : status === 'rejected' || status === 'suspended' ? 'destructive' : 'secondary'}
                 >
                   {status === 'approved' ? (
                     <><CheckCircle2 className="h-3 w-3 mr-1" />{t('status.active')}</>
+                  ) : status === 'rejected' ? (
+                    <><XCircle className="h-3 w-3 mr-1" />{t('status.rejected')}</>
+                  ) : status === 'suspended' ? (
+                    <><Lock className="h-3 w-3 mr-1" />{t('status.suspended')}</>
                   ) : (
                     <><Clock className="h-3 w-3 mr-1" />{t('status.pending')}</>
                   )}
@@ -326,6 +366,120 @@ export default function ExpertDetailPage() {
                 </div>
               </>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Rejection Information (if rejected) */}
+        {expert.rejection_reason && (status === 'rejected' || status === 'suspended') && (
+          <Card className="md:col-span-2 border-destructive/50">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-4 w-4" /> {t('sections.rejectionInfo')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1">{t('fields.rejectionReason')}</p>
+                <p className="text-sm bg-destructive/10 rounded-md p-3">{expert.rejection_reason}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* User Profile */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4" /> {t('sections.userProfile')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                  <Mail className="h-3 w-3" /> Email
+                </p>
+                <p className="text-sm font-mono">{user?.email || '—'}</p>
+              </div>
+              {user?.gender && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                    <User className="h-3 w-3" /> {t('fields.gender')}
+                  </p>
+                  <p className="text-sm capitalize">{user.gender}</p>
+                </div>
+              )}
+              {user?.date_of_birth && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                    <CalendarDays className="h-3 w-3" /> {t('fields.dateOfBirth')}
+                  </p>
+                  <p className="text-sm">{formatDate(user.date_of_birth, locale)}</p>
+                </div>
+              )}
+              {user?.goals && user.goals.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                    <Target className="h-3 w-3" /> {t('fields.goals')}
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {user.goals.map((goal: string, i: number) => (
+                      <Badge key={i} variant="secondary" className="text-xs">{goal}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {user?.preferences && Object.keys(user.preferences).length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                    <Settings2 className="h-3 w-3" /> {t('fields.preferences')}
+                  </p>
+                  <pre className="text-xs bg-muted rounded p-2 overflow-auto max-h-20">
+                    {JSON.stringify(user.preferences, null, 2)}
+                  </pre>
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                  <Flame className="h-3 w-3" /> {t('fields.streakCount')}
+                </p>
+                <p className="text-sm">{user?.streak_count || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                  <Trophy className="h-3 w-3" /> {t('fields.longestStreak')}
+                </p>
+                <p className="text-sm">{user?.longest_streak || 0}</p>
+              </div>
+              {user?.last_login && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> {t('fields.lastLogin')}
+                  </p>
+                  <p className="text-sm">{formatDate(user.last_login, locale)}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                  <Activity className="h-3 w-3" /> {t('fields.totalActivities')}
+                </p>
+                <p className="text-sm">{user?.total_activities || 0}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                  <CalendarDays className="h-3 w-3" /> {t('fields.joinedDate')}
+                </p>
+                <p className="text-sm">{formatDate(user?.created_at, locale)}</p>
+              </div>
+              {user?.is_locked && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1 flex items-center gap-1 text-destructive">
+                    <Lock className="h-3 w-3" /> {t('fields.isLocked')}
+                  </p>
+                  <Badge variant="destructive" className="text-xs">{t('fields.isLocked')}</Badge>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -154,10 +154,9 @@ export function ApprovedExpertsTable({
     if (!experts) return [];
 
     return experts.filter((expert) => {
+      const expertName = expert.users?.full_name || 'Unknown';
       const matchesSearch =
-        expert.users.full_name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
+        expertName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         expert.specialization?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesSpecialization =
@@ -251,81 +250,87 @@ export function ApprovedExpertsTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredExperts.map((expert) => (
-                  <TableRow key={expert.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage
-                            src={expert.users.avatar_url || undefined}
-                          />
-                          <AvatarFallback>
-                            {getInitials(expert.users.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">
-                            {expert.users.full_name}
-                          </p>
-                          {expert.title && (
-                            <p className="text-xs text-muted-foreground">
-                              {expert.title}
+                filteredExperts.map((expert) => {
+                  const expertName = expert.users?.full_name || 'Unknown Expert';
+                  const expertEmail = expert.users?.email || '';
+                  const expertAvatar = expert.users?.avatar_url;
+                  
+                  return (
+                    <TableRow key={expert.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage
+                              src={expertAvatar || undefined}
+                            />
+                            <AvatarFallback>
+                              {getInitials(expertName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">
+                              {expertName}
                             </p>
-                          )}
+                            {expert.title && (
+                              <p className="text-xs text-muted-foreground">
+                                {expert.title}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm italic text-muted-foreground">
-                      {expert.users?.email ? `${expert.users.email[0]}***@${expert.users.email.split('@')[1]}` : '—'}
-                    </TableCell>
-                    <TableCell>{expert.specialization || t('notAvailable')}</TableCell>
-                    <TableCell className="text-right">
-                      {t('years', { count: expert.years_experience })}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(expert.hourly_rate, locale)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {expert.rating > 0 ? (
-                        <span>
-                          ⭐ {expert.rating.toFixed(1)}/5
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">{t('noRating')}</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {expert.total_reviews}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="default" className="bg-green-600">
-                        {t('active')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Link href={`/experts/${expert.id}`}>
-                          <Button size="sm" variant="ghost">
-                            {t('details')}
+                      </TableCell>
+                      <TableCell className="text-sm italic text-muted-foreground">
+                        {expertEmail || '—'}
+                      </TableCell>
+                      <TableCell>{expert.specialization || t('notAvailable')}</TableCell>
+                      <TableCell className="text-right">
+                        {t('years', { count: expert.years_experience })}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(expert.hourly_rate, locale)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {expert.rating > 0 ? (
+                          <span>
+                            ⭐ {expert.rating.toFixed(1)}/5
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">{t('noRating')}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {expert.total_reviews}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="default" className="bg-green-600">
+                          {t('active')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
+                          <Link href={`/experts/${expert.id}`}>
+                            <Button size="sm" variant="ghost">
+                              {t('details')}
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() =>
+                              handleSuspend(
+                                expert.id,
+                                expertName
+                              )
+                            }
+                            disabled={suspendingId !== null}
+                          >
+                            {suspendingId === expert.id ? '...' : t('suspend')}
                           </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() =>
-                            handleSuspend(
-                              expert.id,
-                              expert.users.full_name || (expert.users.email ? `${expert.users.email[0]}***@${expert.users.email.split('@')[1]}` : t('user'))
-                            )
-                          }
-                          disabled={suspendingId !== null}
-                        >
-                          {suspendingId === expert.id ? '...' : t('suspend')}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

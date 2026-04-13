@@ -33,7 +33,6 @@ import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/currency';
 import { useExperts } from '@/hooks/use-experts';
 import { DataTable, type Column } from '@/components/ui/data-table';
-import { WeeklyCalendar } from '@/components/dashboard/weekly-calendar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -738,16 +737,10 @@ export default function AppointmentsPage() {
           initialPageSize={20}
         />
       ) : (
-        <WeeklyCalendar
-          data={filteredAppointments}
-          actions={(appointment) => (
-            <AppointmentActionsMenu
-              appointment={appointment}
-              currentUserId={currentUser.id}
-              currentUserRole="expert"
-            />
-          )}
-        />
+        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground">
+          <p className="font-medium">Calendar view coming soon</p>
+          <p className="text-sm mt-1">Use the expert dashboard for the new weekly schedule view.</p>
+        </div>
       )}
 
       {!isLoading && (

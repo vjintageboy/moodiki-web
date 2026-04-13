@@ -110,6 +110,20 @@ function maskEmail(email?: string | null): string {
 }
 
 /**
+ * Mask full name for privacy: N*** V*** A
+ */
+function maskName(name?: string | null): string {
+  if (!name) return '—';
+  const parts = name.trim().split(' ');
+  if (parts.length <= 1) {
+    return name.length > 1 ? `${name[0]}***` : `${name[0]}*`;
+  }
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  return `${first} *** ${last}`;
+}
+
+/**
  * Get initials from name/email for avatar
  */
 function getInitials(user: User): string {
@@ -452,8 +466,8 @@ export default function UsersPage() {
       key: 'email',
       header: t('table.email'),
       render: (user) => (
-        <span className="text-sm font-mono text-muted-foreground truncate max-w-[150px] inline-block">
-          {user.email ? `${user.email[0]}***@${user.email.split('@')[1]}` : '—'}
+        <span className="text-sm font-mono text-muted-foreground truncate max-w-[200px] inline-block">
+          {user.email || '—'}
         </span>
       ),
       width: '180px',
@@ -468,9 +482,9 @@ export default function UsersPage() {
           className="text-left hover:underline cursor-pointer"
           onClick={() => router.push(`/users/${user.id}`)}
         >
-          <p className="font-medium">{user.full_name || 'N/A'}</p>
+          <p className="font-medium">{user.full_name || '—'}</p>
           <p className="text-sm text-muted-foreground">
-            {maskEmail(user.email)}
+            {user.email || '—'}
           </p>
         </button>
       ),

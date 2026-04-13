@@ -1,7 +1,7 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useApprovedExperts, usePendingExperts } from '@/hooks/use-recent-activities';
+import { useApprovedExperts, usePendingExperts, useRejectedExperts } from '@/hooks/use-recent-activities';
 import { ApprovedExpertsTable } from '@/components/experts/approved-experts-table';
 import { PendingExpertsTab } from '@/components/experts/pending-experts-tab';
 import { RejectedExpertsTab } from '@/components/experts/rejected-experts-tab';
@@ -10,12 +10,13 @@ import { useTranslations } from 'next-intl';
 export default function ExpertsPage() {
   const t = useTranslations('ExpertsPage');
   const { data: approvedExperts, isLoading: approvedLoading } = useApprovedExperts();
-  const { data: pendingExperts } = usePendingExperts();
-  const rejectedExperts = approvedExperts?.filter(e => !e.is_approved) || [];
+  const { data: pendingExperts, isLoading: pendingLoading } = usePendingExperts();
+  const { data: rejectedExperts, isLoading: rejectedLoading } = useRejectedExperts();
 
-  const approvedCount = approvedExperts?.filter(e => e.is_approved).length || 0;
+  const approvedCount = approvedExperts?.length || 0;
   const pendingCount = pendingExperts?.length || 0;
-  const rejectedCount = rejectedExperts.length;
+  const rejectedCount = rejectedExperts?.length || 0;
+  const isLoading = approvedLoading || pendingLoading || rejectedLoading;
 
   return (
     <div className="space-y-6">
@@ -43,8 +44,8 @@ export default function ExpertsPage() {
 
         {/* All Experts Tab */}
         <TabsContent value="all" className="mt-6">
-          <ApprovedExpertsTable 
-            experts={approvedExperts?.filter(e => e.is_approved)}
+          <ApprovedExpertsTable
+            experts={approvedExperts}
             isLoading={approvedLoading}
           />
         </TabsContent>
@@ -58,9 +59,9 @@ export default function ExpertsPage() {
 
         {/* Rejected/Suspended Tab */}
         <TabsContent value="rejected" className="mt-6">
-          <RejectedExpertsTab 
-            experts={rejectedExperts as any}
-            isLoading={approvedLoading}
+          <RejectedExpertsTab
+            experts={rejectedExperts}
+            isLoading={rejectedLoading}
           />
         </TabsContent>
       </Tabs>

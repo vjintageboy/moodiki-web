@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from '@/components/ui/sonner';
 import { QueryProvider } from '@/lib/providers/query-provider';
@@ -8,7 +8,7 @@ import { ThemeProvider } from '@/lib/providers/theme-provider';
 import { AuthClientProvider } from '@/lib/auth/client-context';
 import { getAuthUser } from '@/lib/auth/server';
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ['latin', 'vietnamese'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: 'Mental Health Admin Panel',
@@ -32,7 +32,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
   } : null
 
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn("font-sans", inter.variable)} suppressHydrationWarning>
       <body suppressHydrationWarning>
         <ThemeProvider>
           <QueryProvider>

@@ -15,7 +15,10 @@ interface Expert {
   full_name?: string;
   is_verified?: boolean;
   created_at: string;
-  users?: { email?: string };
+  users?: { 
+    email?: string;
+    full_name?: string;
+  };
 }
 
 export function ExpertTable({ experts }: { experts: Expert[] }) {
@@ -38,20 +41,25 @@ export function ExpertTable({ experts }: { experts: Expert[] }) {
               </TableCell>
             </TableRow>
           ) : (
-            experts.map((expert) => (
-              <TableRow key={expert.id}>
-                <TableCell className="font-medium">{expert.full_name || 'N/A'}</TableCell>
-                <TableCell>{expert.users?.email || 'N/A'}</TableCell>
-                <TableCell>
-                  <Badge variant={expert.is_verified ? 'default' : 'secondary'}>
-                    {expert.is_verified ? 'Verified' : 'Pending'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {new Date(expert.created_at).toLocaleDateString()}
-                </TableCell>
-              </TableRow>
-            ))
+            experts.map((expert) => {
+              // Get name from users relation or fall back to full_name field
+              const expertName = expert.users?.full_name || expert.full_name || 'N/A';
+              
+              return (
+                <TableRow key={expert.id}>
+                  <TableCell className="font-medium">{expertName}</TableCell>
+                  <TableCell>{expert.users?.email || 'N/A'}</TableCell>
+                  <TableCell>
+                    <Badge variant={expert.is_verified ? 'default' : 'secondary'}>
+                      {expert.is_verified ? 'Verified' : 'Pending'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(expert.created_at).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>

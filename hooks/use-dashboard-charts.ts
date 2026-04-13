@@ -372,7 +372,7 @@ export function useExpertPerformance() {
         const expertAppts = appointmentsData?.filter(a => a.expert_id === expert.id) || [];
         const completedAppts = expertAppts.filter(a => a.status === 'completed');
         const totalRevenue = completedAppts.reduce((sum, a) => sum + (a.expert_base_price || 0), 0);
-        const user = (expert.users as any);
+        const user = expert.users as unknown as { id: string; full_name: string | null; email: string | null };
 
         return {
           id: expert.id,

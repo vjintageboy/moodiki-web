@@ -8,8 +8,9 @@ import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import {
   User as UserIcon, Lock, Palette, Save, Eye, EyeOff,
-  Loader2, Shield, Moon, Sun, Monitor,
+  Loader2, Shield, Moon, Sun, Monitor, Briefcase, GraduationCap, FileText
 } from 'lucide-react';
+import { useExpert, useUpdateExpert } from '@/hooks/use-experts';
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from '@/components/ui/card';
@@ -109,6 +110,137 @@ function ProfileTab() {
           <Button onClick={handleSaveProfile} disabled={isSaving} className="gap-2">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {isSaving ? t('saving') : t('saveChanges')}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ─── Expert Profile Tab ────────────────────────────────────────────────────────
+function ExpertProfileTab() {
+  const t = useTranslations('Settings.expertProfile');
+  const { user } = useAuth();
+  const { data: expert, isLoading: isExpertLoading } = useExpert(user?.id);
+  const updateExpert = useUpdateExpert();
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    specialization: '',
+    hourly_rate: 0,
+    years_experience: 0,
+    education: '',
+    university: '',
+    graduation_year: 0,
+    license_number: '',
+    bio: ''
+  });
+
+  // Sync state with expert DB data
+  import('react').then(React => {
+    React.useEffect(() => {
+      if (expert) {
+        setFormData({
+          title: expert.title || '',
+          specialization: expert.specialization || '',
+          hourly_rate: expert.hourly_rate || 0,
+          years_experience: expert.years_experience || 0,
+          education: expert.education || '',
+          university: expert.university || '',
+          graduation_year: expert.graduation_year || new Date().getFullYear(),
+          license_number: expert.license_number || '',
+          bio: expert.bio || ''
+        });
+      }
+    }, [expert]);
+  });
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+    try {
+      await updateExpert.mutateAsync({
+        id: user.id,
+        payload: {
+          ...formData,
+          graduation_year: formData.graduation_year ? Number(formData.graduation_year) : undefined
+        }
+      });
+    } catch (err) {}
+  };
+
+  if (isExpertLoading) return <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('title') || 'Professional Profile'}</CardTitle>
+          <CardDescription>{t('description') || 'Manage your public expert profile, specialties, and credentials.'}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="e.g. Dr., Ms., Mr." />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="specialization">Specialization</Label>
+              <Input id="specialization" value={formData.specialization} onChange={(e) => setFormData({...formData, specialization: e.target.value})} placeholder="e.g. Clinical Psychology" />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="hourly_rate">Hourly Rate (Cents/VND)</Label>
+              <div className="relative">
+                <Input id="hourly_rate" type="number" min="0" value={formData.hourly_rate} onChange={(e) => setFormData({...formData, hourly_rate: Number(e.target.value)})} className="pl-8" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="years_experience">Years of Experience</Label>
+              <Input id="years_experience" type="number" min="0" value={formData.years_experience} onChange={(e) => setFormData({...formData, years_experience: Number(e.target.value)})} />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="bio">Professional Bio</Label>
+              <textarea 
+                id="bio"
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px]"
+                value={formData.bio} 
+                onChange={(e) => setFormData({...formData, bio: e.target.value})} 
+                placeholder="Tell clients about your background and approach..."
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><GraduationCap className="h-5 w-5"/> Education & License</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label htmlFor="education">Degree / Education</Label>
+              <Input id="education" value={formData.education} onChange={(e) => setFormData({...formData, education: e.target.value})} placeholder="e.g. Ph.D. in Psychology" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="university">University</Label>
+              <Input id="university" value={formData.university} onChange={(e) => setFormData({...formData, university: e.target.value})} placeholder="e.g. Harvard University" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="graduation_year">Graduation Year</Label>
+              <Input id="graduation_year" type="number" value={formData.graduation_year} onChange={(e) => setFormData({...formData, graduation_year: Number(e.target.value)})} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="license_number">Professional License Number</Label>
+              <Input id="license_number" value={formData.license_number} onChange={(e) => setFormData({...formData, license_number: e.target.value})} placeholder="e.g. PSY12345" />
+            </div>
+          </div>
+          
+          <Button onClick={handleSave} disabled={updateExpert.isPending} className="gap-2 w-full sm:w-auto">
+            {updateExpert.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {updateExpert.isPending ? t('saving') || 'Saving...' : t('saveChanges') || 'Save Expert Profile'}
           </Button>
         </CardContent>
       </Card>
@@ -315,6 +447,7 @@ function PreferencesTab() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
   const t = useTranslations('Settings');
+  const { user } = useAuth();
   
   return (
     <div className="space-y-6 p-6">
@@ -324,24 +457,35 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className={cn("grid w-full max-w-md", user?.role === 'expert' ? "grid-cols-4 max-w-2xl" : "grid-cols-3")}>
           <TabsTrigger value="profile" className="gap-2">
-            <UserIcon className="w-4 h-4" />
-            {t('tabs.profile')}
+            <UserIcon className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t('tabs.profile')}</span>
           </TabsTrigger>
+          {user?.role === 'expert' && (
+             <TabsTrigger value="expert" className="gap-2 text-indigo-600 data-[state=active]:text-indigo-700">
+               <Briefcase className="w-4 h-4 flex-shrink-0" />
+               <span className="hidden sm:inline">Expert Profile</span>
+             </TabsTrigger>
+          )}
           <TabsTrigger value="security" className="gap-2">
-            <Lock className="w-4 h-4" />
-            {t('tabs.security')}
+            <Lock className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t('tabs.security')}</span>
           </TabsTrigger>
           <TabsTrigger value="preferences" className="gap-2">
-            <Palette className="w-4 h-4" />
-            {t('tabs.preferences')}
+            <Palette className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t('tabs.preferences')}</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
           <ProfileTab />
         </TabsContent>
+        {user?.role === 'expert' && (
+          <TabsContent value="expert">
+            <ExpertProfileTab />
+          </TabsContent>
+        )}
         <TabsContent value="security">
           <SecurityTab />
         </TabsContent>

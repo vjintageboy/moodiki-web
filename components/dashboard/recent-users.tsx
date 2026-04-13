@@ -24,6 +24,17 @@ function maskEmail(email?: string | null): string {
   return `${masked}@${domain}`;
 }
 
+function maskName(name?: string | null): string {
+  if (!name) return '—';
+  const parts = name.trim().split(' ');
+  if (parts.length <= 1) {
+    return name.length > 1 ? `${name[0]}***` : `${name[0]}*`;
+  }
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  return `${first} *** ${last}`;
+}
+
 export function RecentUsers() {
   const t = useTranslations('DashboardHome')
   const locale = useLocale()
@@ -65,7 +76,7 @@ export function RecentUsers() {
 
             {/* User Info */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user.full_name}</p>
+              <p className="text-sm font-medium truncate">{maskName(user.full_name)}</p>
               <p className="text-xs text-muted-foreground truncate">{maskEmail(user.email)}</p>
             </div>
 

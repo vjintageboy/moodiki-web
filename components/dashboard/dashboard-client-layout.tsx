@@ -61,9 +61,9 @@ export function DashboardClientLayout({ children }: DashboardClientLayoutProps) 
         <Sidebar onCollapsedChange={setIsCollapsed} />
       </div>
 
-      <main className={`h-full flex flex-col transition-all duration-300 ${mainPadding}`}>
+      <main className={`h-full flex flex-col transition-all duration-300 ${mainPadding} bg-[#f8fafc] dark:bg-[#0f172a]`}>
         <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-        <div className="p-6 md:p-8 overflow-auto flex-1">
+        <div className="p-6 md:p-10 overflow-auto flex-1 scroll-smooth">
           {children}
         </div>
       </main>

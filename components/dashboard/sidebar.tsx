@@ -71,11 +71,12 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
     { label: t('notifications'), icon: Bell, href: '/notifications', roles: ['admin'] },
 
     // --- EXPERT ROUTES ---
-    { label: t('dashboard'), icon: LayoutDashboard, href: '/', roles: ['expert'] }, // Optional but good for UX
-    { label: t('appointments'), icon: Calendar, href: '/appointments', roles: ['expert', 'admin'] },
-    { label: t('availability'), icon: Clock, href: '/availability', roles: ['expert'] },
-    { label: t('earnings'), icon: DollarSign, href: '/earnings', roles: ['expert'] },
-    { label: t('chats'), icon: MessageSquare, href: '/chats', roles: ['expert'] },
+    { label: t('dashboard'), icon: LayoutDashboard, href: '/', roles: ['expert'] },
+    { label: t('calendar') || 'Calendar', icon: Calendar, href: '/availability', roles: ['expert'] },
+    { label: t('patients') || 'Patients', icon: Users, href: '/patients', roles: ['expert'] },
+    { label: t('sessions') || 'Sessions', icon: Clock, href: '/appointments', roles: ['expert'] },
+    { label: t('payments') || 'Payments', icon: DollarSign, href: '/earnings', roles: ['expert'] },
+    { label: t('analytics') || 'Analytics', icon: BarChart3, href: '/analytics', roles: ['expert', 'admin'] },
 
     // --- SHARED ROUTES ---
     { label: t('settings'), icon: Settings, href: '/settings' },
@@ -173,7 +174,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
       {/* Main Sidebar */}
       <div
         className={cn(
-          "flex flex-col h-full transition-all duration-300 ease-in-out bg-gray-900 text-gray-100 border-r border-gray-800",
+          "flex flex-col h-full transition-all duration-300 ease-in-out bg-[#1e2a4f] text-gray-100 border-r border-white/10",
           "fixed inset-y-0 left-0 z-50 md:z-40",
           isCollapsed ? "w-20" : "w-72",
           isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
@@ -190,12 +191,14 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
               href="/" 
               className="flex items-center gap-2 text-lg font-bold hover:opacity-80 transition flex-1 min-w-0"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent truncate">
-                Moodiki
-              </span>
+              {!isCollapsed && (
+                <span className="text-xl font-black text-white tracking-tight ml-1 animate-in fade-in slide-in-from-left-2 duration-300">
+                  Moodiki
+                </span>
+              )}
             </Link>
           )}
 
@@ -204,7 +207,7 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
             {/* Desktop collapse button */}
             <button
               onClick={toggleCollapse}
-              className="hidden md:flex p-1.5 hover:bg-gray-800 rounded-lg transition text-gray-400 hover:text-gray-200"
+              className="hidden md:flex p-1.5 hover:bg-white/10 rounded-lg transition text-indigo-300 hover:text-white"
               title={isCollapsed ? t('expand') : t('collapse')}
             >
               <ChevronLeft className={cn(
@@ -234,8 +237,8 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                   "text-sm font-medium whitespace-nowrap",
                   isActive(route.href)
-                    ? "bg-blue-500/20 text-blue-300 border-l-2 border-blue-500"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/50"
+                    ? "bg-white/10 text-white border-l-4 border-indigo-400 font-bold"
+                    : "text-indigo-200/60 hover:text-white hover:bg-white/5"
                 )}
                 title={isCollapsed ? route.label : undefined}
               >
@@ -268,48 +271,14 @@ export function Sidebar({ onCollapsedChange }: SidebarProps = {}) {
           )}
         </nav>
 
-        {/* User Profile Section at Bottom */}
+        {/* Logout Section at Bottom */}
         {!loading && user && (
-          <div className="border-t border-gray-800 p-4 space-y-3">
-            {/* User Info */}
-            <div className="flex items-center gap-3">
-              {/* Avatar */}
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 text-sm font-bold text-white">
-                {user.full_name
-                  ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase()
-                  : user.email[0].toUpperCase()}
-              </div>
-
-              {/* User Details */}
-              {!isCollapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">
-                    {user.full_name || t('user')}
-                  </p>
-                  <p className="text-xs text-gray-400 truncate">
-                    {user.email ? `${user.email[0]}***@${user.email.split('@')[1]}` : ''}
-                  </p>
-                  {/* Role Badge */}
-                  <div className="mt-1">
-                    <span className={cn(
-                      "inline-block px-2 py-0.5 rounded text-xs font-medium",
-                      isAdmin 
-                        ? "bg-red-500/20 text-red-300"
-                        : "bg-green-500/20 text-green-300"
-                    )}>
-                      {isAdmin ? t('admin') : t('expert')}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Logout Button */}
+          <div className="p-4 mt-auto">
             <button
               onClick={handleLogout}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                "text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/10",
+                "text-sm font-medium text-indigo-300/40 hover:text-red-400 hover:bg-red-500/10",
                 isCollapsed && "justify-center"
               )}
               title={isCollapsed ? t('logout') : undefined}

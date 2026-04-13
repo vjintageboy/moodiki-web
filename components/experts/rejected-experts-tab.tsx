@@ -38,6 +38,7 @@ import { formatCurrency } from '@/lib/utils/currency';
 
 interface RejectedExpert {
   id: string;
+  _status?: 'rejected' | 'suspended';
   users: {
     id: string;
     email: string;
@@ -58,6 +59,7 @@ interface RejectedExpert {
   university: string | null;
   graduation_year: number | null;
   title: string | null;
+  rejection_reason: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -326,7 +328,9 @@ export function RejectedExpertsTab({
                       {expert.total_reviews}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="destructive">{t('rejected')}</Badge>
+                      <Badge variant={expert._status === 'suspended' ? 'secondary' : 'destructive'}>
+                        {expert._status === 'suspended' ? t('suspended') : t('rejected')}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">

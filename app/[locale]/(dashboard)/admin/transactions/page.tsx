@@ -153,7 +153,7 @@ export default function TransactionsPage() {
               {tx.user?.full_name || 'Anonymous'}
             </span>
             <span className="text-[10px] text-muted-foreground truncate">
-              {maskEmail(tx.user?.email)}
+              {tx.user?.email || '—'}
             </span>
           </div>
         </div>

@@ -60,6 +60,10 @@
     "chats": "Trò chuyện",
     "settings": "Cài đặt",
     "analytics": "Phân tích",
+    "calendar": "Lịch trực quan",
+    "patients": "Bệnh nhân",
+    "sessions": "Ca tham vấn",
+    "payments": "Thanh toán",
     "chatMonitor": "Giám sát chat",
     "transactions": "Giao dịch",
     "notifications": "Thông báo",
@@ -152,6 +156,10 @@
     "pendingConfirmationLabel": "Chờ xác nhận",
     "avgRatingLabel": "Đánh giá TB",
     "notAvailable": "N/A",
+    "nextSessionLabel": "Ca tham vấn tiếp theo",
+    "joinSession": "Vào phòng Live",
+    "revenueTrendTitle": "Phân tích doanh thu",
+    "scheduleOverviewSubtitle": "Tổng quan lịch trình các buổi tham vấn sắp tới của bạn",
     "recentActivityHeading": "Hoạt động gần đây",
     "noRecentActivity": "Không có hoạt động gần đây",
     "appointmentLabel": "Cuộc hẹn {status}",
@@ -164,6 +172,7 @@
     "sessionWithOn": "Buổi thảo luận với {name} vào {date}",
     "recentAppointmentsError": "Không thể tải các cuộc hẹn",
     "recentAppointmentsEmpty": "Chưa có cuộc hẹn nào",
+    "weeklySchedule": "Lịch trình tuần",
     "recentUsersError": "Không thể tải người dùng",
     "recentUsersEmpty": "Chưa có đăng ký người dùng mới",
     "approveExpert": "Duyệt chuyên gia",
@@ -312,6 +321,7 @@
     "perHour": "₫/giờ",
     "noRating": "Chưa có đánh giá",
     "rejected": "Đã từ chối",
+    "suspended": "Đình chỉ",
     "details": "Chi tiết",
     "reactivate": "Kích hoạt lại",
     "delete": "Xóa",
@@ -474,8 +484,8 @@
     }
   },
   "Analytics": {
-    "title": "Phân tích",
-    "subtitle": "Các chỉ số hiệu suất và xu hướng của nền tảng",
+    "title": "Phân tích hiệu suất",
+    "subtitle": "Theo dõi các chỉ số quan trọng và sự phát triển của bạn trên nền tảng.",
     "refresh": "Làm mới",
     "kpi": {
       "totalUsers": "Tổng người dùng",
@@ -486,15 +496,20 @@
       "appointmentsToday": "{count} hôm nay",
       "totalRevenue": "Tổng doanh thu",
       "revenueSubtext": "Doanh thu gộp",
+      "personalRevenue": "Thu nhập cá nhân",
+      "totalSessions": "Tổng số buổi",
       "avgRating": "Đánh giá TB",
       "rating": "{value} / 5.0",
-      "ratingSubtext": "Từ người dùng",
+      "ratingSubtext": "Từ khách hàng",
       "meditations": "Thiền định",
       "meditationsSubtext": "Nội dung âm thanh",
       "communityPosts": "Bài viết cộng đồng",
       "postsSubtext": "Thảo luận người dùng",
       "weeklyAppointments": "Cuộc hẹn hàng tuần",
-      "weeklyAppointmentsSubtext": "7 ngày qua"
+      "weeklyAppointmentsSubtext": "7 ngày qua",
+      "benchmark": "Bạn đang làm tốt hơn {percent}% chuyên gia khác",
+      "platformAvg": "Trung bình nền tảng: {value}",
+      "platformAvgRevenue": "Doanh thu TB nền tảng"
     },
     "charts": {
       "userGrowth": {
@@ -504,8 +519,8 @@
       "usersCount": "{value} người dùng",
       "newUsers": "Người dùng mới",
       "revenue": {
-        "title": "Doanh thu",
-        "desc": "Doanh thu hàng ngày từ giao dịch hoàn tất trong 30 ngày qua",
+        "title": "Xu hướng doanh thu",
+        "desc": "Doanh thu cá nhân từ các ca tham vấn trong 30 ngày qua",
         "amount": "Doanh thu"
       },
       "retention": {
@@ -524,6 +539,10 @@
         "revenue": "Doanh thu",
         "rating": "Đánh giá",
         "noData": "Không có dữ liệu hiệu suất chuyên gia"
+      },
+      "sessionType": {
+        "title": "Loại hình tham vấn",
+        "desc": "Phân bổ các buổi qua Video, Voice và Chat"
       }
     },
     "empty": {
@@ -574,7 +593,15 @@
       "adminViewNotice": "Bạn đang xem cuộc trò chuyện này với tư cách Admin",
       "adminReadOnlyNotice": "Admin không thể tham gia vào các phiên riêng tư. Để can thiệp, hãy liên hệ trực tiếp với chuyên gia.",
       "typePlaceholder": "Nhập tin nhắn..."
-    }
+    },
+    "newChat": "Tạo Cuộc Trò Chuyện Mới",
+    "newChatDesc": "Bắt đầu cuộc trò chuyện trực tiếp với bệnh nhân. Nhập ID người dùng bên dưới.",
+    "patientId": "ID Người Dùng Bệnh Nhân",
+    "patientIdPlaceholder": "Nhập ID người dùng (UUID)",
+    "patientIdHint": "Bạn có thể tìm thấy điều này trong trang Bệnh nhân",
+    "cancel": "Hủy",
+    "create": "Tạo Trò Chuyện",
+    "creating": "Đang tạo..."
   },
   "UsersPage": {
     "title": "Người dùng",
@@ -902,6 +929,17 @@
     "subtitle": "Tạo lịch biểu lặp lại hoặc xác định các khung giờ cụ thể cho các cuộc hẹn với khách hàng.",
     "accessDenied": "Từ chối truy cập",
     "onlyExperts": "Chỉ các chuyên gia đã được xác minh mới có thể quản lý lịch rảnh của họ.",
+    "visualSchedule": "Lịch trực quan",
+    "bulkGenerator": "Trình tạo hàng loạt",
+    "today": "Hôm nay",
+    "addSlot": "Thêm khung giờ rảnh",
+    "addSlotHelper": "Khung giờ này sẽ hiển thị cho khách hàng đặt lịch tham vấn.",
+    "legend": {
+      "available": "Đang trống",
+      "booked": "Đã đặt"
+    },
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
     "generator": {
       "title": "Tạo Lịch Lặp lại",
       "description": "Tạo nhanh nhiều khối thời gian rảnh trong vài tuần tới.",
@@ -992,7 +1030,9 @@
     "unknown": "Chưa rõ",
     "status": {
       "active": "Hoạt động",
-      "pending": "Chờ duyệt"
+      "pending": "Chờ duyệt",
+      "suspended": "Tạm khóa",
+      "rejected": "Bị từ chối"
     },
     "actions": {
       "suspend": "Tạm khóa",
@@ -1012,7 +1052,9 @@
     "sections": {
       "about": "Giới thiệu",
       "education": "Học vấn",
-      "license": "Chứng chỉ & Bằng cấp"
+      "license": "Chứng chỉ & Bằng cấp",
+      "userProfile": "Thông tin người dùng",
+      "rejectionInfo": "Thông tin từ chối"
     },
     "fields": {
       "bio": "Tiểu sử",
@@ -1025,12 +1067,173 @@
       "licenseNumber": "Số giấy phép",
       "licenseDoc": "Tài liệu giấy phép",
       "certificates": "Chứng chỉ",
-      "certificate": "Chứng chỉ"
+      "certificate": "Chứng chỉ",
+      "rejectionReason": "Lý do từ chối",
+      "gender": "Giới tính",
+      "dateOfBirth": "Ngày sinh",
+      "goals": "Mục tiêu",
+      "preferences": "Tùy chọn",
+      "streakCount": "Số ngày liên tiếp",
+      "longestStreak": "Số ngày cao nhất",
+      "lastLogin": "Đăng nhập cuối",
+      "totalActivities": "Tổng hoạt động",
+      "isLocked": "Tài khoản bị khóa",
+      "joinedDate": "Ngày tham gia"
     },
     "empty": {
       "noBio": "Chưa có tiểu sử",
       "notSpecified": "Chưa có thông tin",
-      "notProvided": "Chưa cấp"
+      "notProvided": "Chưa cấp",
+      "noRejectionReason": "Không có lý do từ chối",
+      "noGoals": "Chưa có mục tiêu",
+      "noPreferences": "Chưa có tùy chọn"
     }
+  },
+
+  "DashboardHome": {
+    "welcomeExpert": "Chào mừng trở lại",
+    "expertDashboardSubtitle": "Quản lý buổi tư vấn, theo dõi tiến trình và kết nối với bệnh nhân.",
+    "totalAppointmentsTitle": "Tuần này",
+    "thisWeek": "Tổng buổi tuần này",
+    "confirmedTitle": "Đã xác nhận",
+    "confirmedThisWeek": "Buổi đã xác nhận",
+    "pendingTitle": "Chờ xác nhận",
+    "awaitingConfirmation": "Đang chờ xác nhận",
+    "totalEarningsTitle": "Thu nhập",
+    "thisWeekEarnings": "Thu nhập tuần này",
+    "quickActions": "Thao tác nhanh",
+    "updateAvailability": "Cập nhật lịch rảnh",
+    "viewEarnings": "Xem thu nhập",
+    "viewAllSessions": "Xem tất cả buổi",
+    "weekOverview": "Tổng quan tuần",
+    "completedLabel": "Hoàn thành",
+    "cancelledLabel": "Đã hủy",
+    "avgSessionsWeek": "Buổi tuần này"
+  },
+
+  "WeeklyCalendar": {
+    "title": "Lịch tuần",
+    "today": "Hôm nay",
+    "time": "Giờ",
+    "loading": "Đang tải...",
+    "noSessions": "Không có buổi",
+    "videoCall": "Video",
+    "audioCall": "Thoại",
+    "chatSession": "Nhắn tin"
+  },
+
+  "SessionEdit": {
+    "quickEditTitle": "Chỉnh sửa nhanh",
+    "dateTime": "Ngày & Giờ",
+    "sessionType": "Loại buổi",
+    "status": "Trạng thái",
+    "notes": "Ghi chú",
+    "notesPlaceholder": "Thêm ghi chú buổi...",
+    "cancelAppointment": "Hủy buổi",
+    "cancelReason": "Đã hủy từ bảng điều khiển",
+    "saveChanges": "Lưu thay đổi",
+    "close": "Đóng",
+    "reschedule": "Đổi lịch",
+    "confirmCancel": "Bạn có chắc muốn hủy buổi này?"
+  },
+
+  "NextSession": {
+    "nextSessionLabel": "Buổi tiếp theo",
+    "noSessionsTitle": "Không có buổi sắp tới",
+    "noSessionsSubtitle": "Bạn không có buổi tư vấn nào đã xác nhận.",
+    "sessionStarted": "Buổi đã bắt đầu!",
+    "startsIn": "Bắt đầu sau",
+    "joinLiveRoom": "Vào phòng Live",
+    "viewDetails": "Xem chi tiết"
+  },
+
+  "PatientsPage": {
+    "title": "Bệnh nhân",
+    "description": "Quản lý danh sách khách hàng và lịch sử tham vấn của bạn.",
+    "totalPatients": "Tổng số bệnh nhân",
+    "totalAppointments": "Tổng số cuộc hẹn",
+    "recentPatients": "Bệnh nhân gần đây",
+    "patientsList": "Danh sách bệnh nhân",
+    "noPatients": "Chưa có bệnh nhân nào",
+    "noPatientsDescription": "Bệnh nhân sẽ xuất hiện ở đây khi họ đặt lịch hẹn với bạn.",
+    "searchPlaceholder": "Tìm kiếm bệnh nhân theo tên hoặc email...",
+    "email": "Email",
+    "maskedPhone": "Số điện thoại",
+    "revealPhone": "Hiện số",
+    "revealed": "Đã hiển thị",
+    "lastSession": "Ca gần nhất",
+    "totalSessions": "Tổng số buổi",
+    "status": "Trạng thái",
+    "activeStatus": "Đang điều trị",
+    "completedStatus": "Đã hoàn thành",
+    "viewDetails": "Xem chi tiết",
+    "patientDetail": "Chi tiết bệnh nhân",
+    "sessionHistory": "Lịch sử tham vấn",
+    "noSessions": "Không có lịch sử tham vấn",
+    "internalNotes": "Ghi chú nội bộ",
+    "internalNotesPlaceholder": "Thêm ghi chú cá nhân về bệnh nhân này (chỉ mình bạn thấy)...",
+    "saveNotes": "Lưu ghi chú",
+    "savingNotes": "Đang lưu...",
+    "notesSaved": "Đã lưu ghi chú thành công",
+    "revealing": "Đang lấy số...",
+    "viewAnalysis": "Xem Phân Tích",
+    "chat": "Nhắn tin",
+    "bookSession": "Đặt Lịch"
+  },
+
+  "PatientAnalysis": {
+    "title": "Phân Tích Tâm Trạng",
+    "description": "Theo dõi và phân tích xu hướng tâm trạng, cảm xúc và sức khỏe tinh thần của bệnh nhân",
+    "noPatientSelected": "Chưa chọn bệnh nhân",
+    "backToPatients": "Quay lại danh sách bệnh nhân",
+    "patientInfo": "Thông Tin Bệnh Nhân",
+    "kpi": {
+      "averageMood": "Tâm Trung Trung Bình",
+      "totalEntries": "Tổng Số Lượt Ghi Nhận",
+      "streakDays": "Số Ngày Theo Dõi Liên Tục",
+      "moodLevel": "Mức Tâm Trạng",
+      "positive": "Xu hướng tích cực",
+      "concerning": "Cần chú ý",
+      "neutral": "Tâm trạng ổn định",
+      "noEntries": "Chưa có dữ liệu",
+      "goodStreak": "Rất nhất quán!",
+      "keepTracking": "Tiếp tục theo dõi hàng ngày"
+    },
+    "charts": {
+      "moodTrend": "Xu Hướng TâmTrạng (30 Ngày)",
+      "moodTrendDesc": "Điểm tâm trạng hàng ngày trong tháng qua",
+      "mood": "Điểm Tâm Trạng",
+      "moodDistribution": "Phân Phối Tâm Trạng",
+      "moodDistributionDesc": "Tần suất xuất hiện của từng mức tâm trạng"
+    },
+    "factors": {
+      "topEmotions": "Cảm Xúc Phổ Biến",
+      "topEmotionsDesc": "Các yếu tố cảm xúc được báo cáo nhiều nhất",
+      "noFactors": "Chưa có yếu tố cảm xúc nào được ghi nhận",
+      "time": "lần",
+      "times": "lần"
+    },
+    "tags": {
+      "topTags": "Thẻ Phổ Biến",
+      "topTagsDesc": "Các thẻ tâm trạng được sử dụng nhiều nhất",
+      "noTags": "Chưa có thẻ nào được ghi nhận"
+    },
+    "recentEntries": "Lượt Ghi Nhận Gần Đây",
+    "recentEntriesDesc": "10 lượt ghi nhận tâm trạng mới nhất",
+    "recentEntriesEmpty": "Không tìm thấy lượt ghi nhận nào",
+    "table": {
+      "date": "Ngày & Giờ",
+      "mood": "Tâm Trạng",
+      "note": "Ghi Chú",
+      "factors": "Yếu Tố Cảm Xúc",
+      "tags": "Thẻ"
+    }
+  },
+
+  "RevenueChart": {
+    "title": "Xu hướng thu nhập tháng",
+    "totalRevenue": "Tổng thu nhập",
+    "totalSessions": "Tổng số buổi",
+    "noData": "Chưa có dữ liệu thu nhập"
   }
 }

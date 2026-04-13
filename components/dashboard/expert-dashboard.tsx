@@ -1,256 +1,195 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/dashboard/stats-card';
-import { ExpertCalendar } from '@/components/dashboard/expert-calendar';
-import {
-  useExpertStats,
-  useExpertUpcomingAppointments,
-  useExpertProfile,
-  useExpertAppointments,
-  ExpertAppointmentWithUser,
-} from '@/hooks/use-expert-dashboard';
+import { WeeklySchedule, WeeklySession } from '@/components/dashboard/weekly-schedule';
+import { SessionEditModal } from '@/components/dashboard/session-edit-modal';
+import { NextSessionCard } from '@/components/dashboard/next-session-card';
+import { MonthlyRevenueChart } from '@/components/dashboard/monthly-revenue-chart';
+import { useWeeklyStats, useMonthlyRevenue } from '@/hooks/use-weekly-calendar';
 import {
   Calendar,
   DollarSign,
   CheckCircle,
-  Star,
-  Settings,
-  TrendingUp,
   Clock,
+  Settings,
+  Video,
+  ChevronRight,
+  ArrowRight,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
-import { format } from 'date-fns';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link as IntlLink } from '@/i18n/routing';
 import { useRouter as useIntlRouter } from '@/i18n/routing';
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+function formatCurrencyValue(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+    style: 'currency',
+    currency: locale === 'vi' ? 'VND' : 'USD',
+    minimumFractionDigits: 0,
+  }).format(locale === 'vi' ? value * 1000 : value / 100);
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
 
 interface ExpertDashboardProps {
   expertId: string;
 }
 
 export function ExpertDashboard({ expertId }: ExpertDashboardProps) {
-  const t = useTranslations('DashboardHome')
-  const tHeader = useTranslations('Header')
-  const locale = useLocale()
-  const router = useIntlRouter()
-  const { data: stats, isLoading: statsLoading } = useExpertStats(expertId);
-  const { data: appointments, isLoading: appointmentsLoading } =
-    useExpertUpcomingAppointments(expertId);
-  const { data: expertProfile, isLoading: profileLoading } =
-    useExpertProfile(expertId);
+  const t = useTranslations('DashboardHome');
+  const tHeader = useTranslations('Header');
+  const locale = useLocale();
+  const router = useIntlRouter();
 
-  const { data: allAppointments } = useExpertAppointments(expertId);
+  // Selected session for modal
+  const [selectedSession, setSelectedSession] = useState<WeeklySession | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const isLoading = statsLoading || profileLoading;
+  // Data hooks
+  const stats = useWeeklyStats(expertId);
+  const { data: revenueData, isLoading: revenueLoading } = useMonthlyRevenue(expertId);
 
-  const handleAppointmentClick = (appointment: ExpertAppointmentWithUser) => {
-    // Locale-aware navigation
-    router.push(`/appointments?id=${appointment.id}`);
+  const handleSessionClick = (session: WeeklySession) => {
+    setSelectedSession(session);
+    setModalOpen(true);
   };
 
-  const recentActivities = allAppointments?.slice(0, 5) || [];
+  const handleJoinSession = (sessionId: string) => {
+    router.push(`/appointments/${sessionId}`);
+  };
+
+  const handleViewSession = (sessionId: string) => {
+    router.push(`/appointments/${sessionId}`);
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">
-            {t('welcomeBack', {
-              title: expertProfile?.title ?? '',
-              education: expertProfile?.education?.split(',')[0] ?? '',
-            })}
-        </h2>
-        <p className="text-muted-foreground mt-1">
-            {t('expertDashboardSubtitle')}
+    <div className="space-y-6 animate-in fade-in duration-700">
+
+      {/* ================================================================== */}
+      {/* DASHBOARD HEADER                                                  */}
+      {/* ================================================================== */}
+      <div className="flex flex-col gap-1 mb-8">
+        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          {t('weeklySchedule') || 'Weekly Schedule'}
+        </h1>
+        <p className="text-slate-500 font-medium text-sm">
+          {t('expertDashboardSubtitle')}
         </p>
       </div>
 
-      {/* Stats Cards Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <StatsCard
-          title={t('totalAppointmentsTitle')}
-          value={stats?.totalAppointments || 0}
-          icon={Calendar}
-          description={t('allTime')}
-          trend={
-            stats && stats.totalAppointments > 0
-              ? 'up'
-              : ('neutral' as const)
-          }
-          isLoading={isLoading}
-        />
-        <StatsCard
-          title={t('upcomingTitle')}
-          value={stats?.upcomingAppointments || 0}
-          icon={Clock}
-          description={t('next7Days')}
-          trend={
-            stats && stats.upcomingAppointments > 0 ? 'up' : ('neutral' as const)
-          }
-          isLoading={isLoading}
-        />
-        <StatsCard
-          title={t('completedTitle')}
-          value={stats?.completedSessions || 0}
-          icon={CheckCircle}
-          description={t('sessionsCompleted')}
-          trend="up"
-          isLoading={isLoading}
-        />
-        <StatsCard
-          title={t('ratingTitle')}
-          value={stats?.averageRating ? stats.averageRating.toFixed(1) : '0'}
-          icon={Star}
-          description={
-            stats?.averageRating
-              ? t('ratingExcellentReviews', {
-                  tier:
-                    stats.averageRating > 4.5
-                      ? t('ratingTierExcellent')
-                      : stats.averageRating > 4
-                        ? t('ratingTierVeryGood')
-                        : stats.averageRating > 3.5
-                          ? t('ratingTierGood')
-                          : t('ratingTierFair'),
-                })
-              : t('ratingNoReviewsYet')
-          }
-          trend={stats?.averageRating && stats.averageRating >= 4.5 ? 'up' : 'neutral'}
-          isLoading={isLoading}
-        />
-        <StatsCard
-          title={t('totalEarningsTitle')}
-          value={stats?.totalEarnings 
-            ? new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
-                style: 'currency',
-                currency: locale === 'vi' ? 'VND' : 'USD',
-              }).format(locale === 'vi' ? stats.totalEarnings * 1000 : stats.totalEarnings / 100)
-            : locale === 'vi' ? '0 ₫' : '$0.00'}
-          icon={DollarSign}
-          description={t('paidAppointmentsShort')}
-          trend={stats && stats.totalEarnings > 0 ? 'up' : ('neutral' as const)}
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Main Content Grid */}
+      {/* ================================================================== */}
+      {/* MAIN CONTENT: Calendar + Next Session                              */}
+      {/* ================================================================== */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Upcoming Appointments - 2 columns */}
+        {/* Weekly Calendar (spans 2 columns) */}
         <div className="lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-xl font-bold">{t('upcomingAppointmentsHeading')}</h3>
-            <IntlLink href="/appointments">
-              <Button variant="ghost" size="sm">
-                {t('viewAll')}
-              </Button>
-            </IntlLink>
-          </div>
-          <ExpertCalendar
-            appointments={appointments || []}
-            isLoading={appointmentsLoading}
-            onAppointmentClick={handleAppointmentClick}
+          <WeeklySchedule
+            expertId={expertId}
+            onSessionClick={handleSessionClick}
           />
         </div>
 
-        {/* Quick Actions - 1 column */}
+        {/* Right Panel: Next Session */}
         <div>
-          <h3 className="text-xl font-bold mb-4">{t('quickActionsHeading')}</h3>
-          <div className="space-y-3">
-            <IntlLink href="/availability" className="w-full">
-              <Button className="w-full" variant="default">
-                {t('updateAvailability')}
-              </Button>
-            </IntlLink>
-            <IntlLink href="/earnings" className="w-full block">
-              <Button className="w-full" variant="outline">
-                {t('viewEarnings')}
-              </Button>
-            </IntlLink>
-            <IntlLink href="/settings" className="w-full">
-              <Button className="w-full" variant="outline">
-                <Settings className="w-4 h-4 mr-2" />
-                {tHeader('settings')}
-              </Button>
-            </IntlLink>
-          </div>
+          <NextSessionCard
+            expertId={expertId}
+            onJoinClick={handleJoinSession}
+            onViewClick={handleViewSession}
+          />
 
-          {/* Quick Stats Box */}
-          <Card className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-0">
-            <h4 className="font-semibold text-gray-900 mb-3">{t('thisMonth')}</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">{t('sessionsCompletedLabel')}</span>
-                <span className="font-medium">
-                  {stats?.completedSessions || 0}
-                </span>
+          {/* Quick Actions */}
+          <Card className="mt-4 p-4 border-none bg-white dark:bg-gray-950 shadow-sm">
+            <h3 className="font-bold text-sm mb-3">{t('quickActions')}</h3>
+            <div className="space-y-2">
+              <IntlLink href="/availability" className="block">
+                <Button className="w-full justify-between group" variant="outline" size="sm">
+                  <span className="flex items-center gap-2 text-xs">
+                    <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                    {t('updateAvailability')}
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all translate-x-[-8px] group-hover:translate-x-0" />
+                </Button>
+              </IntlLink>
+              <IntlLink href="/earnings" className="block">
+                <Button className="w-full justify-between group" variant="outline" size="sm">
+                  <span className="flex items-center gap-2 text-xs">
+                    <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
+                    {t('viewEarnings')}
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all translate-x-[-8px] group-hover:translate-x-0" />
+                </Button>
+              </IntlLink>
+              <IntlLink href="/appointments" className="block">
+                <Button className="w-full justify-between group" variant="outline" size="sm">
+                  <span className="flex items-center gap-2 text-xs">
+                    <Users className="w-3.5 h-3.5 text-blue-500" />
+                    {t('viewAllSessions')}
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all translate-x-[-8px] group-hover:translate-x-0" />
+                </Button>
+              </IntlLink>
+              <IntlLink href="/settings" className="block">
+                <Button className="w-full justify-between group" variant="outline" size="sm">
+                  <span className="flex items-center gap-2 text-xs">
+                    <Settings className="w-3.5 h-3.5 text-gray-500" />
+                    {tHeader('settings')}
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all translate-x-[-8px] group-hover:translate-x-0" />
+                </Button>
+              </IntlLink>
+            </div>
+          </Card>
+
+          {/* Quick Metrics */}
+          <Card className="mt-4 p-4 border-none bg-blue-50/50 dark:bg-blue-950/20 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-bold text-sm text-blue-900 dark:text-blue-100">{t('weekOverview')}</h4>
+              <span className="text-[10px] bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-100 px-2 py-0.5 rounded-full font-medium">Live</span>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center text-blue-700 dark:text-blue-300">
+                <span className="text-xs">{t('completedLabel')}</span>
+                <span className="font-black">{stats.completedCount}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">{t('pendingConfirmationLabel')}</span>
-                <span className="font-medium text-yellow-600">
-                  {stats ? stats.totalAppointments - (stats.completedSessions || 0) - (stats.upcomingAppointments || 0) : 0}
-                </span>
+              <div className="flex justify-between items-center text-blue-700 dark:text-blue-300">
+                <span className="text-xs">{t('cancelledLabel')}</span>
+                <span className="font-black text-red-600">{stats.cancelledCount}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-blue-200">
-                <span className="text-gray-700 font-medium">{t('avgRatingLabel')}</span>
-                <span className="flex items-center gap-1 font-medium text-blue-600">
-                  <Star className="w-4 h-4 fill-current" />
-                  {stats?.averageRating ? stats.averageRating.toFixed(1) : t('notAvailable')}
-                </span>
+              <div className="pt-3 border-t border-blue-200 dark:border-blue-900 flex justify-between items-center">
+                <span className="font-bold text-blue-900 dark:text-blue-100 text-xs">{t('avgSessionsWeek')}</span>
+                <div className="flex items-center gap-1 text-blue-700 dark:text-blue-300 font-black">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  {stats.totalSessions}
+                </div>
               </div>
             </div>
           </Card>
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <Card className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">{t('recentActivityHeading')}</h3>
-          <IntlLink href="/appointments">
-            <Button variant="ghost" size="sm">
-              {t('viewAll')}
-            </Button>
-          </IntlLink>
-        </div>
-        
-        {recentActivities.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">{t('noRecentActivity')}</p>
-        ) : (
-          <div className="space-y-4">
-            {recentActivities.map((apt: ExpertAppointmentWithUser) => (
-              <div key={apt.id} className="flex items-start gap-3">
-                <div
-                  className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                    apt.status === 'completed'
-                      ? 'bg-green-500'
-                      : apt.status === 'confirmed'
-                        ? 'bg-blue-500'
-                        : apt.status === 'cancelled'
-                          ? 'bg-red-500'
-                          : 'bg-yellow-500'
-                  }`}
-                />
-                <div>
-                  <p className="font-medium text-gray-900 capitalize">
-                    {t('appointmentLabel', { status: apt.status })}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {t('sessionWithOn', {
-                      name: apt.user?.full_name || t('aUser'),
-                      date: format(new Date(apt.appointment_date), locale === 'vi' ? 'dd/MM/yyyy' : 'MMM d, yyyy'),
-                    })}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {format(new Date(apt.updated_at || apt.created_at || apt.appointment_date), locale === 'vi' ? 'dd/MM, HH:mm' : 'MMM d, HH:mm')}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
+      {/* ================================================================== */}
+      {/* MONTHLY REVENUE CHART                                              */}
+      {/* ================================================================== */}
+      <MonthlyRevenueChart data={revenueData || []} />
+
+      {/* ================================================================== */}
+      {/* SESSION EDIT MODAL                                                 */}
+      {/* ================================================================== */}
+      <SessionEditModal
+        session={selectedSession}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
     </div>
   );
 }

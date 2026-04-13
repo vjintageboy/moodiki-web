@@ -122,6 +122,7 @@ export function CreateUserForm({ onSubmit }: CreateUserFormProps) {
       goals: [],
       preferences: {},
       last_login: null,
+      phone_number: null,
     };
 
     await onSubmit(newUser);

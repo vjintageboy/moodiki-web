@@ -19,6 +19,17 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+function maskName(name?: string | null): string {
+  if (!name) return '—';
+  const parts = name.trim().split(' ');
+  if (parts.length <= 1) {
+    return name.length > 1 ? `${name[0]}***` : `${name[0]}*`;
+  }
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  return `${first} *** ${last}`;
+}
+
 function getStatusColor(status: string): string {
   switch (status) {
     case 'completed':
@@ -86,7 +97,7 @@ export function RecentAppointments() {
             {/* Names */}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
-                {appointment.user.full_name} → {appointment.expert.full_name}
+                {maskName(appointment.user.full_name)} → {maskName(appointment.expert.full_name)}
               </p>
               <p className="text-xs text-muted-foreground">
                 {format(new Date(appointment.appointment_date), locale === 'vi' ? 'dd/MM/yyyy HH:mm' : 'MMM dd, yyyy HH:mm')}

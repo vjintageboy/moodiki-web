@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { vi, enUS } from 'date-fns/locale';
 import { useChatAdmin, useChatAdminMessages, useChatExpert, useChatRoom } from '@/hooks/use-chat';
+import { useCreateDirectChatRoom } from '@/hooks/use-chat-enhanced';
 import { useAuth } from '@/hooks/use-auth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,9 +14,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations, useLocale } from 'next-intl';
-import { 
+import {
   Search, MessageSquare, Archive, Shield,
-  Calendar, CheckCircle2, XCircle, AlertCircle, Clock, Eye, Send
+  Calendar, CheckCircle2, XCircle, AlertCircle, Clock, Eye, Send, Plus, Users
 } from 'lucide-react';
 import type { ChatRoomWithDetails } from '@/hooks/use-chat';
 import { cn } from '@/lib/utils';
@@ -26,7 +27,8 @@ export default function ChatsPage() {
   const dateLocale = locale === 'vi' ? vi : enUS;
 
   const { user: currentUser, isAdmin, isExpert } = useAuth();
-  
+  const createRoomMutation = useCreateDirectChatRoom();
+
   const { chatRooms, isLoadingRooms, updateRoomStatus } = useChatAdmin();
   const expertRoomsData = useChatExpert(isExpert && !isAdmin ? currentUser?.id : null);
 
@@ -37,6 +39,8 @@ export default function ChatsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStr, setFilterStr] = useState<'all' | 'active' | 'archived' | 'closed'>('all');
   const [newMessage, setNewMessage] = useState('');
+  const [showNewChatDialog, setShowNewChatDialog] = useState(false);
+  const [patientIdInput, setPatientIdInput] = useState('');
 
   // Load messages for the selected room
   const adminMessagesData = useChatAdminMessages(isAdmin ? activeRoomId : null);
@@ -81,12 +85,26 @@ export default function ChatsPage() {
   return (
     <div className="h-[calc(100vh-theme(spacing.20))] flex flex-col p-6 space-y-4">
       <div className="flex-shrink-0">
-        <h1 className="text-3xl font-bold tracking-tight">
-          {isAdmin ? t('adminTitle') : t('expertTitle')}
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          {isAdmin ? t('adminSubtitle') : t('expertSubtitle')}
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {isAdmin ? t('adminTitle') : t('expertTitle')}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {isAdmin ? t('adminSubtitle') : t('expertSubtitle')}
+            </p>
+          </div>
+          {isExpert && !isAdmin && (
+            <Button
+              onClick={() => setShowNewChatDialog(true)}
+              size="sm"
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {t('newChat')}
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card className="flex-1 min-h-0 overflow-hidden flex shadow-lg border-0 bg-background">
@@ -398,6 +416,67 @@ export default function ChatsPage() {
           )}
         </div>
       </Card>
+
+      {/* New Chat Dialog (Expert only) */}
+      {showNewChatDialog && isExpert && !isAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-background rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold mb-4">{t('newChat')}</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('newChatDesc')}
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t('patientId')}
+                </label>
+                <Input
+                  value={patientIdInput}
+                  onChange={(e) => setPatientIdInput(e.target.value)}
+                  placeholder={t('patientIdPlaceholder')}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t('patientIdHint')}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowNewChatDialog(false);
+                    setPatientIdInput('');
+                  }}
+                >
+                  {t('cancel')}
+                </Button>
+                <Button
+                  className="flex-1"
+                  disabled={!patientIdInput.trim() || createRoomMutation.isPending}
+                  onClick={() => {
+                    if (patientIdInput.trim() && currentUser?.id) {
+                      createRoomMutation.mutate(
+                        {
+                          expertId: currentUser.id,
+                          patientId: patientIdInput.trim(),
+                        },
+                        {
+                          onSuccess: () => {
+                            setShowNewChatDialog(false);
+                            setPatientIdInput('');
+                          },
+                        }
+                      );
+                    }
+                  }}
+                >
+                  {createRoomMutation.isPending ? t('creating') : t('create')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

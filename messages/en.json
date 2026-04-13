@@ -60,6 +60,10 @@
     "chats": "Chats",
     "settings": "Settings",
     "analytics": "Analytics",
+    "calendar": "Calendar",
+    "patients": "Patients",
+    "sessions": "Sessions",
+    "payments": "Payments",
     "chatMonitor": "Chat Monitor",
     "transactions": "Transactions",
     "notifications": "Notifications",
@@ -164,6 +168,7 @@
     "sessionWithOn": "Session with {name} on {date}",
     "recentAppointmentsError": "Failed to load appointments",
     "recentAppointmentsEmpty": "No appointments yet",
+    "weeklySchedule": "Weekly Schedule",
     "recentUsersError": "Failed to load users",
     "recentUsersEmpty": "No recent user registrations",
     "approveExpert": "Approve Expert",
@@ -312,6 +317,7 @@
     "perHour": "$/hour",
     "noRating": "No rating",
     "rejected": "Rejected",
+    "suspended": "Suspended",
     "details": "Details",
     "reactivate": "Reactivate",
     "delete": "Delete",
@@ -474,8 +480,8 @@
     }
   },
   "Analytics": {
-    "title": "Analytics",
-    "subtitle": "Platform performance metrics and trends",
+    "title": "Performance Analytics",
+    "subtitle": "Track your key metrics and growth on the platform",
     "refresh": "Refresh",
     "kpi": {
       "totalUsers": "Total Users",
@@ -486,15 +492,20 @@
       "appointmentsToday": "{count} today",
       "totalRevenue": "Total Revenue",
       "revenueSubtext": "Gross earnings",
+      "personalRevenue": "Your Earnings",
+      "totalSessions": "Total Sessions",
       "avgRating": "Avg. Rating",
       "rating": "{value} / 5.0",
-      "ratingSubtext": "From users",
+      "ratingSubtext": "From patients",
       "meditations": "Meditations",
       "meditationsSubtext": "Audio content",
       "communityPosts": "Community Posts",
       "postsSubtext": "User discussions",
       "weeklyAppointments": "Weekly Appointments",
-      "weeklyAppointmentsSubtext": "Last 7 days"
+      "weeklyAppointmentsSubtext": "Last 7 days",
+      "benchmark": "You are performing better than {percent}% of experts",
+      "platformAvg": "Platform Average: {value}",
+      "platformAvgRevenue": "Platform Avg Revenue"
     },
     "charts": {
       "userGrowth": {
@@ -505,7 +516,7 @@
       "newUsers": "New Users",
       "revenue": {
         "title": "Revenue Trend",
-        "desc": "Daily revenue from completed transactions over the last 30 days",
+        "desc": "Your revenue from completed sessions over the last 30 days",
         "amount": "Revenue"
       },
       "retention": {
@@ -524,6 +535,10 @@
         "revenue": "Revenue",
         "rating": "Rating",
         "noData": "No expert performance data available"
+      },
+      "sessionType": {
+        "title": "Session Types",
+        "desc": "Distribution of Video, Voice, and Chat sessions"
       }
     },
     "empty": {
@@ -574,7 +589,15 @@
       "adminViewNotice": "You are viewing this chat as an Admin",
       "adminReadOnlyNotice": "Admins cannot participate in private sessions. For intervention, contact the expert directly.",
       "typePlaceholder": "Type a message..."
-    }
+    },
+    "newChat": "New Chat",
+    "newChatDesc": "Start a direct conversation with a patient. Enter their user ID below.",
+    "patientId": "Patient User ID",
+    "patientIdPlaceholder": "Enter patient user ID (UUID)",
+    "patientIdHint": "You can find this in the Patients page",
+    "cancel": "Cancel",
+    "create": "Create Chat",
+    "creating": "Creating..."
   },
   "UsersPage": {
     "title": "Users",
@@ -902,6 +925,17 @@
     "subtitle": "Generate recurring schedules or define specific time slots for client appointments.",
     "accessDenied": "Access Denied",
     "onlyExperts": "Only verified experts can manage their availability.",
+    "visualSchedule": "Visual Schedule",
+    "bulkGenerator": "Bulk Generator",
+    "today": "Today",
+    "legend": {
+      "available": "Available",
+      "booked": "Booked"
+    },
+    "addSlot": "Add Availability Slot",
+    "addSlotHelper": "This slot will be available for clients to book sessions.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
     "generator": {
       "title": "Generate Recurring Schedule",
       "description": "Instantly create multiple availability blocks over the next few weeks.",
@@ -991,7 +1025,7 @@
     "notFound": "Expert not found",
     "goBack": "Go Back",
     "unknown": "Unknown",
-    "status": { "active": "Active", "pending": "Pending" },
+    "status": { "active": "Active", "pending": "Pending", "suspended": "Suspended", "rejected": "Rejected" },
     "actions": {
       "suspend": "Suspend", "suspending": "Suspending...",
       "approve": "Approve", "approving": "Approving...",
@@ -999,13 +1033,163 @@
       "viewDoc": "View Document"
     },
     "stats": { "sessions": "Sessions", "completed": "Completed", "earnings": "Earnings", "rating": "Rating" },
-    "sections": { "about": "About", "education": "Education", "license": "License & Credentials" },
+    "sections": { "about": "About", "education": "Education", "license": "License & Credentials", "userProfile": "User Profile", "rejectionInfo": "Rejection Information" },
     "fields": {
       "bio": "Bio", "experience": "Experience", "years": "years", "hourlyRate": "Hourly Rate",
       "degree": "Degree", "university": "University", "graduationYear": "Graduation Year",
       "licenseNumber": "License Number", "licenseDoc": "License Document",
-      "certificates": "Certificates", "certificate": "Certificate"
+      "certificates": "Certificates", "certificate": "Certificate",
+      "rejectionReason": "Rejection Reason", "gender": "Gender", "dateOfBirth": "Date of Birth",
+      "goals": "Goals", "preferences": "Preferences", "streakCount": "Streak Count",
+      "longestStreak": "Longest Streak", "lastLogin": "Last Login", "totalActivities": "Total Activities",
+      "isLocked": "Account Locked", "joinedDate": "Joined Date"
     },
-    "empty": { "noBio": "No bio provided", "notSpecified": "Not specified", "notProvided": "Not provided" }
+    "empty": { "noBio": "No bio provided", "notSpecified": "Not specified", "notProvided": "Not provided", "noRejectionReason": "No reason provided", "noGoals": "No goals set", "noPreferences": "No preferences set" }
+  },
+
+  "DashboardHome": {
+    "welcomeExpert": "Welcome back",
+    "expertDashboardSubtitle": "Manage your sessions, track progress, and stay connected with your patients.",
+    "totalAppointmentsTitle": "This Week",
+    "thisWeek": "Total sessions this week",
+    "confirmedTitle": "Confirmed",
+    "confirmedThisWeek": "Confirmed sessions",
+    "pendingTitle": "Pending",
+    "awaitingConfirmation": "Awaiting confirmation",
+    "totalEarningsTitle": "Earnings",
+    "thisWeekEarnings": "This week's earnings",
+    "quickActions": "Quick Actions",
+    "updateAvailability": "Update Availability",
+    "viewEarnings": "View Earnings",
+    "viewAllSessions": "View All Sessions",
+    "weekOverview": "Week Overview",
+    "completedLabel": "Completed",
+    "cancelledLabel": "Cancelled",
+    "avgSessionsWeek": "Sessions this week"
+  },
+
+  "WeeklyCalendar": {
+    "title": "Weekly Schedule",
+    "today": "Today",
+    "time": "Time",
+    "loading": "Loading...",
+    "noSessions": "No sessions",
+    "videoCall": "Video Call",
+    "audioCall": "Audio Call",
+    "chatSession": "Chat Session"
+  },
+
+  "SessionEdit": {
+    "quickEditTitle": "Quick Edit Session",
+    "dateTime": "Date & Time",
+    "sessionType": "Session Type",
+    "status": "Status",
+    "notes": "Notes",
+    "notesPlaceholder": "Add session notes...",
+    "cancelAppointment": "Cancel Appointment",
+    "cancelReason": "Cancelled from dashboard",
+    "saveChanges": "Save Changes",
+    "close": "Close",
+    "reschedule": "Reschedule",
+    "confirmCancel": "Are you sure you want to cancel this session?"
+  },
+
+  "NextSession": {
+    "nextSessionLabel": "Next Session",
+    "noSessionsTitle": "No upcoming sessions",
+    "noSessionsSubtitle": "You have no confirmed sessions scheduled.",
+    "sessionStarted": "Session started!",
+    "startsIn": "Starts in",
+    "joinLiveRoom": "Join Live Room",
+    "viewDetails": "View Details"
+  },
+
+  "PatientsPage": {
+    "title": "Patients",
+    "description": "Manage your clinical list and consultation history.",
+    "totalPatients": "Total Patients",
+    "totalAppointments": "Total Appointments",
+    "recentPatients": "Recent Patients",
+    "patientsList": "Patients List",
+    "noPatients": "No patients yet",
+    "noPatientsDescription": "Patients will appear here once they book appointments with you.",
+    "searchPlaceholder": "Search patients by name or email...",
+    "email": "Email",
+    "maskedPhone": "Phone",
+    "revealPhone": "Reveal",
+    "revealed": "Revealed",
+    "lastSession": "Last Session",
+    "totalSessions": "Total Sessions",
+    "status": "Status",
+    "activeStatus": "Under Treatment",
+    "completedStatus": "Completed",
+    "viewDetails": "View Details",
+    "patientDetail": "Patient Detail",
+    "sessionHistory": "Session History",
+    "noSessions": "No session history found",
+    "internalNotes": "Internal Notes",
+    "internalNotesPlaceholder": "Add personal notes about this patient (private to you)...",
+    "saveNotes": "Save Notes",
+    "savingNotes": "Saving...",
+    "notesSaved": "Notes saved successfully",
+    "revealing": "Revealing...",
+    "viewAnalysis": "View Analysis",
+    "chat": "Chat",
+    "bookSession": "Book Session"
+  },
+
+  "PatientAnalysis": {
+    "title": "Patient Mood Analysis",
+    "description": "Track and analyze patient mood patterns, emotions, and mental health trends",
+    "noPatientSelected": "No patient selected",
+    "backToPatients": "Back to Patients",
+    "patientInfo": "Patient Information",
+    "kpi": {
+      "averageMood": "Average Mood",
+      "totalEntries": "Total Mood Entries",
+      "streakDays": "Tracking Streak",
+      "moodLevel": "Mood Level",
+      "positive": "Positive trend",
+      "concerning": "Needs attention",
+      "neutral": "Stable mood",
+      "noEntries": "No entries yet",
+      "goodStreak": "Great consistency!",
+      "keepTracking": "Keep tracking daily"
+    },
+    "charts": {
+      "moodTrend": "Mood Trend (30 Days)",
+      "moodTrendDesc": "Daily mood scores over the last month",
+      "mood": "Mood Score",
+      "moodDistribution": "Mood Distribution",
+      "moodDistributionDesc": "How often each mood level appears"
+    },
+    "factors": {
+      "topEmotions": "Top Emotion Factors",
+      "topEmotionsDesc": "Most frequently reported emotional triggers",
+      "noFactors": "No emotion factors recorded yet",
+      "time": "time",
+      "times": "times"
+    },
+    "tags": {
+      "topTags": "Common Tags",
+      "topTagsDesc": "Most used mood tags by this patient",
+      "noTags": "No tags recorded yet"
+    },
+    "recentEntries": "Recent Mood Entries",
+    "recentEntriesDesc": "Latest 10 mood tracking entries",
+    "recentEntriesEmpty": "No mood entries found",
+    "table": {
+      "date": "Date & Time",
+      "mood": "Mood",
+      "note": "Patient Note",
+      "factors": "Emotion Factors",
+      "tags": "Tags"
+    }
+  },
+  "RevenueChart": {
+    "title": "Monthly Revenue Trends",
+    "totalRevenue": "Total Revenue",
+    "totalSessions": "Total Sessions",
+    "noData": "No revenue data available yet"
   }
 }

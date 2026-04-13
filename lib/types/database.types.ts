@@ -130,6 +130,7 @@ export interface User {
   longest_streak: number;
   date_of_birth: string | null; // ISO timestamp
   gender: string | null;
+  phone_number: string | null;
   goals: string[] | null; // Array of goal strings
   preferences: Record<string, any> | null; // JSONB
   last_login: string | null; // ISO timestamp
@@ -158,6 +159,7 @@ export interface Expert {
   university: string | null;
   graduation_year: number | null;
   title: string | null; // e.g., "Dr.", "Ms."
+  rejection_reason: string | null; // Admin moderation — migration 008
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
 }

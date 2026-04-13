@@ -58,7 +58,10 @@ export async function POST(request: Request) {
 
     // ── Verify signature ──────────────────────────────────────────────────
     if (!verifyMomoSignature(body)) {
-      console.error('[MoMo Webhook] Invalid signature');
+      console.error('[MoMo Webhook] Invalid signature. Check MOMO_SECRET_KEY and request body.');
+      // Log body keys (excluding signature for security) to help debugging
+      const { signature: _sig, ...debugBody } = body;
+      console.error('[MoMo Webhook] Debug info:', JSON.stringify(debugBody));
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
@@ -67,16 +70,15 @@ export async function POST(request: Request) {
     // ── Only process successful payments (resultCode === 0) ───────────────
     if (resultCode !== 0) {
       console.log(`[MoMo Webhook] Payment failed for orderId=${orderId}, resultCode=${resultCode}`);
-      // Update appointment to reflect failed payment if needed
       return NextResponse.json({ received: true, note: 'Payment not successful' });
     }
 
     if (!orderId) {
+      console.error('[MoMo Webhook] Missing orderId in request body');
       return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
     }
 
     // ── Update appointment payment status ─────────────────────────────────
-    // orderId maps to appointments.payment_id (set during payment creation in mobile app)
     const { data: updatedAppointment, error: updateError } = await supabaseAdmin
       .from('appointments')
       .update({
@@ -85,12 +87,11 @@ export async function POST(request: Request) {
         updated_at: new Date().toISOString(),
       })
       .eq('payment_id', orderId)
-      .eq('payment_status', 'unpaid') // Idempotency: only update if still unpaid
+      .eq('payment_status', 'unpaid')
       .select('id, user_id, expert_id, appointment_date')
       .single();
 
     if (updateError) {
-      // Could be "already paid" — check
       const { data: existing } = await supabaseAdmin
         .from('appointments')
         .select('payment_status')
@@ -98,11 +99,11 @@ export async function POST(request: Request) {
         .single();
 
       if (existing?.payment_status === 'paid') {
-        console.log('[MoMo Webhook] Already processed, idempotent response');
+        console.log(`[MoMo Webhook] Order ${orderId} already processed (idempotent).`);
         return NextResponse.json({ received: true, note: 'Already processed' });
       }
 
-      console.error('[MoMo Webhook] DB Update Error:', updateError);
+      console.error(`[MoMo Webhook] DB Update Error for order ${orderId}:`, updateError);
       return NextResponse.json({ error: 'Failed to update database' }, { status: 500 });
     }
 
@@ -114,30 +115,40 @@ export async function POST(request: Request) {
     console.log('[MoMo Webhook] Payment confirmed for appointment:', updatedAppointment.id);
 
     // ── Send notifications to user and expert ─────────────────────────────
-    const appointmentDate = updatedAppointment.appointment_date
-      ? new Date(updatedAppointment.appointment_date).toLocaleDateString('vi-VN', {
-          day: '2-digit', month: '2-digit', year: 'numeric'
-        })
-      : '';
+    try {
+      const appointmentDate = updatedAppointment.appointment_date
+        ? new Date(updatedAppointment.appointment_date).toLocaleDateString('vi-VN', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+          })
+        : '';
 
-    await supabaseAdmin.from('notifications').insert([
-      {
-        user_id: updatedAppointment.user_id,
-        title: 'Thanh toán thành công',
-        message: `Lịch hẹn ngày ${appointmentDate} đã được thanh toán thành công. Chuyên gia sẽ liên hệ xác nhận sớm.`,
-        type: 'payment',
-        is_read: false,
-        metadata: { appointment_id: updatedAppointment.id, amount, trans_id: transId },
-      },
-      {
-        user_id: updatedAppointment.expert_id,
-        title: 'Lịch hẹn mới đã thanh toán',
-        message: `Một người dùng vừa thanh toán lịch hẹn ngày ${appointmentDate}. Vui lòng xác nhận lịch hẹn.`,
-        type: 'appointment',
-        is_read: false,
-        metadata: { appointment_id: updatedAppointment.id, amount, trans_id: transId },
-      },
-    ]);
+      const notifications = [
+        {
+          user_id: updatedAppointment.user_id,
+          title: 'Thanh toán thành công',
+          message: `Lịch hẹn ngày ${appointmentDate} đã được thanh toán thành công. Chuyên gia sẽ liên hệ xác nhận sớm.`,
+          type: 'payment',
+          is_read: false,
+          metadata: { appointment_id: updatedAppointment.id, amount, trans_id: transId },
+        },
+        {
+          user_id: updatedAppointment.expert_id,
+          title: 'Lịch hẹn mới đã thanh toán',
+          message: `Một người dùng vừa thanh toán lịch hẹn ngày ${appointmentDate}. Vui lòng xác nhận lịch hẹn.`,
+          type: 'appointment',
+          is_read: false,
+          metadata: { appointment_id: updatedAppointment.id, amount, trans_id: transId },
+        },
+      ];
+
+      const { error: notifyError } = await supabaseAdmin.from('notifications').insert(notifications);
+      if (notifyError) {
+        console.error('[MoMo Webhook] Notification error:', notifyError);
+        // We don't return 500 here because the payment was already successfully updated in DB
+      }
+    } catch (notifyErr) {
+       console.error('[MoMo Webhook] Unexpected notification error:', notifyErr);
+    }
 
     return NextResponse.json({ success: true });
 

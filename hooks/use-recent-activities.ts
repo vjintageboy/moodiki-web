@@ -152,6 +152,7 @@ export function useApprovedExperts() {
           university,
           graduation_year,
           title,
+          rejection_reason,
           created_at,
           updated_at,
           users (
@@ -170,6 +171,62 @@ export function useApprovedExperts() {
       return data as any[];
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+/**
+ * Fetch rejected/suspended experts (is_approved = false with prior activity)
+ * - Experts with rejection_reason are "rejected" (never approved)
+ * - Experts without rejection_reason but with reviews are "suspended" (were approved, then suspended)
+ */
+export function useRejectedExperts() {
+  return useQuery({
+    queryKey: ['rejected-experts'],
+    queryFn: async () => {
+      const supabase = createClient();
+
+      const { data, error } = await supabase
+        .from('experts')
+        .select(
+          `
+          id,
+          bio,
+          specialization,
+          hourly_rate,
+          rating,
+          total_reviews,
+          is_approved,
+          years_experience,
+          license_number,
+          license_url,
+          certificate_urls,
+          education,
+          university,
+          graduation_year,
+          title,
+          rejection_reason,
+          created_at,
+          updated_at,
+          users (
+            id,
+            email,
+            full_name,
+            avatar_url
+          )
+        `
+        )
+        .eq('is_approved', false)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Add a derived status field
+      return (data as any[]).map((expert) => ({
+        ...expert,
+        _status: expert.rejection_reason ? 'rejected' : 'suspended',
+      }));
+    },
+    staleTime: 1000 * 60 * 2, // 2 minutes — changes more frequently
   });
 }
 
@@ -196,6 +253,7 @@ export function usePendingExperts() {
           license_number,
           license_url,
           certificate_urls,
+          rejection_reason,
           created_at,
           users (
             id,
